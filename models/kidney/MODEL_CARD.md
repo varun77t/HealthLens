@@ -127,6 +127,10 @@ _All figures below are measured on the held-out test set (or by cross-validation
 | `cm_tp` | 48 |
 | `threshold_rule` | Youden's J (max sensitivity + specificity - 1) maximised on out-of-fold predictions over the TRAINING set, then applied unchanged to the test set. The test set played no part in choosing it. |
 
+### Which threshold to read
+
+> Positive-class prevalence is 0.6250. At threshold 0.5 the model recovers 0.9600 of positives at 0.9667 specificity; at the sensitivity-oriented threshold 0.5792 it recovers 0.9600 at 1.0000 specificity. The two operating points are close, so 0.5 is a reasonable default here.
+
 ### Calibration comparison
 
 | method | brier | roc_auc |
@@ -149,16 +153,16 @@ Method: SHAP, aggregated from the transformed columns back to original features
 
 | rank | feature | mean_abs_shap | mean_shap | description |
 |---|---|---|---|---|
-| 1 | sg | 0.0762 | -0.0073 | Urine specific gravity (1.005-1.025) |
-| 2 | pcv | 0.0699 | -0.0190 | Packed cell volume (%) |
-| 3 | hemo | 0.0654 | -0.0107 | Haemoglobin (g/dl) |
-| 4 | al | 0.0480 | 0.0040 | Albumin (0-5 ordinal scale) |
-| 5 | htn | 0.0328 | -0.0014 | Hypertension (yes / no) |
-| 6 | rbcc | 0.0323 | -0.0021 | Red blood cell count (millions/cu mm) |
-| 7 | bgr | 0.0283 | 0.0005 | Random blood glucose (mg/dl) |
-| 8 | dm | 0.0277 | 0.0001 | Diabetes mellitus (yes / no) |
-| 9 | sc | 0.0178 | -0.0053 | Serum creatinine (mg/dl) |
-| 10 | bu | 0.0161 | -0.0004 | Blood urea (mg/dl) |
+| 1 | sg | 0.0763 | -0.0069 | Urine specific gravity (1.005-1.025) |
+| 2 | pcv | 0.0701 | -0.0186 | Packed cell volume (%) |
+| 3 | hemo | 0.0653 | -0.0110 | Haemoglobin (g/dl) |
+| 4 | al | 0.0481 | 0.0043 | Albumin (0-5 ordinal scale) |
+| 5 | htn | 0.0334 | -0.0021 | Hypertension (yes / no) |
+| 6 | rbcc | 0.0317 | -0.0012 | Red blood cell count (millions/cu mm) |
+| 7 | bgr | 0.0284 | 0.0006 | Random blood glucose (mg/dl) |
+| 8 | dm | 0.0278 | 0.0007 | Diabetes mellitus (yes / no) |
+| 9 | sc | 0.0174 | -0.0057 | Serum creatinine (mg/dl) |
+| 10 | bu | 0.0161 | -0.0011 | Blood urea (mg/dl) |
 
 ## Limitations
 

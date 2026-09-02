@@ -1,0 +1,290 @@
+{
+  "disease": "diabetes",
+  "explainer": "tree",
+  "base_value": 0.006160940043628216,
+  "additivity_max_error": 3.337860107421875e-06,
+  "n_rows_explained": 5000,
+  "n_test_rows": 50961,
+  "explained_on": "a random sample of 5,000 of the 50,961 test rows (random_state=42)",
+  "global_importance": [
+    {
+      "rank": 1,
+      "feature": "GenHlth",
+      "mean_abs_shap": 0.6533771753311157,
+      "mean_shap": -0.2752050757408142,
+      "description": "Self-rated general health (1 excellent - 5 poor)"
+    },
+    {
+      "rank": 2,
+      "feature": "HighBP",
+      "mean_abs_shap": 0.44366586208343506,
+      "mean_shap": -0.12091228365898132,
+      "description": "Ever told by a health professional you have high blood pressure (0/1)"
+    },
+    {
+      "rank": 3,
+      "feature": "BMI",
+      "mean_abs_shap": 0.4146813452243805,
+      "mean_shap": -0.1274711936712265,
+      "description": "Body Mass Index"
+    },
+    {
+      "rank": 4,
+      "feature": "Age",
+      "mean_abs_shap": 0.4042159914970398,
+      "mean_shap": -0.13411596417427063,
+      "description": "13-level age category (1 = 18-24 ... 13 = 80+)"
+    },
+    {
+      "rank": 5,
+      "feature": "HighChol",
+      "mean_abs_shap": 0.2980566918849945,
+      "mean_shap": -0.07040722668170929,
+      "description": "Ever told you have high cholesterol (0/1)"
+    },
+    {
+      "rank": 6,
+      "feature": "Income",
+      "mean_abs_shap": 0.13972127437591553,
+      "mean_shap": -0.04130485653877258,
+      "description": "Income category (1 - 8 ordinal)"
+    },
+    {
+      "rank": 7,
+      "feature": "Sex",
+      "mean_abs_shap": 0.1347593516111374,
+      "mean_shap": -0.014025155454874039,
+      "description": "Sex (0 = female, 1 = male)"
+    },
+    {
+      "rank": 8,
+      "feature": "CholCheck",
+      "mean_abs_shap": 0.0715220719575882,
+      "mean_shap": -0.028783883899450302,
+      "description": "Cholesterol check within the past 5 years (0/1)"
+    },
+    {
+      "rank": 9,
+      "feature": "HeartDiseaseorAttack",
+      "mean_abs_shap": 0.06736679375171661,
+      "mean_shap": -0.0200742706656456,
+      "description": "Coronary heart disease or myocardial infarction (0/1)"
+    },
+    {
+      "rank": 10,
+      "feature": "HvyAlcoholConsump",
+      "mean_abs_shap": 0.06520513445138931,
+      "mean_shap": -0.015396017581224442,
+      "description": "Heavy alcohol consumption (0/1)"
+    },
+    {
+      "rank": 11,
+      "feature": "MentHlth",
+      "mean_abs_shap": 0.05724096670746803,
+      "mean_shap": -0.0030046971514821053,
+      "description": "Days of poor mental health in past 30 days (0-30)"
+    },
+    {
+      "rank": 12,
+      "feature": "DiffWalk",
+      "mean_abs_shap": 0.049688950181007385,
+      "mean_shap": -0.01157818641513586,
+      "description": "Serious difficulty walking or climbing stairs (0/1)"
+    },
+    {
+      "rank": 13,
+      "feature": "Education",
+      "mean_abs_shap": 0.048714324831962585,
+      "mean_shap": -0.012567809782922268,
+      "description": "Education level (1 - 6 ordinal)"
+    },
+    {
+      "rank": 14,
+      "feature": "Fruits",
+      "mean_abs_shap": 0.026786673814058304,
+      "mean_shap": -0.00287290895357728,
+      "description": "Consumes fruit 1+ times per day (0/1)"
+    },
+    {
+      "rank": 15,
+      "feature": "PhysHlth",
+      "mean_abs_shap": 0.026236023753881454,
+      "mean_shap": 0.000592244672589004,
+      "description": "Days of poor physical health in past 30 days (0-30)"
+    },
+    {
+      "rank": 16,
+      "feature": "Stroke",
+      "mean_abs_shap": 0.018984835594892502,
+      "mean_shap": -0.008265256881713867,
+      "description": "Ever told you had a stroke (0/1)"
+    },
+    {
+      "rank": 17,
+      "feature": "Smoker",
+      "mean_abs_shap": 0.016155922785401344,
+      "mean_shap": 0.00022398894361685961,
+      "description": "Smoked at least 100 cigarettes in lifetime (0/1)"
+    },
+    {
+      "rank": 18,
+      "feature": "Veggies",
+      "mean_abs_shap": 0.012950182892382145,
+      "mean_shap": -0.0020552738569676876,
+      "description": "Consumes vegetables 1+ times per day (0/1)"
+    },
+    {
+      "rank": 19,
+      "feature": "PhysActivity",
+      "mean_abs_shap": 0.01274309866130352,
+      "mean_shap": -0.003137954045087099,
+      "description": "Physical activity in past 30 days, not job-related (0/1)"
+    },
+    {
+      "rank": 20,
+      "feature": "AnyHealthcare",
+      "mean_abs_shap": 0.0073413182981312275,
+      "mean_shap": -0.0010294236708432436,
+      "description": "Has any health-care coverage (0/1)"
+    },
+    {
+      "rank": 21,
+      "feature": "NoDocbcCost",
+      "mean_abs_shap": 0.0071578375063836575,
+      "mean_shap": -0.0005331503343768418,
+      "description": "Could not see a doctor in past 12 months because of cost (0/1)"
+    }
+  ],
+  "example_local_explanation": {
+    "base_value": 0.006160940043628216,
+    "predicted_probability": 0.46255606412887573,
+    "contributions": [
+      {
+        "feature": "GenHlth",
+        "value": 2.0,
+        "contribution": -0.5915414690971375,
+        "description": "Self-rated general health (1 excellent - 5 poor)"
+      },
+      {
+        "feature": "BMI",
+        "value": 24.0,
+        "contribution": -0.5322700142860413,
+        "description": "Body Mass Index"
+      },
+      {
+        "feature": "HighBP",
+        "value": 1.0,
+        "contribution": 0.42997461557388306,
+        "description": "Ever told by a health professional you have high blood pressure (0/1)"
+      },
+      {
+        "feature": "Age",
+        "value": 11.0,
+        "contribution": 0.3315022587776184,
+        "description": "13-level age category (1 = 18-24 ... 13 = 80+)"
+      },
+      {
+        "feature": "HighChol",
+        "value": 1.0,
+        "contribution": 0.2348407357931137,
+        "description": "Ever told you have high cholesterol (0/1)"
+      },
+      {
+        "feature": "Income",
+        "value": 4.0,
+        "contribution": 0.18970057368278503,
+        "description": "Income category (1 - 8 ordinal)"
+      },
+      {
+        "feature": "Sex",
+        "value": 0.0,
+        "contribution": -0.13392040133476257,
+        "description": "Sex (0 = female, 1 = male)"
+      },
+      {
+        "feature": "MentHlth",
+        "value": 3.0,
+        "contribution": -0.05969107896089554,
+        "description": "Days of poor mental health in past 30 days (0-30)"
+      },
+      {
+        "feature": "DiffWalk",
+        "value": 0.0,
+        "contribution": -0.04586047679185867,
+        "description": "Serious difficulty walking or climbing stairs (0/1)"
+      },
+      {
+        "feature": "Education",
+        "value": 5.0,
+        "contribution": 0.039413630962371826,
+        "description": "Education level (1 - 6 ordinal)"
+      },
+      {
+        "feature": "HeartDiseaseorAttack",
+        "value": 0.0,
+        "contribution": -0.03704039752483368,
+        "description": "Coronary heart disease or myocardial infarction (0/1)"
+      },
+      {
+        "feature": "HvyAlcoholConsump",
+        "value": 0.0,
+        "contribution": 0.034812673926353455,
+        "description": "Heavy alcohol consumption (0/1)"
+      },
+      {
+        "feature": "Smoker",
+        "value": 0.0,
+        "contribution": 0.01828906126320362,
+        "description": "Smoked at least 100 cigarettes in lifetime (0/1)"
+      },
+      {
+        "feature": "CholCheck",
+        "value": 1.0,
+        "contribution": 0.01826755702495575,
+        "description": "Cholesterol check within the past 5 years (0/1)"
+      },
+      {
+        "feature": "Veggies",
+        "value": 1.0,
+        "contribution": -0.014096803031861782,
+        "description": "Consumes vegetables 1+ times per day (0/1)"
+      },
+      {
+        "feature": "Fruits",
+        "value": 1.0,
+        "contribution": -0.014067068696022034,
+        "description": "Consumes fruit 1+ times per day (0/1)"
+      },
+      {
+        "feature": "Stroke",
+        "value": 0.0,
+        "contribution": -0.013610037975013256,
+        "description": "Ever told you had a stroke (0/1)"
+      },
+      {
+        "feature": "PhysActivity",
+        "value": 1.0,
+        "contribution": -0.013474046252667904,
+        "description": "Physical activity in past 30 days, not job-related (0/1)"
+      },
+      {
+        "feature": "PhysHlth",
+        "value": 0.0,
+        "contribution": 0.006108056753873825,
+        "description": "Days of poor physical health in past 30 days (0-30)"
+      },
+      {
+        "feature": "NoDocbcCost",
+        "value": 0.0,
+        "contribution": -0.0036282145883888006,
+        "description": "Could not see a doctor in past 12 months because of cost (0/1)"
+      },
+      {
+        "feature": "AnyHealthcare",
+        "value": 1.0,
+        "contribution": 7.328364881686866e-05,
+        "description": "Has any health-care coverage (0/1)"
+      }
+    ]
+  }
+}

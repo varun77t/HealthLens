@@ -33,6 +33,36 @@ from ml.preprocessing.build_preprocessor import build_preprocessor
 
 MODEL_NAMES: list[str] = ["logreg", "random_forest", "svc", "xgboost", "lightgbm"]
 
+# Models that cannot be run for a given disease, with the measured reason. A candidate
+# is only dropped on evidence, and the reason is carried into SELECTION.md and the model
+# card so the comparison is never quietly narrower than it appears.
+EXCLUDED_MODELS: dict[str, dict[str, str]] = {
+    "diabetes": {
+        "svc": (
+            "Computationally intractable at this scale. SVC training is super-quadratic in "
+            "the number of samples, and `probability=True` adds an internal 5-fold Platt "
+            "calibration on top. Measured fit times on this training set were 1.07 s at "
+            "n=2,000, 4.27 s at n=4,000, 17.52 s at n=8,000 and 85.09 s at n=16,000 — an "
+            "empirical exponent of ~2.28, which extrapolates to roughly 7.7 hours for a "
+            "single fit on the full 202,719 training rows and ~23 hours for one 5-fold "
+            "cross-validation pass, before any hyper-parameter search. Excluded on cost, "
+            "not on performance: it was never scored, so nothing is claimed about how it "
+            "would have done."
+        )
+    }
+}
+
+
+def candidate_models(disease: str) -> list[str]:
+    """Model names to compare for ``disease`` — the full zoo minus any exclusions."""
+    excluded = EXCLUDED_MODELS.get(disease, {})
+    return [n for n in MODEL_NAMES if n not in excluded]
+
+
+def exclusion_reasons(disease: str) -> dict[str, str]:
+    """``{model: why it was not run}`` for ``disease`` (empty when nothing was dropped)."""
+    return dict(EXCLUDED_MODELS.get(disease, {}))
+
 
 def _estimator(name: str, *, balanced: bool, random_state: int, pos_weight: float | None = None):
     """Instantiate a bare classifier.

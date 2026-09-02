@@ -1,0 +1,173 @@
+{
+  "disease": "diabetes",
+  "model": "xgboost",
+  "calibration": "isotonic",
+  "split": {
+    "n_total": 253680,
+    "n_train": 202719,
+    "n_test": 50961,
+    "n_duplicate_rows": 25772,
+    "n_unique_feature_vectors": 227908,
+    "groups_shared_across_split": 0,
+    "overall_positive_rate": 0.1393,
+    "train_positive_rate": 0.1396,
+    "test_positive_rate": 0.1383
+  },
+  "selection_margin": {
+    "selected": "xgboost",
+    "selected_tuned_roc_auc": 0.8303503616692213,
+    "runner_up": "lightgbm",
+    "runner_up_tuned_roc_auc": 0.8300915491933247,
+    "gap": 0.00025881247589654155,
+    "cv_roc_auc_std": 0.0013759291489925916,
+    "decisive": false,
+    "reasons_to_doubt": [
+      "the gap (0.0003) is smaller than the selected model's fold-to-fold standard deviation (0.0014)",
+      "the gap (0.0003) is below 0.005, the practical resolution of ROC-AUC at this sample size"
+    ],
+    "gap_within_cv_noise": true
+  },
+  "models_not_run": {
+    "svc": "Computationally intractable at this scale. SVC training is super-quadratic in the number of samples, and `probability=True` adds an internal 5-fold Platt calibration on top. Measured fit times on this training set were 1.07 s at n=2,000, 4.27 s at n=4,000, 17.52 s at n=8,000 and 85.09 s at n=16,000 \u2014 an empirical exponent of ~2.28, which extrapolates to roughly 7.7 hours for a single fit on the full 202,719 training rows and ~23 hours for one 5-fold cross-validation pass, before any hyper-parameter search. Excluded on cost, not on performance: it was never scored, so nothing is claimed about how it would have done."
+  },
+  "diagnostics": {
+    "missingness_only_probe": null,
+    "complete_case": {
+      "n_total": 253680,
+      "n_complete_cases": 253680,
+      "pct_retained": 100.0,
+      "positive_rate_all": 0.1393,
+      "positive_rate_complete_cases": 0.1393
+    },
+    "attribution_note": "No values are missing in this dataset, so measurement pattern cannot carry signal.",
+    "duplicate_feature_vectors": {
+      "n_rows": 253680,
+      "n_unique_feature_vectors": 227908,
+      "n_rows_sharing_a_feature_vector": 38000,
+      "pct_rows_sharing_a_feature_vector": 14.98,
+      "n_duplicate_groups": 12228,
+      "n_conflicted_groups": 1566,
+      "n_rows_in_conflicted_groups": 5218,
+      "n_unwinnable_rows": 1640,
+      "max_achievable_accuracy": 0.9935
+    },
+    "duplicate_conflict_note": "38,000 of 253,680 rows (14.98%) share an identical feature vector with at least one other row, and 1,566 of those groups contain both outcome labels. 1,640 rows are therefore unwinnable for any model using only these features, capping accuracy at 0.9935 against the measured 0.8673. The bound is 0.1262 above what the model achieves, so it does NOT explain the shortfall \u2014 duplicate-label conflict is a real but minor part of the error here, and the rest is the model, the features' weak association with the outcome, or both.",
+    "operating_point_note": "Positive-class prevalence is 0.1383. At threshold 0.5 the model recovers 0.1464 of positives at 0.9829 specificity; at the sensitivity-oriented threshold 0.1388 it recovers 0.7984 at 0.7090 specificity. The +0.6519 swing in recall means **0.5 is not a meaningful operating point for this model**. A calibrated probability on a problem with 13.8% prevalence only exceeds 0.5 for the most extreme profiles, so thresholding there behaves as a high-precision screen and misses most positives. The low recall in the 0.5 row is a property of that arbitrary cut-off, not evidence that the model failed to rank patients \u2014 ROC-AUC and PR-AUC, which are threshold-free, are the metrics to compare against other models. Any real use would set the threshold from the cost of a false negative against a false alarm.",
+    "imbalance_comparison": [
+      {
+        "strategy": "class_weight",
+        "model": "xgboost",
+        "fit_seconds_mean": 32.02262091636658,
+        "roc_auc_mean": 0.8300626831417931,
+        "roc_auc_std": 0.0013759291489925916,
+        "pr_auc_mean": 0.4353837060820503,
+        "pr_auc_std": 0.0076918000205850314,
+        "recall_mean": 0.7951355760233846,
+        "recall_std": 0.003749245341460169,
+        "precision_mean": 0.30648781855049134,
+        "precision_std": 0.0048621290092526505,
+        "f1_mean": 0.44241671728263937,
+        "f1_std": 0.005296205346373432
+      },
+      {
+        "strategy": "smote",
+        "model": "xgboost",
+        "fit_seconds_mean": 65.88283472061157,
+        "roc_auc_mean": 0.8239279274761332,
+        "roc_auc_std": 0.001700543776244272,
+        "pr_auc_mean": 0.4242577245461889,
+        "pr_auc_std": 0.008241324502049131,
+        "recall_mean": 0.28985365677031505,
+        "recall_std": 0.00315944736012962,
+        "precision_mean": 0.5011567559005043,
+        "precision_std": 0.009980354083555614,
+        "f1_mean": 0.3672717603679546,
+        "f1_std": 0.00508914475585933
+      }
+    ],
+    "imbalance_note": "SMOTE vs class weighting, same model and same folds: PR-AUC 0.4243 vs 0.4354 (-0.0111, fold std 0.0082) \u2014 a degradation. ROC-AUC moved -0.0061 and recall at threshold 0.5 moved -0.5053; recall moves most because both strategies shift the operating point rather than the ranking. Shipped strategy: class_weight."
+  },
+  "cross_validation_training_set": {
+    "smote": false,
+    "roc_auc_mean": 0.8300626831417931,
+    "roc_auc_std": 0.0013759291489925916,
+    "pr_auc_mean": 0.4353837060820503,
+    "pr_auc_std": 0.0076918000205850314,
+    "recall_mean": 0.7951355760233846,
+    "recall_std": 0.003749245341460169,
+    "precision_mean": 0.30648781855049134,
+    "precision_std": 0.0048621290092526505,
+    "f1_mean": 0.44241671728263937,
+    "f1_std": 0.005296205346373432,
+    "rank_score": 0.6652056708942143
+  },
+  "test_set_threshold_0.5": {
+    "n": 50961,
+    "prevalence": 0.1382822158120916,
+    "threshold": 0.5,
+    "accuracy": 0.8672514275622535,
+    "precision": 0.5791245791245792,
+    "recall_sensitivity": 0.14644529587058322,
+    "specificity": 0.9829211640934554,
+    "f1": 0.23377505946313284,
+    "roc_auc": 0.8316939783596924,
+    "pr_auc": 0.4307096051840799,
+    "brier": 0.09592723038841793,
+    "cm_tn": 43164,
+    "cm_fp": 750,
+    "cm_fn": 6015,
+    "cm_tp": 1032
+  },
+  "test_set_alternative_threshold": {
+    "n": 50961,
+    "prevalence": 0.1382822158120916,
+    "threshold": 0.13882786532243094,
+    "accuracy": 0.7213163007005357,
+    "precision": 0.3056445917314065,
+    "recall_sensitivity": 0.7983539094650206,
+    "specificity": 0.7089538643712712,
+    "f1": 0.44205232969277913,
+    "roc_auc": 0.8316939783596924,
+    "pr_auc": 0.4307096051840799,
+    "brier": 0.09592723038841793,
+    "cm_tn": 31133,
+    "cm_fp": 12781,
+    "cm_fn": 1421,
+    "cm_tp": 5626,
+    "threshold_rule": "Youden's J (max sensitivity + specificity - 1) maximised on out-of-fold predictions over the TRAINING set, then applied unchanged to the test set. The test set played no part in choosing it."
+  },
+  "calibration_selection_train_cv": [
+    {
+      "method": "raw",
+      "brier": 0.17466336706150726,
+      "roc_auc": 0.830325703990832
+    },
+    {
+      "method": "sigmoid",
+      "brier": 0.09693169402298003,
+      "roc_auc": 0.830538733637526
+    },
+    {
+      "method": "isotonic",
+      "brier": 0.09661953590877409,
+      "roc_auc": 0.8303900757881891
+    }
+  ],
+  "calibration_test_comparison": [
+    {
+      "method": "raw",
+      "brier": 0.17357951418700193,
+      "roc_auc": 0.8319087285035532
+    },
+    {
+      "method": "sigmoid",
+      "brier": 0.09615064727178346,
+      "roc_auc": 0.8318047011775191
+    },
+    {
+      "method": "isotonic",
+      "brier": 0.09592723038841793,
+      "roc_auc": 0.8316939783596924
+    }
+  ]
+}

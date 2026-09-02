@@ -32,7 +32,12 @@ from sklearn.model_selection import RandomizedSearchCV, cross_validate
 from config import CV_FOLDS, RANDOM_STATE, REPORTS_DIR
 from ml.data.loaders import load
 from ml.reporting import df_to_markdown
-from ml.training.model_zoo import MODEL_NAMES, build_model, positive_class_weight
+from ml.training.model_zoo import (
+    build_model,
+    candidate_models,
+    exclusion_reasons,
+    positive_class_weight,
+)
 from ml.training.param_space import param_space, search_iter
 from ml.training.splits import cv_splitter, make_split
 
@@ -59,6 +64,7 @@ class ExperimentResult:
     fitted_pipeline: object | None = None
     rationale: str = ""
     margin: dict = field(default_factory=dict)     # how decisive the choice was
+    excluded: dict = field(default_factory=dict)   # model -> why it was never run
 
 
 def cross_validate_models(
@@ -76,7 +82,7 @@ def cross_validate_models(
     splitter = cv_splitter(disease, n_splits=n_splits)
     pos_weight = positive_class_weight(y_train)
     rows = []
-    for name in names or MODEL_NAMES:
+    for name in names or candidate_models(disease):
         pipe = build_model(
             name, spec, smote=smote, random_state=RANDOM_STATE, pos_weight=pos_weight
         )
@@ -127,7 +133,7 @@ def tune_model(
     )
     search = RandomizedSearchCV(
         pipe,
-        param_distributions=param_space(name, smote=smote),
+        param_distributions=param_space(name, smote=smote, disease=disease),
         n_iter=n_iter or search_iter(name, disease),
         scoring="roc_auc",
         cv=cv_splitter(disease, n_splits=n_splits),
@@ -229,6 +235,14 @@ def _write_selection_md(
         "",
         df_to_markdown(ranked.round(4)),
         "",
+    ]
+    excluded = exclusion_reasons(disease)
+    if excluded:
+        lines += ["### Candidates that were not run", ""]
+        for name, why in sorted(excluded.items()):
+            lines.append(f"- **`{name}`** — {why}")
+        lines.append("")
+    lines += [
         "## Tuning (RandomizedSearchCV, scoring = ROC-AUC)",
         "",
     ]
@@ -350,6 +364,7 @@ def run_experiment(
         fitted_pipeline=fitted,
         rationale=rationale,
         margin=margin,
+        excluded=exclusion_reasons(disease),
     )
 
 

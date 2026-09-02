@@ -165,6 +165,16 @@ display(pd.DataFrame(rows).loc[
 ])
 print(metrics["test_set_alternative_threshold"]["threshold_rule"])
 """),
+    ("markdown", """### Which threshold should you read?
+
+0.5 is a convention, not a decision rule. On a low-prevalence problem a well-calibrated
+model should rarely output a probability above 0.5 — most people really do have a
+below-even chance — so thresholding there gives high specificity and low recall. That
+looks like a broken model and is not one.
+"""),
+    ("code", """note = metrics.get("diagnostics", {}).get("operating_point_note")
+display(Markdown(f"> {note}" if note else "_No operating-point note recorded._"))
+"""),
     ("code", """for name in ["roc_curve", "pr_curve", "confusion_matrix", "calibration_curve"]:
     png = reports / "figures" / f"{name}.png"
     if png.exists():
@@ -206,6 +216,34 @@ if miss_csv.exists():
     display(pd.read_csv(miss_csv))
 else:
     print("No missing values to analyse.")
+"""),
+    ("markdown", """### 4c. What could any model achieve on these features?
+
+When two rows carry an identical feature vector but different outcomes, no model that sees
+only these features can get both right. That is irreducible error, and it caps accuracy
+regardless of the algorithm. Reported so the gap to 1.0 is attributed honestly — and so
+that it is *not* used to excuse a model sitting far below the bound.
+"""),
+    ("code", """dup = diag.get("duplicate_feature_vectors")
+display(Markdown(f"> {diag.get('duplicate_conflict_note', '(not recorded)')}"))
+if dup:
+    display(pd.Series(dup).to_frame("value"))
+"""),
+    ("markdown", """### 4d. Did SMOTE actually help?
+
+"Use SMOTE for imbalanced data" is repeated far more often than it is checked. Where this
+comparison was run, the selected model was cross-validated on identical folds under SMOTE
+and under class weighting. SMOTE resamples **inside** each fold's training portion only.
+
+Watch PR-AUC rather than recall: both strategies move the operating point, so recall at a
+fixed 0.5 threshold swings hard while the threshold-free ranking barely changes.
+"""),
+    ("code", """imb_csv = reports / "imbalance_comparison.csv"
+if imb_csv.exists():
+    display(Markdown(f"> {diag.get('imbalance_note', '')}"))
+    display(pd.read_csv(imb_csv))
+else:
+    print("Imbalance strategies were not compared for this disease.")
 """),
     ("markdown", """## 5. Explainability (SHAP)
 

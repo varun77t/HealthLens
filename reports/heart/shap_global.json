@@ -4,6 +4,8 @@
   "base_value": 0.008894412778317928,
   "additivity_max_error": 1.430511474609375e-06,
   "n_rows_explained": 61,
+  "n_test_rows": 61,
+  "explained_on": "the full test set",
   "global_importance": [
     {
       "rank": 1,

@@ -25,6 +25,7 @@
     ],
     "gap_within_cv_noise": true
   },
+  "models_not_run": {},
   "diagnostics": {
     "missingness_only_probe": {
       "n_indicator_features": 24,
@@ -68,6 +69,19 @@
       "positive_rate_complete_cases": 0.2722
     },
     "attribution_note": "Missingness indicators alone reach test ROC-AUC 0.8023 against the full model's 0.9987 (gap +0.1963). A meaningful part of the signal comes from which values were recorded rather than their values.",
+    "duplicate_feature_vectors": {
+      "n_rows": 400,
+      "n_unique_feature_vectors": 400,
+      "n_rows_sharing_a_feature_vector": 0,
+      "pct_rows_sharing_a_feature_vector": 0.0,
+      "n_duplicate_groups": 0,
+      "n_conflicted_groups": 0,
+      "n_rows_in_conflicted_groups": 0,
+      "n_unwinnable_rows": 0,
+      "max_achievable_accuracy": 1.0
+    },
+    "duplicate_conflict_note": "No two rows share an identical feature vector with conflicting labels, so the features impose no measurable ceiling of this kind.",
+    "operating_point_note": "Positive-class prevalence is 0.6250. At threshold 0.5 the model recovers 0.9600 of positives at 0.9667 specificity; at the sensitivity-oriented threshold 0.5792 it recovers 0.9600 at 1.0000 specificity. The two operating points are close, so 0.5 is a reasonable default here.",
     "missingness_vs_target_top": [
       {
         "column": "pcc",

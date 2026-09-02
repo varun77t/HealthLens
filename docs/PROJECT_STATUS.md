@@ -1,6 +1,6 @@
 # Project Status — Multi-Disease AI
 
-_Last updated: 2026-09-02 (Phase 4)_
+_Last updated: 2026-09-02 (Phase 5)_
 
 Research/education platform. **Not** a clinical diagnostic tool. Three independent
 disease pipelines (heart, kidney, diabetes). Scope of current build effort: through the
@@ -18,13 +18,13 @@ Plan file: `C:\Users\Admin\.claude\plans\you-are-working-on-zippy-hammock.md`
 | 2 | Shared leakage-safe preprocessing + training/evaluation package | ✅ complete (`3b0ffde`) |
 | 3 | **Heart** model end-to-end (CV, tuning, calibration, SHAP, model card) | ✅ trained |
 | 4 | **Kidney** model end-to-end | ✅ trained |
-| 5 | **Diabetes** model end-to-end | ⬜ next |
-| 6 | External validation (Heart → Statlog) | ⬜ |
+| 5 | **Diabetes** model end-to-end | ✅ trained |
+| 6 | External validation (Heart → Statlog) | ⬜ next |
 | 7 | Calibration + fairness analysis | ⬜ |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ⬜ |
 | — | React frontend, CNN/Grad-CAM imaging | deferred |
 
-**Two models trained (heart, kidney). Every metric in this repo comes from an actual run — none are fabricated.**
+**All three models trained (heart, kidney, diabetes). Every metric in this repo comes from an actual run — none are fabricated.**
 
 ## Environment
 
@@ -63,9 +63,12 @@ No imputation at load time — deferred to the in-pipeline preprocessing (Phase 
 
 ### Other EDA findings
 
-- **diabetes has 25,772 duplicate rows** (identical survey indicator profiles; legitimate,
-  not dropped). Flag for Phase 2: a naive random split can place identical feature vectors
-  in both train and test — decide on split strategy / dedup-for-split.
+- **diabetes has 25,772 duplicate rows** in the `df.duplicated()` sense — i.e. rows beyond
+  the first in each repeated profile. Counted the other way, **38,000 rows (15.0%) share an
+  identical 21-feature vector with at least one other row**, spread over 12,228 groups.
+  (Both numbers are correct; they answer different questions. Phase 5 uses the second.)
+  Legitimate for a survey, not dropped. Flag for Phase 2: a naive random split can place
+  identical feature vectors in both train and test — decide on split strategy.
 - heart / kidney / statlog: 0 duplicate rows.
 - Strongest numeric–target correlations (descriptive only, not a model):
   heart → oldpeak +0.43, thalach −0.42; kidney → hemo −0.77, pcv −0.74, sg −0.73;
@@ -124,8 +127,8 @@ pipeline. Built without training anything; first exercised end-to-end in Phase 3
 
 ### Diabetes split-strategy decision
 
-Naive random split rejected: 25,772 rows share a full 21-feature vector with another row,
-so a model could score partly by memorising rows seen in both splits. **Decision:**
+Naive random split rejected: 38,000 rows share a full 21-feature vector with at least one
+other row, so a model could score partly by memorising rows seen in both splits. **Decision:**
 group identical feature vectors (`pd.util.hash_pandas_object` → `factorize`) and keep each
 group wholly on one side of the split.
 
@@ -342,11 +345,144 @@ The kidney model is an `SVC`, so SHAP falls back to `KernelExplainer`, which is
 way it is for the tree-based heart model. Either precompute, cache, or accept the latency
 — decide when building `/predict/kidney`.
 
-## Next step — Phase 5 (Diabetes model end-to-end)
+## Phase 5 results — Diabetes model (trained)
 
-`scripts/train_diabetes.py` calling `train_disease("diabetes")`. Different challenges from
-the first two: 253,680 rows (CV cost — reduce `n_iter`, prefer LightGBM/XGBoost), 14%
-positive (report PR-AUC prominently, compare SMOTE against class weights), group-aware
-split already in place, and SHAP on a background sample for tractability.
+`python -m scripts.train_diabetes`. Artifacts: `models/diabetes/`, `reports/diabetes/`,
+`notebooks/diabetes_training.ipynb`. New modules: `ml/training/imbalance.py`; new
+diagnostics `duplicate_label_conflict_probe` and `operating_point_note`.
+
+The first two diseases were small (n=303, n=400) and easy. This one is large (253,680),
+imbalanced (13.9% positive) and genuinely hard — the interesting work was in reporting a
+moderate result honestly rather than dressing it up.
+
+### Held-out test performance (n = 50,961)
+
+| metric | threshold 0.5 | threshold 0.1388 |
+|---|---|---|
+| ROC-AUC | 0.8317 | 0.8317 |
+| PR-AUC | 0.4307 | 0.4307 |
+| recall / sensitivity | 0.1464 | **0.7984** |
+| specificity | 0.9829 | 0.7090 |
+| precision | 0.5791 | 0.3056 |
+| F1 | 0.2338 | 0.4421 |
+| accuracy | 0.8673 | 0.7213 |
+| Brier | 0.0959 | 0.0959 |
+
+Model `xgboost` (766 trees, depth 4, lr 0.027), calibration `isotonic`, TreeExplainer
+additivity error 3.3e-6. Top features by mean |SHAP|: `GenHlth` 0.653, `HighBP` 0.444,
+`BMI` 0.415, `Age` 0.404, `HighChol` 0.298 — the known correlates, in a sensible order.
+
+Selection is again **not decisive**: xgboost beat lightgbm by 0.0003 CV ROC-AUC against a
+fold-to-fold std of 0.0014, and below the 0.005 resolution floor.
+
+### 0.5 is the wrong threshold here, and the card says so
+
+Recall of **0.1464** at threshold 0.5 looks like a broken model. It is not. Isotonic
+calibration maps scores onto true probabilities, and at 13.8% prevalence a calibrated
+probability only exceeds 0.5 for extreme profiles — so 0.5 behaves as a high-precision
+screen. The uncalibrated CV recall was 0.795 and the training-derived threshold 0.1388
+(≈ prevalence) recovers 0.798, which is consistent.
+
+New `operating_point_note` fires when the two thresholds differ by more than 0.20 recall
+and states which row to read. It stays quiet for heart, where 0.5 is a fine default.
+
+### SMOTE was measured and it lost
+
+`ml/training/imbalance.py` cross-validates the selected model under both strategies on
+identical folds (SMOTE inside the pipeline, resampling each fold's training portion only):
+
+| strategy | ROC-AUC | PR-AUC | recall@0.5 | precision@0.5 | fit s |
+|---|---|---|---|---|---|
+| **class_weight (shipped)** | **0.8301** | **0.4354** | 0.7951 | 0.3065 | 32.0 |
+| smote | 0.8239 | 0.4243 | 0.2899 | 0.5012 | 65.9 |
+
+PR-AUC −0.0111 against a fold std of 0.0082, at 2.1× the fit cost. The common advice does
+not hold here, and there is now a measurement rather than an assumption in either direction.
+
+### SVC excluded on measured cost, not quietly dropped
+
+Fit times on subsamples: 1.07 s @ n=2,000 → 4.27 s @ 4,000 → 17.52 s @ 8,000 → 85.09 s @
+16,000. Empirical exponent ≈2.28, extrapolating to **~7.7 h for one fit** on 202,719
+training rows and **~23 h for a single 5-fold CV pass**, before tuning. `EXCLUDED_MODELS`
+in `model_zoo.py` records the reason, which is reproduced in `SELECTION.md` and the model
+card: excluded on cost, never scored, nothing claimed about how it would have done.
+
+Random-forest's search space is also narrowed for diabetes only (`n_estimators` 150–400
+instead of 200–800) — a cost axis, not a modelling choice; documented in `param_space.py`.
+
+### The ceiling imposed by the feature set
+
+21 mostly-binary survey answers cannot distinguish 253,680 people. **38,000 rows (15.0%)**
+share an identical feature vector with at least one other row; 1,566 of those groups
+contain both labels, making 1,640 rows unwinnable for any model on these features —
+a hard accuracy ceiling of **0.9935**.
+
+Measured accuracy is 0.8673, i.e. **0.1262 below the bound**, so the ceiling does *not*
+explain the shortfall. `duplicate_conflict_note` deliberately refuses to absolve a model
+that far below the bound; a test pins that behaviour. Irreducible error is only an
+explanation when the model is near it, otherwise it is an excuse.
+
+### Calibration (chosen on training out-of-fold Brier only)
+
+| method | train OOF Brier | test Brier |
+|---|---|---|
+| raw | 0.174663 | 0.1736 |
+| sigmoid | 0.096932 | 0.0962 |
+| **isotonic (chosen)** | **0.096620** | 0.0959 |
+
+Here train and test agree, so the guard is not load-bearing — unlike heart, where it
+stopped isotonic being chosen on its test score.
+
+### SHAP at scale
+
+Global importance is averaged over a **random 5,000-row sample of the 50,961 test rows**
+(`max_explain_rows`, `random_state=42`), recorded in `shap_global.json` as `n_rows_explained`
+plus an `explained_on` string so it cannot be mistaken for the full test set. No-op for
+heart (61) and kidney (80).
+
+### Phase 5 verification
+
+| step | command | result |
+|---|---|---|
+| training | `python -m scripts.train_diabetes` | exit 0, all artifacts written |
+| reproducibility | retrained all 3 after adding the note | heart/kidney/diabetes metrics **identical** |
+| full suite | `python -m pytest -q` | **129 passed, 0 skipped in 74 s** |
+| notebooks | `jupyter nbconvert --execute` ×3 training | 18/18 cells each, 0 errors |
+
+First run with **zero skips** — all three diseases now have artifacts, so
+`tests/test_model_artifacts.py` is fully active. 18 new tests in
+`tests/test_scale_and_imbalance.py`.
+
+## Notes for Phase 8 (backend)
+
+1. **The kidney model is an `SVC`** → SHAP falls back to `KernelExplainer`, slow per call.
+   Precompute, cache, or accept the latency on `/predict/kidney`.
+2. **`RISK_BANDS` are prevalence-agnostic and misleading for diabetes.** Measured band
+   distribution on each test set:
+
+   | disease | low | moderate | high |
+   |---|---|---|---|
+   | heart | 44.3% | 14.8% | 41.0% |
+   | kidney | 36.2% | 3.8% | 60.0% |
+   | diabetes | **86.8%** | 12.6% | **0.6%** |
+
+   A correctly calibrated 13.9%-prevalence model almost never exceeds 0.66, so "high risk"
+   is nearly unreachable and "low" is nearly universal. Fixed 0.33/0.66 cut-points encode
+   an implicit assumption of balanced prevalence. Options for Phase 8: per-disease bands
+   derived from the training distribution (e.g. probability quantiles), bands relative to
+   prevalence, or dropping bands for diabetes in favour of a percentile. **Not changed in
+   Phase 5** — it is a presentation decision affecting all three modules and the frontend.
+3. Both `pipeline.joblib` (calibrated, for probabilities) and `base_pipeline.joblib`
+   (uncalibrated, for SHAP) must be loaded per disease at startup.
+
+## Next step — Phase 6 (External validation, Heart → Statlog)
+
+`ml/external/heart_statlog.py`: align Statlog's 13 features to Cleveland names/encodings,
+map target 1/2 → 0/1, load `models/heart/pipeline.joblib` and predict **with no
+retraining**. Write `reports/heart/external_validation.json` plus a write-up comparing
+internal-test against external performance. The encoding compatibility of `cp`/`slope`/
+`thal` is currently an *assumption* (see Known issues #4) and must be verified as part of
+that phase — if it does not hold, the external result is meaningless and should be
+reported as such rather than published as a validation.
 
 Reproduce Phase 1 from scratch: see `README.md` → "Reproduce Phase 1".

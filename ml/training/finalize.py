@@ -36,7 +36,7 @@ import pandas as pd
 from sklearn.base import clone
 from sklearn.model_selection import cross_val_predict
 
-from config import DISEASES, MODELS_DIR, REPORTS_DIR
+from config import DISEASES, MODELS_DIR, RANDOM_STATE, REPORTS_DIR
 from ml.data.loaders import load
 from ml.eda.profile import missingness_target_association
 from ml.evaluation import calibration as calib
@@ -44,7 +44,10 @@ from ml.evaluation.curves import all_evaluation_plots
 from ml.evaluation.diagnostics import (
     attribution_note,
     complete_case_probe,
+    duplicate_conflict_note,
+    duplicate_label_conflict_probe,
     missingness_only_probe,
+    operating_point_note,
 )
 from ml.evaluation.metrics import classification_metrics, threshold_sweep, youden_threshold
 from ml.explainability.shap_explainer import (
@@ -55,6 +58,7 @@ from ml.explainability.shap_explainer import (
 from ml.model_card import build_model_card, write_model_card
 from ml.reporting import write_json
 from ml.training.experiment import run_experiment
+from ml.training.imbalance import compare_imbalance_strategies, imbalance_note
 from ml.training.splits import cv_splitter, make_split
 
 
@@ -81,8 +85,21 @@ def train_disease(
     tune_top_k: int = 3,
     calibration_inner_cv: int = 3,
     shap_background: int = 200,
+    max_explain_rows: int | None = 5000,
+    compare_imbalance: bool = False,
 ) -> dict:
-    """Run the full pipeline for ``disease`` and write every artifact."""
+    """Run the full pipeline for ``disease`` and write every artifact.
+
+    ``max_explain_rows`` caps how many held-out rows the SHAP global importance is
+    averaged over. It is a no-op for the small datasets (heart n=61, kidney n=80 test
+    rows) and keeps the 50,961-row diabetes test set tractable; the rows are drawn with
+    ``RANDOM_STATE`` and the count is recorded in ``shap_global.json`` so the figure is
+    never mistaken for the full test set.
+
+    ``compare_imbalance`` additionally cross-validates the selected model under SMOTE and
+    under class weighting, writing ``imbalance_comparison.csv``. It roughly doubles the
+    cost of the selected model's CV, so it is opt-in.
+    """
     reports = REPORTS_DIR / disease
     figures = reports / "figures"
     models_dir = MODELS_DIR / disease
@@ -161,10 +178,16 @@ def train_disease(
         X_train, y_train, X_test, y_test, cv=cv_splitter(disease), groups=split.groups
     )
     miss_assoc = missingness_target_association(X, y)
+    duplicates = duplicate_label_conflict_probe(X, y)
     diagnostics = {
         "missingness_only_probe": probe,
         "complete_case": complete_case_probe(X, y),
         "attribution_note": attribution_note(probe, metrics_050["roc_auc"]),
+        "duplicate_feature_vectors": duplicates,
+        "duplicate_conflict_note": duplicate_conflict_note(
+            duplicates, metrics_050["accuracy"]
+        ),
+        "operating_point_note": operating_point_note(metrics_050, metrics_alt),
     }
     if not miss_assoc.empty:
         miss_assoc.to_csv(reports / "missingness_vs_target.csv", index=False)
@@ -172,14 +195,33 @@ def train_disease(
             miss_assoc.head(8).to_dict(orient="records")
         )
     print(f"[{disease}] {diagnostics['attribution_note']}")
+    print(f"[{disease}] {diagnostics['duplicate_conflict_note']}")
+
+    # 4c. Optional: does SMOTE actually beat class weighting for this model?
+    imbalance_table = None
+    if compare_imbalance:
+        print(f"[{disease}] comparing imbalance strategies (SMOTE vs class weights) ...")
+        imbalance_table = compare_imbalance_strategies(
+            disease, selected, X_train, y_train, spec, groups=split.groups
+        )
+        imbalance_table.round(6).to_csv(reports / "imbalance_comparison.csv", index=False)
+        chosen = "smote" if smote else "class_weight"
+        diagnostics["imbalance_comparison"] = imbalance_table.to_dict(orient="records")
+        diagnostics["imbalance_note"] = imbalance_note(imbalance_table, chosen=chosen)
+        print(f"[{disease}] {diagnostics['imbalance_note']}")
 
     # 5. SHAP on the base (uncalibrated) pipeline.
     print(f"[{disease}] computing SHAP ...")
     explainer = DiseaseExplainer(base_pipeline, spec, X_train, max_background=shap_background)
-    importance = explainer.global_importance(X_test)
-    additivity = explainer.additivity_error(X_test.head(min(50, len(X_test))))
+    X_explain = (
+        X_test
+        if max_explain_rows is None or len(X_test) <= max_explain_rows
+        else X_test.sample(n=max_explain_rows, random_state=RANDOM_STATE).sort_index()
+    )
+    importance = explainer.global_importance(X_explain)
+    additivity = explainer.additivity_error(X_explain.head(min(50, len(X_explain))))
     shap_bar = plot_global_importance(importance, figures)
-    shap_bee = plot_beeswarm(explainer, X_test, figures)
+    shap_bee = plot_beeswarm(explainer, X_explain, figures)
     example = explainer.explain_one(X_test.iloc[[0]])
 
     write_json(
@@ -189,7 +231,14 @@ def train_disease(
             "explainer": explainer.kind,
             "base_value": explainer.base_value,
             "additivity_max_error": additivity,
-            "n_rows_explained": int(len(X_test)),
+            "n_rows_explained": int(len(X_explain)),
+            "n_test_rows": int(len(X_test)),
+            "explained_on": (
+                "the full test set"
+                if len(X_explain) == len(X_test)
+                else f"a random sample of {len(X_explain):,} of the {len(X_test):,} test "
+                     f"rows (random_state={RANDOM_STATE})"
+            ),
             "global_importance": importance.to_dict(orient="records"),
             "example_local_explanation": example.to_dict(),
         },
@@ -214,6 +263,7 @@ def train_disease(
             "calibration": choice.method,
             "split": split.meta,
             "selection_margin": exp.margin,
+            "models_not_run": exp.excluded,
             "diagnostics": diagnostics,
             "cross_validation_training_set": cv_row,
             "test_set_threshold_0.5": metrics_050,
@@ -232,6 +282,7 @@ def train_disease(
         calibration_rationale=choice.rationale,
         selection_rationale=exp.rationale,
         selection_margin=exp.margin,
+        models_not_run=exp.excluded,
         dataset_stats=_dataset_stats(X, y, spec),
         split_meta={"strategy": split.strategy, **split.meta},
         cv_summary=cv_row,

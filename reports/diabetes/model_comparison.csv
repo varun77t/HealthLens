@@ -1,0 +1,5 @@
+model,smote,roc_auc_mean,roc_auc_std,pr_auc_mean,pr_auc_std,recall_mean,recall_std,precision_mean,precision_std,f1_mean,f1_std,rank_score
+xgboost,False,0.8301,0.0014,0.4354,0.0077,0.7951,0.0037,0.3065,0.0049,0.4424,0.0053,0.6652
+lightgbm,False,0.8288,0.0014,0.4331,0.0075,0.7887,0.0051,0.3083,0.0039,0.4433,0.0046,0.6625
+logreg,False,0.8221,0.0012,0.404,0.0072,0.7651,0.0025,0.3114,0.0041,0.4426,0.0044,0.6434
+random_forest,False,0.8049,0.0023,0.3899,0.007,0.1474,0.003,0.5265,0.0102,0.2304,0.0044,0.5074

@@ -54,11 +54,24 @@ _SPACES: dict[str, dict] = {
 # When SMOTE is in the pipeline, also vary its neighbourhood size.
 _SMOTE_SPACE = {"smote__k_neighbors": randint(3, 8)}
 
+# Per-disease narrowing, applied on top of the base space. Only used where a dimension
+# is a cost problem rather than a modelling choice: on the 202,719-row diabetes training
+# set a random forest fit scales linearly in the number of trees (a 300-tree fit measured
+# 30 s), so an 800-tree upper bound would spend most of the search budget on the single
+# axis least likely to change the ranking. Boosters are left alone — they are cheap here.
+_DISEASE_OVERRIDES: dict[str, dict[str, dict]] = {
+    "diabetes": {
+        "random_forest": {"clf__n_estimators": randint(150, 400)},
+    },
+}
 
-def param_space(name: str, *, smote: bool = False) -> dict:
+
+def param_space(name: str, *, smote: bool = False, disease: str | None = None) -> dict:
     if name not in _SPACES:
         raise KeyError(f"No param space for '{name}'. Options: {sorted(_SPACES)}")
     space = dict(_SPACES[name])
+    if disease:
+        space.update(_DISEASE_OVERRIDES.get(disease, {}).get(name, {}))
     if smote:
         space.update(_SMOTE_SPACE)
     return space

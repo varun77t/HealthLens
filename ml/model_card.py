@@ -75,12 +75,23 @@ _LIMITATIONS: dict[str, list[str]] = {
     ],
     "diabetes": [
         "Features are self-reported survey answers (CDC BRFSS 2015), not laboratory measurements. "
-        "The target is a self-reported diagnosis of prediabetes or diabetes, so undiagnosed cases are labelled negative.",
+        "The target is a self-reported diagnosis of prediabetes or diabetes, so people with undiagnosed "
+        "diabetes are labelled negative — the model learns who has *been told* they have diabetes, "
+        "which tracks access to healthcare as well as disease.",
         "This estimates a RISK ASSOCIATION with reported diabetes status, not a diagnosis and not a future-onset prediction — "
-        "the data is cross-sectional, so no temporal ordering between features and outcome is established.",
-        "Survey weighting is not applied, so the sample is not nationally representative.",
-        "25,772 rows share an identical feature vector with another row; the train/test split groups these so "
-        "identical profiles never straddle the split.",
+        "the data is cross-sectional, so no temporal ordering between features and outcome is established. "
+        "A high score means 'resembles respondents who reported diabetes', never 'will develop diabetes'.",
+        "Survey weighting is not applied, so the sample is not nationally representative and the "
+        "~14% positive rate is a property of this release, not of any population.",
+        "38,000 of 253,680 rows (15.0%) share an identical feature vector with at least one other row, "
+        "because 21 mostly-binary survey answers cannot distinguish 253,680 people. The train/test split "
+        "is grouped on the feature vector so identical profiles never straddle the split; without that, "
+        "the test set would contain rows the model had already seen.",
+        "Several features are plausibly consequences of diabetes rather than causes of it "
+        "(general health rating, difficulty walking, heart disease history). SHAP attributions describe "
+        "the model's use of these variables and must not be read as causal or as intervention targets.",
+        "Discrimination is moderate (ROC-AUC ~0.83), which is what self-reported indicators support. "
+        "Treat the probability as a coarse ordering of survey respondents, not a per-person risk estimate.",
     ],
 }
 
@@ -95,6 +106,7 @@ def build_model_card(
     selection_rationale: str,
     selection_margin: dict,
     dataset_stats: dict,
+    models_not_run: dict | None = None,
     split_meta: dict,
     cv_summary: dict,
     test_metrics: dict,
@@ -144,6 +156,7 @@ def build_model_card(
             "calibration_rationale": calibration_rationale,
             "selection_rationale": selection_rationale,
             "selection_margin": selection_margin,
+            "models_not_run": models_not_run or {},
         },
         "performance": {
             "note": (
@@ -208,13 +221,14 @@ def _card_markdown(card: dict) -> list[str]:
             {
                 k: v
                 for k, v in card["model"].items()
-                if k not in ("hyperparameters", "selection_margin")
+                if k not in ("hyperparameters", "selection_margin", "models_not_run")
             },
             key_header="field",
             value_header="value",
         ),
         "",
         *_margin_lines(card["model"].get("selection_margin") or {}),
+        *_not_run_lines(card["model"].get("models_not_run") or {}),
         "Hyperparameters:",
         "",
         "```json",
@@ -245,6 +259,7 @@ def _card_markdown(card: dict) -> list[str]:
         "",
         dict_to_markdown(perf["test_set_alternative_threshold"], key_header="metric", value_header="value"),
         "",
+        *_operating_point_lines(perf.get("what_drives_this_score") or {}),
         "### Calibration comparison",
         "",
         df_to_markdown(pd.DataFrame(perf["calibration_comparison"])),
@@ -296,6 +311,67 @@ def _attribution_lines(diag: dict) -> list[str]:
             f"{cc['positive_rate_all']} to {cc['positive_rate_complete_cases']}.",
             "",
         ]
+    lines += _ceiling_lines(diag)
+    lines += _imbalance_lines(diag)
+    return lines
+
+
+def _ceiling_lines(diag: dict) -> list[str]:
+    """How much of the remaining error is irreducible given these features?"""
+    dup = diag.get("duplicate_feature_vectors")
+    note = diag.get("duplicate_conflict_note")
+    if not dup or not note or not dup.get("n_conflicted_groups"):
+        return []
+    return [
+        "### The ceiling imposed by the feature set",
+        "",
+        f"> {note}",
+        "",
+        f"Detail: {dup['n_unique_feature_vectors']:,} distinct feature vectors describe "
+        f"{dup['n_rows']:,} rows. {dup['n_conflicted_groups']:,} groups of identical rows "
+        f"disagree about the outcome, covering {dup['n_rows_in_conflicted_groups']:,} rows. "
+        "Assuming the best possible prediction for every such group (its majority label), "
+        f"{dup['n_unwinnable_rows']:,} rows must still be wrong — a hard upper bound of "
+        f"{dup['max_achievable_accuracy']:.4f} accuracy for **any** model restricted to "
+        "these features. This bound is a property of the data, not of the model: it says "
+        "where perfect accuracy stops being available, and the note above says whether it "
+        "accounts for this model's actual error.",
+        "",
+    ]
+
+
+def _imbalance_lines(diag: dict) -> list[str]:
+    """Whether SMOTE was actually better than class weighting, where it was measured."""
+    note = diag.get("imbalance_note")
+    rows = diag.get("imbalance_comparison")
+    if not note:
+        return []
+    lines = ["### Imbalance strategy: SMOTE vs class weighting", "", f"> {note}", ""]
+    if rows:
+        keep = ["strategy", "roc_auc_mean", "pr_auc_mean", "recall_mean",
+                "precision_mean", "f1_mean", "fit_seconds_mean"]
+        table = pd.DataFrame(rows)
+        lines += [df_to_markdown(table[[c for c in keep if c in table.columns]].round(4)), ""]
+    return lines
+
+
+def _operating_point_lines(diag: dict) -> list[str]:
+    """Say which of the two threshold rows above should actually be read."""
+    note = diag.get("operating_point_note")
+    return ["### Which threshold to read", "", f"> {note}", ""] if note else []
+
+
+def _not_run_lines(excluded: dict) -> list[str]:
+    """Say plainly which candidates were never scored, so the field isn't overstated."""
+    if not excluded:
+        return []
+    lines = [
+        f"**Candidates not evaluated ({len(excluded)}).** The comparison below is over the "
+        "remaining models only; nothing is claimed about how these would have performed.",
+        "",
+    ]
+    lines += [f"- `{name}` — {why}" for name, why in sorted(excluded.items())]
+    lines.append("")
     return lines
 
 

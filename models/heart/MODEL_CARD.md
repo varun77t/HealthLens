@@ -131,6 +131,10 @@ _All figures below are measured on the held-out test set (or by cross-validation
 | `cm_tp` | 23 |
 | `threshold_rule` | Youden's J (max sensitivity + specificity - 1) maximised on out-of-fold predictions over the TRAINING set, then applied unchanged to the test set. The test set played no part in choosing it. |
 
+### Which threshold to read
+
+> Positive-class prevalence is 0.4590. At threshold 0.5 the model recovers 0.8929 of positives at 0.8788 specificity; at the sensitivity-oriented threshold 0.6436 it recovers 0.8214 at 0.9394 specificity. The two operating points are close, so 0.5 is a reasonable default here.
+
 ### Calibration comparison
 
 | method | brier | roc_auc |
