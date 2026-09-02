@@ -289,6 +289,7 @@ def train_disease(
         test_metrics=metrics_050,
         alt_threshold_metrics=metrics_alt,
         calibration_table=test_cal,
+        external_validation=_existing_external_validation(reports),
         diagnostics=diagnostics,
         shap_top_features=importance.head(10).to_dict(orient="records"),
         artifacts={
@@ -317,6 +318,21 @@ def train_disease(
             "reports": reports,
         },
     }
+
+
+def _existing_external_validation(reports: Path) -> dict | None:
+    """Carry a previous external-validation verdict into a freshly rebuilt model card.
+
+    External validation runs *after* training (it needs the serialised pipeline), so a
+    later retrain would otherwise silently drop the finding from the card — including a
+    rejection, which is exactly the part that must not disappear.
+    """
+    path = reports / "external_validation.json"
+    if not path.exists():
+        return None
+    import json
+
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _clean_params(params: dict) -> dict:

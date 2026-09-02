@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import nbformat as nbf
 
-from config import MODELS_DIR, NOTEBOOKS_DIR
+from config import MODELS_DIR, NOTEBOOKS_DIR, REPORTS_DIR
 
 EDA_CELLS = [
     ("markdown", """# {label} — Exploratory Data Analysis
@@ -279,6 +279,100 @@ Intended use, out-of-scope use, and the limitations of this model.
     ("code", """display(Markdown((models / "MODEL_CARD.md").read_text(encoding="utf-8")))"""),
 ]
 
+EXTERNAL_CELLS = [
+    ("markdown", """# External Validation — Heart model vs Statlog
+
+> **For research and educational purposes only.** Nothing here is a medical diagnosis or
+> medical advice.
+
+Internal test performance says how a model does on held-out rows from the *same* dataset.
+External validation asks a harder question: does it hold up on a **different cohort**?
+
+This notebook reads the artifacts written by
+
+```
+python -m ml.external.heart_statlog
+```
+
+**The result is a negative one, and that is the finding.** Statlog turned out not to be an
+independent cohort at all, so the heart model has no external validation. The check that
+established this is reusable and should be run against any future candidate dataset.
+"""),
+    ("code", """import sys, os
+_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
+if _root not in sys.path:
+    sys.path.insert(0, _root)
+os.chdir(_root)
+
+import json
+from pathlib import Path
+
+import pandas as pd
+from IPython.display import Markdown, display
+
+pd.set_option("display.max_columns", 60)
+
+ext = json.loads(Path("reports/heart/external_validation.json").read_text(encoding="utf-8"))
+print("status                        :", ext["status"])
+print("schema compatible             :", ext["schema_compatible"])
+print("usable as external validation :", ext["usable_as_external_validation"])
+"""),
+    ("markdown", """## 1. Encoding compatibility — the assumption carried since Phase 1
+
+Aligning a second dataset by column *name* is only safe if the *encodings* agree. A `thal`
+coded 3/6/7 in one release and 0/1/2 in another aligns silently and predicts nonsense.
+
+This was an untested assumption until now. It **holds** — but verifying it matters for a
+second reason: it is what makes the contamination finding below meaningful. The rows really
+are the same records, not coincidentally equal under a mismatched encoding.
+"""),
+    ("code", """display(pd.DataFrame(ext["schema_check"]))"""),
+    ("markdown", """## 2. Is the dataset actually independent?
+
+Measured **before** any metric is computed. Matching is exact on all 13 features after
+numeric normalisation — casting to float first, because the same record arriving as `int64`
+in one release and `float64` in another would otherwise never match, silently reporting a
+contaminated dataset as clean.
+"""),
+    ("code", """ov = ext["independence_check"]
+display(pd.Series({k: v for k, v in ov.items() if not isinstance(v, list)}).to_frame("value"))
+display(Markdown("**Reasons:**\\n" + "\\n".join(f"- {r.capitalize()}." for r in ov["reasons"])))
+"""),
+    ("code", """display(Markdown(f"> {ext['verdict']}"))"""),
+    ("markdown", """## 3. The metrics — recorded, not to be cited
+
+The model was scored on Statlog anyway. Read the number, then read what it is worth.
+
+This is the part worth dwelling on: the contaminated result does **not** look broken. It
+lands just *below* the internal test score, which is exactly the modest confirmation a
+sound external validation would produce. A fake that looks obviously wrong is harmless;
+this one would have passed review.
+"""),
+    ("code", """display(pd.Series(ext["metrics"]).to_frame("value"))
+display(Markdown(f"> {ext['metrics_interpretation']}"))
+"""),
+    ("code", """internal = json.loads(Path("reports/heart/metrics.json").read_text(encoding="utf-8"))
+compare = pd.DataFrame({
+    "internal test (honest, n=61)": internal["test_set_threshold_0.5"],
+    "statlog (CONTAMINATED, n=270)": ext["metrics"],
+}).loc[["n", "roc_auc", "pr_auc", "recall_sensitivity", "specificity", "precision", "accuracy"]]
+display(compare)
+print("The two columns are close. That closeness is the trap, not the reassurance.")
+"""),
+    ("markdown", """## 4. What this means
+
+The heart model has **no external validation**. Its only honest performance estimate stays
+the 61-row held-out Cleveland test set, with every limitation already in the model card:
+a single-site, referral-based cohort from the late 1980s, far too small for narrow
+confidence intervals.
+
+Genuine external validation would need a heart cohort not derived from the Cleveland
+database — the Hungarian, Switzerland or Long Beach partitions distributed alongside it are
+candidates, and each would have to pass this same independence check first.
+"""),
+    ("code", """display(Markdown(Path("reports/heart/EXTERNAL_VALIDATION.md").read_text(encoding="utf-8")))"""),
+]
+
 DISEASE_LABELS = {
     "heart": "Heart Disease Presence Prediction",
     "kidney": "Chronic Kidney Disease Presence Prediction",
@@ -310,6 +404,18 @@ def build_training_notebook(disease: str, label: str) -> None:
     _build(TRAINING_CELLS, disease, label, "training")
 
 
+def build_external_validation_notebook() -> None:
+    nb = nbf.v4.new_notebook()
+    nb.metadata["kernelspec"] = {"name": "medicl", "display_name": "Python (medicl)", "language": "python"}
+    nb["cells"] = [
+        nbf.v4.new_markdown_cell(src) if kind == "markdown" else nbf.v4.new_code_cell(src)
+        for kind, src in EXTERNAL_CELLS
+    ]
+    path = NOTEBOOKS_DIR / "external_validation.ipynb"
+    nbf.write(nb, path)
+    print(f"wrote {path}")
+
+
 def main() -> None:
     NOTEBOOKS_DIR.mkdir(exist_ok=True)
     for disease, label in DISEASE_LABELS.items():
@@ -318,6 +424,11 @@ def main() -> None:
             build_training_notebook(disease, label)
         else:
             print(f"skipping {disease}_training.ipynb (no trained model yet)")
+
+    if (REPORTS_DIR / "heart" / "external_validation.json").exists():
+        build_external_validation_notebook()
+    else:
+        print("skipping external_validation.ipynb (not run yet)")
 
 
 if __name__ == "__main__":

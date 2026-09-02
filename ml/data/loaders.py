@@ -317,9 +317,16 @@ def load_statlog(*, force: bool = False) -> tuple[pd.DataFrame, pd.Series, Featu
         binary=_HEART_BINARY,
         descriptions=_HEART_DESCRIPTIONS,
         notes=(
-            "External validation set for the heart model. Target 1/2 mapped to 0/1. "
-            "Columns renamed positionally to the Cleveland schema; encodings for "
-            "cp/slope/thal are believed compatible. n=270, no missing values."
+            "NOT USABLE AS EXTERNAL VALIDATION FOR THE HEART MODEL. Measured in Phase 6: "
+            "all 270 rows match a Cleveland (id 45) row exactly on all 13 features with "
+            "identical labels, and 222 of them (82.2%) fall in the heart model's training "
+            "split. Statlog is a 270-row subset of the Cleveland database redistributed "
+            "under a different name, not a second cohort. Scoring the heart model on it "
+            "measures memorisation. See reports/heart/EXTERNAL_VALIDATION.md. "
+            "Target 1/2 mapped to 0/1. Columns renamed positionally to the Cleveland "
+            "schema; encodings for cp/slope/thal were verified compatible (identical value "
+            "domains, marginals agreeing to ~1pp). n=270, no missing values. Retained for "
+            "the independence check itself and as a regression fixture."
         ),
     )
     return X, y, spec

@@ -43,7 +43,14 @@ DISEASES: dict[str, dict] = {
         "label": "Heart Disease Presence Prediction",
         "positive": "angiographic heart disease present (>50% diameter narrowing)",
         "raw_subdir": "heart",
-        "external_validation": "statlog",
+        # Phase 6 measured Statlog (id 145) to be a 270-row subset of this very dataset
+        # (100% exact feature+label match, 82.2% inside the training split), so it cannot
+        # validate this model. No usable external cohort is currently available.
+        "external_validation": None,
+        "external_validation_rejected": {
+            "statlog": "subset of the Cleveland training data — see "
+                       "reports/heart/EXTERNAL_VALIDATION.md",
+        },
     },
     "kidney": {
         "uci_id": 336,

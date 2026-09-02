@@ -1,6 +1,6 @@
 # Project Context — Multi-Disease AI
 
-_State as of commit `056ea2d` (Phase 5 complete). Last updated 2026-09-02._
+_State as of Phase 6 complete. Last updated 2026-09-02._
 
 Orientation document: what this project is, what has been built, what every number in it
 actually means, and what happens next. For the full phase-by-phase build log see
@@ -52,18 +52,17 @@ recommendation, or that someone will develop a disease.
 | 3 | **Heart** model end-to-end | ✅ trained |
 | 4 | **Kidney** model end-to-end | ✅ trained |
 | 5 | **Diabetes** model end-to-end | ✅ trained |
-| 6 | External validation (Heart → Statlog) | ⬜ **next** |
-| 7 | Calibration + fairness subgroup analysis | ⬜ |
+| 6 | External validation (Heart → Statlog) | ✅ complete — **attempted and rejected**, see §7a |
+| 7 | Calibration + fairness subgroup analysis | ⬜ **next** |
 | 8 | FastAPI backend | ⬜ |
 | — | React frontend, CNN/Grad-CAM imaging | deferred (planned, not built) |
 
-**Verification at `056ea2d`:** `python -m pytest -q` → **129 passed, 0 skipped** (74 s).
-This is the first run with zero skips — all three diseases now have artifacts, so the
-model-artifact suite is fully active. All three training notebooks execute 18/18 cells
-with no errors.
+**Verification:** `python -m pytest -q` → **145 passed, 0 skipped** (66 s). All three
+training notebooks execute 18/18 cells and `external_validation.ipynb` 7/7, with no errors.
 
 **Commit lineage:** `e3a06b4` (venv isolation) → `f2a68a4` (docs) → `3b0ffde` (Phase 2) →
-`dd02dd8` (Phase 3, heart) → `8f1a968` (Phase 4, kidney) → **`056ea2d` (Phase 5, diabetes)**.
+`dd02dd8` (Phase 3, heart) → `8f1a968` (Phase 4, kidney) → `056ea2d` (Phase 5, diabetes) →
+`77c5d45` (docs) → **Phase 6 (external validation rejected)**.
 
 ---
 
@@ -76,7 +75,7 @@ with no errors.
 | heart | 45 | 303 | 13 (5 num / 5 cat / 3 bin) | `num > 0` — angiographic disease present | 0.4587 |
 | kidney | 336 | 400 | 24 (14 num / 0 cat / 10 bin) | `class == 'ckd'` | 0.6250 |
 | diabetes | 891 | 253,680 | 21 (7 num / 0 cat / 14 bin) | `Diabetes_binary` — **prediabetes or diabetes** | 0.1393 |
-| statlog *(external val only)* | 145 | 270 | 13 | `target == 2` | 0.4444 |
+| statlog *(**rejected** as external validation — a Cleveland subset, §7a)* | 145 | 270 | 13 | `target == 2` | 0.4444 |
 
 The diabetes target must **never** be described as "diabetes diagnosis". It is
 *prediabetes-or-diabetes vs neither*, self-reported via BRFSS survey.
@@ -314,6 +313,67 @@ instead of 200–800) — a cost axis, not a modelling choice; documented in `pa
 
 ---
 
+## 7a. Phase 6 — external validation attempted and REJECTED
+
+The heart model was to be validated against **Statlog (UCI id 145)**, a supposedly separate
+270-patient cohort. Two checks ran before any metric was believed.
+
+### Check 1 — encoding compatibility: **passed**
+
+The assumption carried since Phase 1, that `cp`/`slope`/`thal` share the Cleveland codes,
+**holds**. Value domains are identical (cp 1–4, restecg 0–2, slope 1–3, ca 0–3, thal 3/6/7)
+and marginals agree to within ~1 percentage point. Numeric ranges match exactly.
+
+### Check 2 — dataset independence: **failed decisively**
+
+| check | result |
+|---|---|
+| Statlog rows matching a Cleveland row on **all 13 features** | **270 / 270 (100%)** |
+| of those, labels also identical | **270 / 270** |
+| rows inside the heart model's own **training** split | **222 (82.2%)** |
+| rows inside the heart test split | 48 (17.8%) |
+| rows **unseen** by the model | **0** |
+
+Matching is 1:1 and unambiguous — neither dataset contains a duplicate feature vector.
+**Statlog is a 270-row subset of the Cleveland database redistributed under a different
+name, not a second cohort.**
+
+### Why this matters more than a clean pass would have
+
+Scored naively, Statlog reports **ROC-AUC 0.9399** (PR-AUC 0.9353, recall 0.8333,
+accuracy 0.8667, n=270) against the internal test's 0.9535. It lands *slightly below* the
+internal score — precisely the modest confirmation a sound external validation produces.
+**A fake that looks broken is harmless; this one would have passed review.** It is retained
+in `reports/heart/EXTERNAL_VALIDATION.md`, labelled as contaminated and not to be cited.
+
+**Consequence: the heart model has no external validation.** Its only honest performance
+estimate remains the 61-row Cleveland test split. This is a negative result and it is the
+correct one.
+
+### What was built
+
+- `ml/external/dataset_overlap.py` — reusable independence check: `dataset_overlap()`
+  (exact full-vector matching, train/test membership, label agreement, verdict) and
+  `schema_compatibility()` (categorical domains, numeric ranges, unit changes).
+  `MAX_ACCEPTABLE_OVERLAP = 0.05`. **Run it against any future candidate before calling
+  that dataset external.**
+- `ml/external/heart_statlog.py` — runs both checks, then scores; returns `status`
+  (`validated` / `rejected`) which callers must read.
+- `reports/heart/external_validation.json`, `EXTERNAL_VALIDATION.md`,
+  `external_schema_check.csv`; `notebooks/external_validation.ipynb`.
+- The verdict is written into the heart model card and **survives retraining**
+  (`finalize._existing_external_validation` reloads it), so the finding cannot be
+  silently dropped by a later run.
+
+> **A bug worth recording.** The first overlap check reported **0% overlap** — a false
+> negative in the most dangerous direction. Cause: Cleveland loads as `int64` and Statlog
+> as `float64`, so string keys compared `"63"` against `"63.0"` and never matched. Had that
+> stood, a fully contaminated dataset would have been certified clean and the fake
+> validation published. `row_keys()` now casts to float before comparing, and
+> `test_row_keys_match_across_int_and_float_dtypes` pins it.
+
+---
+
 ## 8. Known limitations (per module)
 
 ### Heart (n = 303, test n = 61)
@@ -326,6 +386,8 @@ instead of 200–800) — a cost axis, not a modelling choice; documented in `pa
   as missing.
 - Top features come from tests ordered *because disease is already suspected* — not a
   general-population screen.
+- **No external validation** — the intended cohort (Statlog) proved to be a subset of the
+  training data (§7a). Nothing establishes that this model transfers to another cohort.
 
 ### Kidney (n = 400, test n = 80)
 - Single Indian hospital, two-month period. One reclassified patient moves accuracy by 1.25 points.
@@ -382,32 +444,35 @@ instead of 200–800) — a cost axis, not a modelling choice; documented in `pa
    for probabilities) and `base_pipeline.joblib` (uncalibrated, for SHAP). No model *training*
    in the request path, ever.
 
-4. **Statlog encoding compatibility is an assumption** — see §10.
+4. **No module has external validation.** Heart's attempt was rejected (§7a); kidney and
+   diabetes have no compatible second dataset. The API must not imply otherwise — every
+   figure it serves comes from one held-out split of one dataset.
 
 ---
 
-## 10. Next step — Phase 6: External validation (Heart → Statlog)
+## 10. Next step — Phase 7: Calibration + fairness subgroup analysis
 
-Build `ml/external/heart_statlog.py`:
+1. **Calibration** — the per-disease wrapper is already selected and shipped (§5). Phase 7
+   finalises the reporting: store calibration curves and pre/post Brier in
+   `reports/<disease>/calibration/`, which already holds the selection and test tables.
+2. **Fairness** — build `ml/fairness/subgroup_metrics.py`: recall, specificity, precision
+   and ROC-AUC broken down by **sex** (heart, diabetes) and **age bands** (all three).
+   Output `reports/<disease>/fairness/subgroups.csv` plus notes.
 
-1. Align Statlog's 13 features to the Cleveland names, units and encodings; map target
-   `1/2 → 0/1` (n = 270, no missing values).
-2. Load `models/heart/pipeline.joblib` and predict — **no retraining, no refitting of any
-   preprocessing step.**
-3. Compute the full metric set and write `reports/heart/external_validation.json` plus a
-   write-up comparing internal-test against external performance, discussing distribution
-   shift, encoding differences, cohort differences and sample size.
-4. Feed the result into the heart model card via `build_model_card(external_validation=...)`,
-   which already accepts it.
+Constraints to hold to:
 
-**Verify before trusting the result:** the encoding compatibility of `cp`, `slope` and `thal`
-between Statlog and the Cleveland processed release is currently an **assumption**, not a
-verified fact. If it does not hold, the external numbers are meaningless and must be reported
-as such rather than published as a validation. Checking this is part of Phase 6, not a
-follow-up.
+- **Never label a model "fair".** Report disparities and their uncertainty.
+- Subgroup sample sizes are brutal: heart's test set is 61 patients total, kidney's is 80.
+  A per-sex or per-age-band estimate there rests on single-digit counts and must carry that
+  caveat prominently — or be reported as not estimable. Diabetes (50,961 test rows) is the
+  only module where subgroup metrics will be stable.
+- Kidney has no sex variable → age bands only.
+- The same discipline as every prior phase: if a subgroup result is too noisy to mean
+  anything, say so rather than publishing a number that looks like a finding.
 
 Do **not** force external validation for kidney or diabetes — no compatible dataset exists,
-and inventing one would violate §1.
+and inventing one would violate §1. Any future candidate must first pass
+`ml.external.dataset_overlap.dataset_overlap()`.
 
 ---
 
@@ -427,6 +492,8 @@ ml/evaluation/metrics.py      classification_metrics, threshold_sweep, youden_th
 ml/evaluation/calibration.py  train-OOF calibration selection + test-only reporting table
 ml/evaluation/diagnostics.py  missingness probe, duplicate-label ceiling, operating-point note
 ml/explainability/            DiseaseExplainer (tree/linear/kernel dispatch), plots
+ml/external/dataset_overlap.py  independence + schema checks   (Phase 6, reusable)
+ml/external/heart_statlog.py    the rejected validation attempt (Phase 6)
 ml/model_card.py              metadata.json + MODEL_CARD.md
 scripts/train_{heart,kidney,diabetes}.py    entry points
 models/<disease>/             pipeline.joblib, base_pipeline.joblib, metadata.json, MODEL_CARD.md

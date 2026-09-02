@@ -111,8 +111,13 @@ byte-identical. PNG figures / notebook exec-metadata are not byte-stable across 
    `jupyter`, `jupyterlab`, `notebook`, `ipykernel`, `nbconvert`, `pytest`, `ucimlrepo`.
 3. Benign warning: Jupyter "kernel running over TCP without encryption" during headless
    notebook execution. No errors anywhere.
-4. Statlog feature encodings (cp/slope/thal) are *assumed* compatible with Cleveland for
-   Phase 6 external validation — to be verified when that phase runs.
+4. ~~Statlog feature encodings (cp/slope/thal) are *assumed* compatible with Cleveland for
+   Phase 6 external validation — to be verified when that phase runs.~~
+   **Resolved in Phase 6.** The encodings *are* compatible (verified: identical value
+   domains, marginals within ~1pp). But the check also revealed something worse — Statlog
+   is a 270-row **subset of Cleveland** (100% exact feature+label match, 82.2% inside the
+   heart training split), so it cannot serve as external validation at all. See the
+   Phase 6 section below.
 
 ## Phase 2 results — shared ML package
 
@@ -487,14 +492,80 @@ First run with **zero skips** — all three diseases now have artifacts, so
 3. Both `pipeline.joblib` (calibrated, for probabilities) and `base_pipeline.joblib`
    (uncalibrated, for SHAP) must be loaded per disease at startup.
 
-## Next step — Phase 6 (External validation, Heart → Statlog)
+## Phase 6 results — External validation ATTEMPTED AND REJECTED
 
-`ml/external/heart_statlog.py`: align Statlog's 13 features to Cleveland names/encodings,
-map target 1/2 → 0/1, load `models/heart/pipeline.joblib` and predict **with no
-retraining**. Write `reports/heart/external_validation.json` plus a write-up comparing
-internal-test against external performance. The encoding compatibility of `cp`/`slope`/
-`thal` is currently an *assumption* (see Known issues #4) and must be verified as part of
-that phase — if it does not hold, the external result is meaningless and should be
-reported as such rather than published as a validation.
+`python -m ml.external.heart_statlog`. Artifacts: `reports/heart/external_validation.json`,
+`EXTERNAL_VALIDATION.md`, `external_schema_check.csv`, `notebooks/external_validation.ipynb`.
+New modules: `ml/external/dataset_overlap.py`, `ml/external/heart_statlog.py`.
+
+Two checks ran before any metric was believed.
+
+**Check 1 — encoding compatibility: passed.** The Phase 1 assumption holds. `cp` 1–4,
+`restecg` 0–2, `slope` 1–3, `ca` 0–3, `thal` 3/6/7 in both releases; marginals agree within
+~1pp; numeric ranges match exactly.
+
+**Check 2 — dataset independence: failed decisively.**
+
+| check | result |
+|---|---|
+| Statlog rows matching a Cleveland row on all 13 features | **270 / 270 (100%)** |
+| of those, labels also identical | **270 / 270** |
+| rows in the heart model's **training** split | **222 (82.2%)** |
+| rows in the heart test split | 48 (17.8%) |
+| rows unseen by the model | **0** |
+
+Matching is 1:1 (neither dataset has a duplicate feature vector). Statlog is a redistributed
+subset of Cleveland, not a second cohort.
+
+Scored naively it reports **ROC-AUC 0.9399** vs the internal test's 0.9535 — *slightly below*,
+which is exactly what a sound external validation looks like. That is the danger: the
+contaminated result does not look broken. It is kept in `EXTERNAL_VALIDATION.md`, labelled
+and not to be cited.
+
+**The heart model has no external validation.** Recorded in its model card (both as a
+dedicated section and in the limitations list) and carried through retraining via
+`finalize._existing_external_validation`.
+
+**A bug worth recording:** the first overlap check reported **0% overlap** — a false negative
+in the most dangerous direction, caused by Cleveland loading as `int64` and Statlog as
+`float64` so string keys compared `"63"` to `"63.0"`. Fixed in `row_keys()` (cast to float
+first) and pinned by `test_row_keys_match_across_int_and_float_dtypes`.
+
+### Phase 6 verification
+
+| step | command | result |
+|---|---|---|
+| external validation | `python -m ml.external.heart_statlog` | exit 0, status REJECTED |
+| card durability | `python -m scripts.train_heart` | verdict survives retrain; metrics unchanged |
+| full suite | `python -m pytest -q` | **145 passed, 0 skipped in 66 s** |
+| notebook | `jupyter nbconvert --execute notebooks/external_validation.ipynb` | 7/7 cells, 0 errors |
+
+## Next step — Phase 7 (Calibration + fairness subgroup analysis)
+
+Finalise calibration reporting (curves + pre/post Brier per disease) and build
+`ml/fairness/subgroup_metrics.py`: recall / specificity / precision / ROC-AUC by **sex**
+(heart, diabetes) and **age bands** (all three; kidney has no sex variable).
+
+The binding constraint is sample size. Heart's test set is 61 patients and kidney's is 80,
+so per-subgroup estimates there rest on single-digit counts — those must carry the caveat
+prominently or be reported as not estimable. Diabetes (50,961 test rows) is the only module
+where subgroup metrics will be stable. **Never label a model "fair"**: report disparities
+and their uncertainty, and say plainly when a subgroup result is too noisy to mean anything.
+
+### Superseded — the original Phase 6 plan, kept for the record
+
+> `ml/external/heart_statlog.py`: align Statlog's 13 features to Cleveland names/encodings,
+> map target 1/2 → 0/1, load `models/heart/pipeline.joblib` and predict **with no
+> retraining**. Write `reports/heart/external_validation.json` plus a write-up comparing
+> internal-test against external performance. The encoding compatibility of `cp`/`slope`/
+> `thal` is currently an *assumption* (see Known issues #4) and must be verified as part of
+> that phase — if it does not hold, the external result is meaningless and should be
+> reported as such rather than published as a validation.
+
+The guard in that last sentence is what fired, though not for the reason anticipated. The
+encodings were fine; the dataset was not independent. Worth noting that the plan's
+verification step ("`python -m ml.external.heart_statlog` → `external_validation.json`")
+would have been satisfied by a fully contaminated result — the file gets written either
+way. Independence had to be checked explicitly; it was not implied by any step of the plan.
 
 Reproduce Phase 1 from scratch: see `README.md` → "Reproduce Phase 1".

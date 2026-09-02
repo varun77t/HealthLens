@@ -1,0 +1,157 @@
+{
+  "disease": "heart",
+  "external_dataset": "statlog",
+  "status": "rejected",
+  "usable_as_external_validation": false,
+  "schema_compatible": true,
+  "schema_check": [
+    {
+      "column": "age",
+      "in_both": true,
+      "values_a": "[29, 77] mean 54.44",
+      "values_b": "[29, 77] mean 54.43",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "trestbps",
+      "in_both": true,
+      "values_a": "[94, 200] mean 131.69",
+      "values_b": "[94, 200] mean 131.34",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "chol",
+      "in_both": true,
+      "values_a": "[126, 564] mean 246.69",
+      "values_b": "[126, 564] mean 249.66",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "thalach",
+      "in_both": true,
+      "values_a": "[71, 202] mean 149.61",
+      "values_b": "[71, 202] mean 149.68",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "oldpeak",
+      "in_both": true,
+      "values_a": "[0, 6.2] mean 1.04",
+      "values_b": "[0, 6.2] mean 1.05",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "cp",
+      "in_both": true,
+      "values_a": "1, 2, 3, 4",
+      "values_b": "1, 2, 3, 4",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "restecg",
+      "in_both": true,
+      "values_a": "0, 1, 2",
+      "values_b": "0, 1, 2",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "slope",
+      "in_both": true,
+      "values_a": "1, 2, 3",
+      "values_b": "1, 2, 3",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "ca",
+      "in_both": true,
+      "values_a": "0, 1, 2, 3",
+      "values_b": "0, 1, 2, 3",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "thal",
+      "in_both": true,
+      "values_a": "3, 6, 7",
+      "values_b": "3, 6, 7",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "sex",
+      "in_both": true,
+      "values_a": "0, 1",
+      "values_b": "0, 1",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "fbs",
+      "in_both": true,
+      "values_a": "0, 1",
+      "values_b": "0, 1",
+      "compatible": true,
+      "note": ""
+    },
+    {
+      "column": "exang",
+      "in_both": true,
+      "values_a": "0, 1",
+      "values_b": "0, 1",
+      "compatible": true,
+      "note": ""
+    }
+  ],
+  "independence_check": {
+    "n_candidate": 270,
+    "n_reference": 303,
+    "n_matched": 270,
+    "pct_matched": 100.0,
+    "n_label_agreements": 270,
+    "n_unseen": 0,
+    "pct_unseen": 0.0,
+    "n_in_train": 222,
+    "n_in_test": 48,
+    "pct_in_train": 82.22,
+    "independent": false,
+    "verdict": "NOT INDEPENDENT \u2014 this dataset is a subset of the training dataset, not an independent cohort. 270 of 270 rows (100.0%) match a row in the training dataset exactly on every feature, against a maximum acceptable overlap of 5%. All 270 matched rows also carry the same label, so these are the same records rather than coincidentally similar patients. 222 rows (82.22%) are in the model's own training split \u2014 the model was fitted on them. No row in this dataset is unseen by the model. Any metric computed on it measures memorisation as much as generalisation and must not be published as external validation.",
+    "reasons": [
+      "270 of 270 rows (100.0%) match a row in the training dataset exactly on every feature, against a maximum acceptable overlap of 5%",
+      "all 270 matched rows also carry the same label, so these are the same records rather than coincidentally similar patients",
+      "222 rows (82.22%) are in the model's own training split \u2014 the model was fitted on them",
+      "no row in this dataset is unseen by the model"
+    ]
+  },
+  "verdict": "NOT INDEPENDENT \u2014 this dataset is a subset of the training dataset, not an independent cohort. 270 of 270 rows (100.0%) match a row in the training dataset exactly on every feature, against a maximum acceptable overlap of 5%. All 270 matched rows also carry the same label, so these are the same records rather than coincidentally similar patients. 222 rows (82.22%) are in the model's own training split \u2014 the model was fitted on them. No row in this dataset is unseen by the model. Any metric computed on it measures memorisation as much as generalisation and must not be published as external validation.",
+  "metrics": {
+    "n": 270,
+    "prevalence": 0.4444444444444444,
+    "threshold": 0.5,
+    "accuracy": 0.8666666666666667,
+    "precision": 0.8620689655172413,
+    "recall_sensitivity": 0.8333333333333334,
+    "specificity": 0.8933333333333333,
+    "f1": 0.847457627118644,
+    "roc_auc": 0.9399444444444445,
+    "pr_auc": 0.9353231510375737,
+    "brier": 0.09643860843927536,
+    "cm_tn": 134,
+    "cm_fp": 16,
+    "cm_fn": 20,
+    "cm_tp": 100
+  },
+  "metrics_interpretation": "THESE NUMBERS ARE NOT EXTERNAL VALIDATION. ROC-AUC 0.9399 on n=270 was computed on rows the model was largely trained on (222/270 are training rows, 0 are unseen). They are recorded only to show how plausible a contaminated result looks: it sits just below the internal test score, which is what a sound external validation would also produce. Do not cite them.",
+  "internal_test_comparison": {
+    "internal_test_n": 61,
+    "external_n": 270,
+    "note": "Compare only if status == 'validated'. Otherwise the external column is measuring the training set."
+  }
+}

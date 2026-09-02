@@ -151,6 +151,14 @@ Probe detail: a logistic regression trained on 2 binary *is-this-value-missing* 
 
 Complete-case analysis was not used as an alternative: dropping every row with a missing value would retain 297/303 rows (98.02%) and shift the positive rate from 0.4587 to 0.4613.
 
+### External validation — attempted and REJECTED
+
+> NOT INDEPENDENT — this dataset is a subset of the training dataset, not an independent cohort. 270 of 270 rows (100.0%) match a row in the training dataset exactly on every feature, against a maximum acceptable overlap of 5%. All 270 matched rows also carry the same label, so these are the same records rather than coincidentally similar patients. 222 rows (82.22%) are in the model's own training split — the model was fitted on them. No row in this dataset is unseen by the model. Any metric computed on it measures memorisation as much as generalisation and must not be published as external validation.
+
+`statlog` was tested for independence before any metric was believed. 270 of 270 rows (100.0%) match a training-dataset row exactly on every feature, 222 of them inside this model's own training split, and 0 rows are unseen. It is not a second cohort.
+
+**This model therefore has no external validation.** Its only honest performance estimate is the held-out test split recorded above, with the cohort and sample-size limitations listed below. See `reports/heart/EXTERNAL_VALIDATION.md` for the full check, including the contaminated metrics — retained solely to show how plausible such a result looks.
+
 ## Explainability
 
 Method: SHAP, aggregated from the transformed columns back to original features
@@ -176,6 +184,7 @@ Method: SHAP, aggregated from the transformed columns back to original features
 - 'chol' contains 0 values that are almost certainly 'not measured' sentinels rather than true zeros; they are left as-is and not treated as missing.
 - Features such as 'thal', 'ca' and 'oldpeak' come from tests (fluoroscopy, exercise ECG) that are themselves ordered because disease is already suspected — the model is not a general-population screen.
 - Encodings for 'cp', 'slope' and 'thal' follow the Cleveland processed release; other heart datasets code these differently.
+- NO EXTERNAL VALIDATION. Statlog (UCI 145) was the intended external cohort and was rejected in Phase 6: all 270 of its rows match a Cleveland row exactly on all 13 features with identical labels, and 222 (82.2%) sit in this model's own training split. It is a redistributed subset, not a second cohort. Every performance figure here therefore comes from a single held-out split of one small single-site dataset, and nothing establishes that the model transfers anywhere else.
 
 ## Risk bands
 

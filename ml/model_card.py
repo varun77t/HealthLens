@@ -52,6 +52,11 @@ _LIMITATIONS: dict[str, list[str]] = {
         "themselves ordered because disease is already suspected — the model is not a general-population screen.",
         "Encodings for 'cp', 'slope' and 'thal' follow the Cleveland processed release; other heart datasets "
         "code these differently.",
+        "NO EXTERNAL VALIDATION. Statlog (UCI 145) was the intended external cohort and was rejected in "
+        "Phase 6: all 270 of its rows match a Cleveland row exactly on all 13 features with identical labels, "
+        "and 222 (82.2%) sit in this model's own training split. It is a redistributed subset, not a second "
+        "cohort. Every performance figure here therefore comes from a single held-out split of one small "
+        "single-site dataset, and nothing establishes that the model transfers anywhere else.",
     ],
     "kidney": [
         "Very small sample: 400 records from a single Indian hospital over a two-month period. "
@@ -265,6 +270,7 @@ def _card_markdown(card: dict) -> list[str]:
         df_to_markdown(pd.DataFrame(perf["calibration_comparison"])),
         "",
         *_attribution_lines(perf.get("what_drives_this_score") or {}),
+        *_external_validation_lines(perf.get("external_validation")),
         "## Explainability",
         "",
         f"Method: {card['explainability']['method']}",
@@ -353,6 +359,52 @@ def _imbalance_lines(diag: dict) -> list[str]:
         table = pd.DataFrame(rows)
         lines += [df_to_markdown(table[[c for c in keep if c in table.columns]].round(4)), ""]
     return lines
+
+
+def _external_validation_lines(ext: dict | None) -> list[str]:
+    """Record external validation — including, and especially, when it was rejected.
+
+    A model card that simply omits this section is indistinguishable from one where the
+    question was never asked. A rejected attempt is a finding and is reported as one.
+    """
+    if not ext:
+        return [
+            "### External validation",
+            "",
+            "None attempted. Performance figures come from a single held-out split of one "
+            "dataset, so nothing here speaks to how the model transfers to another cohort.",
+            "",
+        ]
+    if ext.get("usable_as_external_validation"):
+        m = ext.get("metrics", {})
+        return [
+            "### External validation",
+            "",
+            f"Validated against `{ext['external_dataset']}` (n={m.get('n')}) with no "
+            f"retraining: ROC-AUC {m.get('roc_auc', float('nan')):.4f}, "
+            f"PR-AUC {m.get('pr_auc', float('nan')):.4f}, "
+            f"recall {m.get('recall_sensitivity', float('nan')):.4f}.",
+            "",
+        ]
+    ov = ext.get("independence_check", {})
+    return [
+        "### External validation — attempted and REJECTED",
+        "",
+        f"> {ext.get('verdict', '')}",
+        "",
+        f"`{ext['external_dataset']}` was tested for independence before any metric was "
+        f"believed. {ov.get('n_matched')} of {ov.get('n_candidate')} rows "
+        f"({ov.get('pct_matched')}%) match a training-dataset row exactly on every feature, "
+        f"{ov.get('n_in_train')} of them inside this model's own training split, and "
+        f"{ov.get('n_unseen')} rows are unseen. It is not a second cohort.",
+        "",
+        "**This model therefore has no external validation.** Its only honest performance "
+        "estimate is the held-out test split recorded above, with the cohort and sample-size "
+        "limitations listed below. See `reports/heart/EXTERNAL_VALIDATION.md` for the full "
+        "check, including the contaminated metrics — retained solely to show how plausible "
+        "such a result looks.",
+        "",
+    ]
 
 
 def _operating_point_lines(diag: dict) -> list[str]:
