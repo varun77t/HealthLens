@@ -12,7 +12,9 @@ the held-out test set. That is the whole point of putting it in the pipeline rat
 than calling ``fit_resample`` on the data up front.
 
 Class imbalance can be addressed two ways and we keep them mutually exclusive:
-    smote=False -> estimator uses ``class_weight="balanced"`` (or scale_pos_weight)
+    smote=False -> estimator uses ``class_weight="balanced"``; XGBoost has no such
+                   parameter, so it gets ``scale_pos_weight`` instead (pass
+                   ``pos_weight``, computed from the *training* labels only)
     smote=True  -> estimator uses default weights, SMOTE balances the classes
 
 Nothing here is fitted. ``build_model`` just assembles the estimator object.
@@ -32,11 +34,12 @@ from ml.preprocessing.build_preprocessor import build_preprocessor
 MODEL_NAMES: list[str] = ["logreg", "random_forest", "svc", "xgboost", "lightgbm"]
 
 
-def _estimator(name: str, *, balanced: bool, random_state: int):
+def _estimator(name: str, *, balanced: bool, random_state: int, pos_weight: float | None = None):
     """Instantiate a bare classifier.
 
     ``balanced=True`` asks the estimator to compensate for class imbalance itself
-    (used when SMOTE is off).
+    (used when SMOTE is off). ``pos_weight`` is the negative/positive ratio of the
+    training labels, used only by XGBoost, which has no ``class_weight``.
     """
     if name == "logreg":
         return LogisticRegression(
@@ -66,6 +69,7 @@ def _estimator(name: str, *, balanced: bool, random_state: int):
             max_depth=4,
             subsample=0.9,
             colsample_bytree=0.9,
+            scale_pos_weight=pos_weight if (balanced and pos_weight) else 1.0,
             eval_metric="logloss",
             tree_method="hist",
             n_jobs=-1,
@@ -92,6 +96,7 @@ def build_model(
     *,
     smote: bool = False,
     random_state: int = RANDOM_STATE,
+    pos_weight: float | None = None,
 ) -> ImbPipeline:
     """Assemble an (unfitted) preprocessing + optional-SMOTE + classifier pipeline."""
     if name not in MODEL_NAMES:
@@ -100,8 +105,24 @@ def build_model(
     steps: list[tuple] = [("preprocess", build_preprocessor(spec))]
     if smote:
         steps.append(("smote", SMOTE(random_state=random_state)))
-    steps.append(("clf", _estimator(name, balanced=not smote, random_state=random_state)))
+    steps.append(
+        (
+            "clf",
+            _estimator(
+                name, balanced=not smote, random_state=random_state, pos_weight=pos_weight
+            ),
+        )
+    )
     return ImbPipeline(steps=steps)
+
+
+def positive_class_weight(y_train) -> float:
+    """negatives / positives on the TRAINING labels — XGBoost's ``scale_pos_weight``."""
+    import numpy as np
+
+    y = np.asarray(y_train).astype(int)
+    n_pos = int((y == 1).sum())
+    return float((y == 0).sum() / n_pos) if n_pos else 1.0
 
 
 def build_all(
@@ -110,9 +131,10 @@ def build_all(
     smote: bool = False,
     random_state: int = RANDOM_STATE,
     names: list[str] | None = None,
+    pos_weight: float | None = None,
 ) -> dict[str, ImbPipeline]:
     """``{name: pipeline}`` for the whole zoo (or the subset in ``names``)."""
     return {
-        n: build_model(n, spec, smote=smote, random_state=random_state)
+        n: build_model(n, spec, smote=smote, random_state=random_state, pos_weight=pos_weight)
         for n in (names or MODEL_NAMES)
     }

@@ -1,7 +1,14 @@
-"""Generate the thin EDA notebooks from a template.
+"""Generate the thin EDA and training notebooks from templates.
 
-Each notebook is deliberately thin: it imports the reusable ``ml`` package, loads one
-dataset, and renders the profiling tables + figures. All heavy logic lives in ``ml/``.
+Each notebook is deliberately thin: it imports the reusable ``ml`` package and renders
+tables and figures. All heavy logic lives in ``ml/``.
+
+The **training** notebooks deliberately do *not* retrain. Training happens in
+``scripts/train_<disease>.py``; the notebook reads the artifacts that run produced and
+narrates them. That keeps the notebook fast, keeps a single source of truth for every
+number, and makes it impossible for a notebook to display a metric that differs from
+the one in ``reports/<disease>/metrics.json``. A training notebook is only generated
+for a disease that has already been trained.
 
 Usage:
     python -m scripts.build_notebooks
@@ -10,7 +17,7 @@ from __future__ import annotations
 
 import nbformat as nbf
 
-from config import NOTEBOOKS_DIR
+from config import MODELS_DIR, NOTEBOOKS_DIR
 
 EDA_CELLS = [
     ("markdown", """# {label} — Exploratory Data Analysis
@@ -75,6 +82,130 @@ for png in sorted(fig_dir.glob("*.png")):
 """),
 ]
 
+TRAINING_CELLS = [
+    ("markdown", """# {label} — Model Training Run
+
+> **For research and educational purposes only.** The model below is trained on a
+> historical public dataset. Its output is not a medical diagnosis and not medical
+> advice. See the model card for what this model must **not** be used for.
+
+This notebook **does not train anything** — it reads the artifacts produced by
+
+```
+python -m scripts.train_{disease}
+```
+
+so every number shown here is the same number in `reports/{disease}/` and
+`models/{disease}/metadata.json`. Re-run that script to refresh them.
+"""),
+    ("code", """import sys, os
+# Make the repository root importable when the kernel starts in notebooks/.
+_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
+if _root not in sys.path:
+    sys.path.insert(0, _root)
+os.chdir(_root)
+
+import json
+from pathlib import Path
+
+import joblib
+import pandas as pd
+from IPython.display import Image, Markdown, display
+
+pd.set_option("display.max_columns", 60)
+
+DISEASE = "{disease}"
+reports = Path("reports") / DISEASE
+models = Path("models") / DISEASE
+
+metrics = json.loads((reports / "metrics.json").read_text(encoding="utf-8"))
+card = json.loads((models / "metadata.json").read_text(encoding="utf-8"))
+shap_global = json.loads((reports / "shap_global.json").read_text(encoding="utf-8"))
+
+print(card["module"])
+print("algorithm :", card["model"]["algorithm"])
+print("calibration:", card["model"]["calibration"])
+"""),
+    ("markdown", """## 1. How the data was split
+
+Preprocessing (imputation, scaling, one-hot) happens **inside** the model pipeline, so
+it is fitted on training folds only and never sees the held-out rows.
+"""),
+    ("code", """pd.Series(metrics["split"]).to_frame("value")"""),
+    ("markdown", "## 2. Model comparison\n\nFive candidate pipelines, 5-fold cross-validated on the training set."),
+    ("code", """pd.read_csv(reports / "model_comparison.csv")"""),
+    ("markdown", """### Was the winner meaningfully better?
+
+`selection_margin` compares the tuned top-2 against the fold-to-fold standard deviation.
+When the gap is smaller than that noise, the leaderboard is **not** a quality ranking.
+"""),
+    ("code", """pd.Series(metrics["selection_margin"]).to_frame("value")"""),
+    ("code", """display(Markdown((reports / "SELECTION.md").read_text(encoding="utf-8")))"""),
+    ("markdown", """## 3. Calibration
+
+The wrapper is chosen on **out-of-fold training** scores. The test-set table below is
+reported for transparency only — choosing on it would make the test metrics optimistic.
+"""),
+    ("code", """print("selection (training out-of-fold):")
+display(pd.DataFrame(metrics["calibration_selection_train_cv"]).set_index("method"))
+print("\\nreported only (test set) — NOT used to choose:")
+display(pd.DataFrame(metrics["calibration_test_comparison"]).set_index("method"))
+print("\\nchosen:", card["model"]["calibration"])
+print(card["model"]["calibration_rationale"])
+"""),
+    ("markdown", "## 4. Held-out test performance"),
+    ("code", """rows = {
+    "threshold 0.5": metrics["test_set_threshold_0.5"],
+    "sensitivity-oriented": {k: v for k, v in metrics["test_set_alternative_threshold"].items()
+                             if k != "threshold_rule"},
+}
+display(pd.DataFrame(rows).loc[
+    ["n", "threshold", "roc_auc", "pr_auc", "recall_sensitivity", "specificity",
+     "precision", "f1", "accuracy", "brier", "cm_tn", "cm_fp", "cm_fn", "cm_tp"]
+])
+print(metrics["test_set_alternative_threshold"]["threshold_rule"])
+"""),
+    ("code", """for name in ["roc_curve", "pr_curve", "confusion_matrix", "calibration_curve"]:
+    png = reports / "figures" / f"{name}.png"
+    if png.exists():
+        display(Image(filename=str(png)))
+"""),
+    ("markdown", "### Threshold sweep\n\nHow precision, recall and specificity trade off across the decision threshold."),
+    ("code", """pd.read_csv(reports / "threshold_sweep.csv")"""),
+    ("markdown", """## 5. Explainability (SHAP)
+
+SHAP values are computed on the transformed matrix and summed back onto the **original**
+feature names. `additivity_max_error` is the largest gap between `base value + sum(SHAP)`
+and the model's actual output — near zero means the explanation really does reconstruct
+this model rather than being a plausible-looking set of numbers.
+"""),
+    ("code", """print("explainer:", shap_global["explainer"])
+print("additivity max error:", shap_global["additivity_max_error"])
+display(pd.DataFrame(shap_global["global_importance"]))
+"""),
+    ("code", """for name in ["shap_global_importance", "shap_beeswarm"]:
+    png = reports / "figures" / f"{name}.png"
+    if png.exists():
+        display(Image(filename=str(png)))
+"""),
+    ("markdown", """### A single explained case
+
+Signed contributions for one held-out patient. Positive pushes the model toward the
+positive class, negative away from it. This is an explanation of **the model's output**,
+not a clinical account of why this person is or is not ill.
+"""),
+    ("code", """local = shap_global["example_local_explanation"]
+print("base value           :", round(local["base_value"], 4))
+print("predicted probability:", round(local["predicted_probability"], 4))
+display(pd.DataFrame(local["contributions"]))
+"""),
+    ("markdown", """## 6. Model card
+
+Intended use, out-of-scope use, and the limitations of this model.
+"""),
+    ("code", """display(Markdown((models / "MODEL_CARD.md").read_text(encoding="utf-8")))"""),
+]
+
 DISEASE_LABELS = {
     "heart": "Heart Disease Presence Prediction",
     "kidney": "Chronic Kidney Disease Presence Prediction",
@@ -82,26 +213,38 @@ DISEASE_LABELS = {
 }
 
 
-def build_eda_notebook(disease: str, label: str) -> None:
+def _build(cells_template, disease: str, label: str, suffix: str) -> None:
     nb = nbf.v4.new_notebook()
     nb.metadata["kernelspec"] = {"name": "medicl", "display_name": "Python (medicl)", "language": "python"}
     cells = []
-    for kind, src in EDA_CELLS:
+    for kind, src in cells_template:
         text = src.replace("{disease}", disease).replace("{label}", label)
         if kind == "markdown":
             cells.append(nbf.v4.new_markdown_cell(text))
         else:
             cells.append(nbf.v4.new_code_cell(text))
     nb["cells"] = cells
-    path = NOTEBOOKS_DIR / f"{disease}_eda.ipynb"
+    path = NOTEBOOKS_DIR / f"{disease}_{suffix}.ipynb"
     nbf.write(nb, path)
     print(f"wrote {path}")
+
+
+def build_eda_notebook(disease: str, label: str) -> None:
+    _build(EDA_CELLS, disease, label, "eda")
+
+
+def build_training_notebook(disease: str, label: str) -> None:
+    _build(TRAINING_CELLS, disease, label, "training")
 
 
 def main() -> None:
     NOTEBOOKS_DIR.mkdir(exist_ok=True)
     for disease, label in DISEASE_LABELS.items():
         build_eda_notebook(disease, label)
+        if (MODELS_DIR / disease / "metadata.json").exists():
+            build_training_notebook(disease, label)
+        else:
+            print(f"skipping {disease}_training.ipynb (no trained model yet)")
 
 
 if __name__ == "__main__":

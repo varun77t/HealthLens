@@ -25,15 +25,18 @@ The three predictions are **never** combined into a single "overall health score
 |---|---|---|
 | 0 | Repo scaffold, environment, config | ✅ done |
 | 1 | Dataset acquisition, EDA, target definitions | ✅ done |
-| 2 | Shared preprocessing / training / evaluation package | ✅ done (not yet run) |
-| 3–5 | Heart, Kidney, Diabetes models end-to-end (CV, tuning, SHAP, model cards) | ⏳ planned |
+| 2 | Shared preprocessing / training / evaluation package | ✅ done |
+| 3 | Heart model end-to-end (CV, tuning, calibration, SHAP, model card) | ✅ done |
+| 4–5 | Kidney, Diabetes models end-to-end | ⏳ planned |
 | 6 | External validation (Heart → Statlog) | ⏳ planned |
 | 7 | Calibration + fairness analysis | ⏳ planned |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ⏳ planned |
 | — | React frontend, CNN/Grad-CAM imaging module | deferred |
 
-**No models are trained yet.** Any performance number shown anywhere in this repo before
-Phase 3 would be a placeholder; there are none.
+**The heart model is trained; kidney and diabetes are not yet.** Every performance number
+in this repo is produced by an actual run and is reproducible with `RANDOM_STATE = 42`.
+No metric anywhere is a placeholder. See `models/heart/MODEL_CARD.md` for what that model
+may and may not be used for.
 
 ## Repository layout
 
@@ -42,18 +45,21 @@ config.py            global seed, paths, disease registry, risk bands, disclaime
 ml/
   data/              ucimlrepo acquisition + caching, disease loaders, validation, TARGET.md generator
   eda/               profiling + plotting utilities, EDA runner
-  preprocessing/     (Phase 2) leakage-safe sklearn pipelines
-  training/          (Phase 2) model zoo, param spaces, CV experiment runner
-  evaluation/        (Phase 2) metrics, curves, calibration
-  explainability/    (Phase 3) SHAP global/local
+  preprocessing/     leakage-safe sklearn ColumnTransformer per disease
+  training/          model zoo, param spaces, splits, experiment + finalize runners
+  evaluation/        metrics, ROC/PR/calibration curves, calibration selection
+  explainability/    SHAP global/local, mapped back to original feature names
+  model_card.py      models/<disease>/metadata.json + MODEL_CARD.md
+  reporting.py       markdown/JSON report helpers
   fairness/          (Phase 7) subgroup analysis
   external/          (Phase 6) Heart -> Statlog no-retrain validation
 data/raw/            cached CSVs (git-ignored; re-downloadable)
 reports/<disease>/   eda_profile.json, EDA.md, TARGET.md, figures/, *.csv
-models/<disease>/    (Phase 3+) pipeline.joblib + metadata.json
-notebooks/           thin notebooks over the ml package
+models/<disease>/    pipeline.joblib (serving) + base_pipeline.joblib (SHAP) + model card
+notebooks/           thin notebooks over the ml package (training notebooks never retrain)
+scripts/             train_<disease>.py entrypoints, notebook builder
 backend/             (Phase 8) FastAPI service
-tests/               structural tests (shapes, targets, roles)
+tests/               structure, leakage, and shipped-artifact tests
 ```
 
 ## Setup
@@ -98,11 +104,31 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/diabetes_eda.ipynb
 python -m pytest -q
 ```
 
+## Train a model
+
+```bash
+# Heart (Phase 3) - writes models/heart/ and reports/heart/
+python -m scripts.train_heart
+
+# Rebuild the notebooks (a training notebook is generated only for trained diseases)
+python -m scripts.build_notebooks
+```
+
+Training scripts are the single source of truth for every metric. The training notebooks
+read the artifacts those scripts produce and never retrain, so a notebook cannot display
+a number that differs from `reports/<disease>/metrics.json`.
+
 ## Methodology guardrails
 
 - **No data leakage** — datasets are split before any transformation is fitted; all
   imputation / scaling / resampling happens inside the model pipeline and CV folds (Phase 2+).
-- **No fabricated results** — every metric and SHAP value will come from an actual run.
+- **No fabricated results** — every metric and SHAP value comes from an actual run. Tests
+  reload each shipped model, re-score the test split, and fail if the published numbers
+  disagree.
+- **Selection never happens on the test set** — the model, its hyper-parameters, the
+  calibration wrapper and the decision threshold are all chosen on training folds only.
+- **Close results are reported as close** — when the winning model's margin is smaller
+  than cross-validation noise, the model card and `SELECTION.md` say so explicitly.
 - Fixed `RANDOM_STATE = 42`; pinned dependencies; raw data cached for reproducibility.
 - Outliers are **flagged, not dropped** — medical measurements legitimately contain extremes.
 - The three diseases stay fully independent (separate data, preprocessing, models, model cards).

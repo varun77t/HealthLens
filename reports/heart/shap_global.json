@@ -1,0 +1,184 @@
+{
+  "disease": "heart",
+  "explainer": "tree",
+  "base_value": 0.008894412778317928,
+  "additivity_max_error": 1.430511474609375e-06,
+  "n_rows_explained": 61,
+  "global_importance": [
+    {
+      "rank": 1,
+      "feature": "thal",
+      "mean_abs_shap": 0.5693418383598328,
+      "mean_shap": -0.015819253399968147,
+      "description": "Thalassemia (3 normal, 6 fixed defect, 7 reversible defect)"
+    },
+    {
+      "rank": 2,
+      "feature": "ca",
+      "mean_abs_shap": 0.5522756576538086,
+      "mean_shap": 0.07201866805553436,
+      "description": "Number of major vessels (0-3) coloured by fluoroscopy"
+    },
+    {
+      "rank": 3,
+      "feature": "cp",
+      "mean_abs_shap": 0.5088160634040833,
+      "mean_shap": -0.05170319974422455,
+      "description": "Chest pain type (1 typical angina, 2 atypical angina, 3 non-anginal, 4 asymptomatic)"
+    },
+    {
+      "rank": 4,
+      "feature": "sex",
+      "mean_abs_shap": 0.19374872744083405,
+      "mean_shap": -0.0073813172057271,
+      "description": "Sex (1 = male, 0 = female)"
+    },
+    {
+      "rank": 5,
+      "feature": "slope",
+      "mean_abs_shap": 0.1932048201560974,
+      "mean_shap": 0.013609393499791622,
+      "description": "Slope of the peak exercise ST segment (1 upsloping, 2 flat, 3 downsloping)"
+    },
+    {
+      "rank": 6,
+      "feature": "oldpeak",
+      "mean_abs_shap": 0.1893196702003479,
+      "mean_shap": -0.00760867353528738,
+      "description": "ST depression induced by exercise relative to rest"
+    },
+    {
+      "rank": 7,
+      "feature": "thalach",
+      "mean_abs_shap": 0.17030327022075653,
+      "mean_shap": 0.010982559993863106,
+      "description": "Maximum heart rate achieved"
+    },
+    {
+      "rank": 8,
+      "feature": "exang",
+      "mean_abs_shap": 0.11169034987688065,
+      "mean_shap": -0.0011342852376401424,
+      "description": "Exercise-induced angina (1 = yes, 0 = no)"
+    },
+    {
+      "rank": 9,
+      "feature": "chol",
+      "mean_abs_shap": 0.09351875633001328,
+      "mean_shap": -0.02710718661546707,
+      "description": "Serum cholesterol (mg/dl)"
+    },
+    {
+      "rank": 10,
+      "feature": "age",
+      "mean_abs_shap": 0.0906979888677597,
+      "mean_shap": 0.006004393566399813,
+      "description": "Age in years"
+    },
+    {
+      "rank": 11,
+      "feature": "restecg",
+      "mean_abs_shap": 0.06831991672515869,
+      "mean_shap": 0.0034260940738022327,
+      "description": "Resting electrocardiographic result (0 normal, 1 ST-T abnormality, 2 LV hypertrophy)"
+    },
+    {
+      "rank": 12,
+      "feature": "trestbps",
+      "mean_abs_shap": 0.031039617955684662,
+      "mean_shap": 0.004521685186773539,
+      "description": "Resting blood pressure on admission (mm Hg)"
+    },
+    {
+      "rank": 13,
+      "feature": "fbs",
+      "mean_abs_shap": 0.0,
+      "mean_shap": 0.0,
+      "description": "Fasting blood sugar > 120 mg/dl (1 = true, 0 = false)"
+    }
+  ],
+  "example_local_explanation": {
+    "base_value": 0.008894412778317928,
+    "predicted_probability": 0.1347402036190033,
+    "contributions": [
+      {
+        "feature": "thal",
+        "value": 3.0,
+        "contribution": -0.6514624357223511,
+        "description": "Thalassemia (3 normal, 6 fixed defect, 7 reversible defect)"
+      },
+      {
+        "feature": "cp",
+        "value": 3.0,
+        "contribution": -0.5128264427185059,
+        "description": "Chest pain type (1 typical angina, 2 atypical angina, 3 non-anginal, 4 asymptomatic)"
+      },
+      {
+        "feature": "ca",
+        "value": 0.0,
+        "contribution": -0.4758334457874298,
+        "description": "Number of major vessels (0-3) coloured by fluoroscopy"
+      },
+      {
+        "feature": "thalach",
+        "value": 187.0,
+        "contribution": -0.26794004440307617,
+        "description": "Maximum heart rate achieved"
+      },
+      {
+        "feature": "oldpeak",
+        "value": 3.5,
+        "contribution": 0.15700380504131317,
+        "description": "ST depression induced by exercise relative to rest"
+      },
+      {
+        "feature": "sex",
+        "value": 1.0,
+        "contribution": 0.14867575466632843,
+        "description": "Sex (1 = male, 0 = female)"
+      },
+      {
+        "feature": "age",
+        "value": 37.0,
+        "contribution": -0.10312654823064804,
+        "description": "Age in years"
+      },
+      {
+        "feature": "exang",
+        "value": 0.0,
+        "contribution": -0.09662322700023651,
+        "description": "Exercise-induced angina (1 = yes, 0 = no)"
+      },
+      {
+        "feature": "slope",
+        "value": 3.0,
+        "contribution": -0.06553373485803604,
+        "description": "Slope of the peak exercise ST segment (1 upsloping, 2 flat, 3 downsloping)"
+      },
+      {
+        "feature": "chol",
+        "value": 250.0,
+        "contribution": 0.05368807911872864,
+        "description": "Serum cholesterol (mg/dl)"
+      },
+      {
+        "feature": "restecg",
+        "value": 0.0,
+        "contribution": -0.047047875821590424,
+        "description": "Resting electrocardiographic result (0 normal, 1 ST-T abnormality, 2 LV hypertrophy)"
+      },
+      {
+        "feature": "trestbps",
+        "value": 130.0,
+        "contribution": -0.007549818605184555,
+        "description": "Resting blood pressure on admission (mm Hg)"
+      },
+      {
+        "feature": "fbs",
+        "value": 0.0,
+        "contribution": 0.0,
+        "description": "Fasting blood sugar > 120 mg/dl (1 = true, 0 = false)"
+      }
+    ]
+  }
+}

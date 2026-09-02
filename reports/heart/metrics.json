@@ -1,0 +1,106 @@
+{
+  "disease": "heart",
+  "model": "xgboost",
+  "calibration": "sigmoid",
+  "split": {
+    "n_total": 303,
+    "n_train": 242,
+    "n_test": 61,
+    "n_duplicate_rows": 0,
+    "overall_positive_rate": 0.4587,
+    "train_positive_rate": 0.4587,
+    "test_positive_rate": 0.459
+  },
+  "selection_margin": {
+    "selected": "xgboost",
+    "selected_tuned_roc_auc": 0.9079006339875907,
+    "runner_up": "logreg",
+    "runner_up_tuned_roc_auc": 0.9074051552312422,
+    "gap": 0.0004954787563484775,
+    "cv_roc_auc_std": 0.031616547101676516,
+    "gap_within_cv_noise": true
+  },
+  "cross_validation_training_set": {
+    "smote": false,
+    "roc_auc_mean": 0.8800749974663018,
+    "roc_auc_std": 0.031616547101676516,
+    "pr_auc_mean": 0.8847120318263352,
+    "pr_auc_std": 0.03350400144828809,
+    "recall_mean": 0.7853754940711463,
+    "recall_std": 0.0945531875167171,
+    "precision_mean": 0.8024345479082321,
+    "precision_std": 0.07187875623189185,
+    "f1_mean": 0.7861856161257121,
+    "f1_std": 0.04133697861844412,
+    "rank_score": 0.8629899105312842
+  },
+  "test_set_threshold_0.5": {
+    "n": 61,
+    "prevalence": 0.45901639344262296,
+    "threshold": 0.5,
+    "accuracy": 0.8852459016393442,
+    "precision": 0.8620689655172413,
+    "recall_sensitivity": 0.8928571428571429,
+    "specificity": 0.8787878787878788,
+    "f1": 0.8771929824561403,
+    "roc_auc": 0.9534632034632033,
+    "pr_auc": 0.9495607501943056,
+    "brier": 0.08933117194756306,
+    "cm_tn": 29,
+    "cm_fp": 4,
+    "cm_fn": 3,
+    "cm_tp": 25
+  },
+  "test_set_alternative_threshold": {
+    "n": 61,
+    "prevalence": 0.45901639344262296,
+    "threshold": 0.6435845785678462,
+    "accuracy": 0.8852459016393442,
+    "precision": 0.92,
+    "recall_sensitivity": 0.8214285714285714,
+    "specificity": 0.9393939393939394,
+    "f1": 0.8679245283018868,
+    "roc_auc": 0.9534632034632033,
+    "pr_auc": 0.9495607501943056,
+    "brier": 0.08933117194756306,
+    "cm_tn": 31,
+    "cm_fp": 2,
+    "cm_fn": 5,
+    "cm_tp": 23,
+    "threshold_rule": "Youden's J (max sensitivity + specificity - 1) maximised on out-of-fold predictions over the TRAINING set, then applied unchanged to the test set. The test set played no part in choosing it."
+  },
+  "calibration_selection_train_cv": [
+    {
+      "method": "raw",
+      "brier": 0.129782441994363,
+      "roc_auc": 0.8966370951103776
+    },
+    {
+      "method": "sigmoid",
+      "brier": 0.12845839418132576,
+      "roc_auc": 0.8940237947871535
+    },
+    {
+      "method": "isotonic",
+      "brier": 0.1308834421414992,
+      "roc_auc": 0.8806822089264837
+    }
+  ],
+  "calibration_test_comparison": [
+    {
+      "method": "raw",
+      "brier": 0.10030012738068655,
+      "roc_auc": 0.9502164502164502
+    },
+    {
+      "method": "sigmoid",
+      "brier": 0.08933117194756306,
+      "roc_auc": 0.9534632034632033
+    },
+    {
+      "method": "isotonic",
+      "brier": 0.08082321428067549,
+      "roc_auc": 0.954004329004329
+    }
+  ]
+}
