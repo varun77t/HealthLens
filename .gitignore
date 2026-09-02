@@ -1,0 +1,35 @@
+# Data — raw datasets are re-downloadable via `python -m ml.data.download_all`
+data/raw/
+data/processed/
+
+# Trained model artifacts (large binaries; reproducible from scripts/train_*.py)
+models/*/*.joblib
+models/*/*.pkl
+
+# Secrets
+.env
+.env.*
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+build/
+dist/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Notebook execution outputs (keep source notebooks, ignore nbconvert copies)
+notebooks/**/*.nbconvert.ipynb

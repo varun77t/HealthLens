@@ -1,0 +1,381 @@
+{
+  "overview": {
+    "disease": "diabetes",
+    "n_rows": 253680,
+    "n_features": 21,
+    "n_numeric": 7,
+    "n_categorical": 0,
+    "n_binary": 14,
+    "target": "diabetes_or_prediabetes",
+    "target_positive_meaning": "Target: 'Diabetes_binary' where 1 = prediabetes OR diabetes, 0 = neither",
+    "total_missing_cells": 0,
+    "rows_with_any_missing": 0,
+    "duplicate_rows": 25772,
+    "memory_mb": 42.618
+  },
+  "class_imbalance_ratio": 6.18,
+  "target_distribution": [
+    {
+      "class": 0,
+      "count": 218334,
+      "proportion": 0.8607
+    },
+    {
+      "class": 1,
+      "count": 35346,
+      "proportion": 0.1393
+    }
+  ],
+  "missing_values": [
+    {
+      "column": "BMI",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 84
+    },
+    {
+      "column": "MentHlth",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 31
+    },
+    {
+      "column": "PhysHlth",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 31
+    },
+    {
+      "column": "GenHlth",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 5
+    },
+    {
+      "column": "Age",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 13
+    },
+    {
+      "column": "Education",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 6
+    },
+    {
+      "column": "Income",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 8
+    },
+    {
+      "column": "HighBP",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "HighChol",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "CholCheck",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "Smoker",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "Stroke",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "HeartDiseaseorAttack",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "PhysActivity",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "Fruits",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "Veggies",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "HvyAlcoholConsump",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "AnyHealthcare",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "NoDocbcCost",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "DiffWalk",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "Sex",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    }
+  ],
+  "numeric_summary": [
+    {
+      "feature": "BMI",
+      "count": 253680.0,
+      "mean": 28.382,
+      "std": 6.609,
+      "min": 12.0,
+      "25%": 24.0,
+      "50%": 27.0,
+      "75%": 31.0,
+      "max": 98.0,
+      "missing": 0,
+      "skew": 2.122
+    },
+    {
+      "feature": "MentHlth",
+      "count": 253680.0,
+      "mean": 3.185,
+      "std": 7.413,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 2.0,
+      "max": 30.0,
+      "missing": 0,
+      "skew": 2.721
+    },
+    {
+      "feature": "PhysHlth",
+      "count": 253680.0,
+      "mean": 4.242,
+      "std": 8.718,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 3.0,
+      "max": 30.0,
+      "missing": 0,
+      "skew": 2.207
+    },
+    {
+      "feature": "GenHlth",
+      "count": 253680.0,
+      "mean": 2.511,
+      "std": 1.068,
+      "min": 1.0,
+      "25%": 2.0,
+      "50%": 2.0,
+      "75%": 3.0,
+      "max": 5.0,
+      "missing": 0,
+      "skew": 0.423
+    },
+    {
+      "feature": "Age",
+      "count": 253680.0,
+      "mean": 8.032,
+      "std": 3.054,
+      "min": 1.0,
+      "25%": 6.0,
+      "50%": 8.0,
+      "75%": 10.0,
+      "max": 13.0,
+      "missing": 0,
+      "skew": -0.36
+    },
+    {
+      "feature": "Education",
+      "count": 253680.0,
+      "mean": 5.05,
+      "std": 0.986,
+      "min": 1.0,
+      "25%": 4.0,
+      "50%": 5.0,
+      "75%": 6.0,
+      "max": 6.0,
+      "missing": 0,
+      "skew": -0.777
+    },
+    {
+      "feature": "Income",
+      "count": 253680.0,
+      "mean": 6.054,
+      "std": 2.071,
+      "min": 1.0,
+      "25%": 5.0,
+      "50%": 7.0,
+      "75%": 8.0,
+      "max": 8.0,
+      "missing": 0,
+      "skew": -0.891
+    }
+  ],
+  "outlier_scan": [
+    {
+      "column": "BMI",
+      "q1": 24.0,
+      "q3": 31.0,
+      "iqr_lower_fence": 13.5,
+      "iqr_upper_fence": 41.5,
+      "n_outliers": 9847,
+      "pct_outliers": 3.88,
+      "min": 12.0,
+      "max": 98.0
+    },
+    {
+      "column": "MentHlth",
+      "q1": 0.0,
+      "q3": 2.0,
+      "iqr_lower_fence": -3.0,
+      "iqr_upper_fence": 5.0,
+      "n_outliers": 36208,
+      "pct_outliers": 14.27,
+      "min": 0.0,
+      "max": 30.0
+    },
+    {
+      "column": "PhysHlth",
+      "q1": 0.0,
+      "q3": 3.0,
+      "iqr_lower_fence": -4.5,
+      "iqr_upper_fence": 7.5,
+      "n_outliers": 40949,
+      "pct_outliers": 16.14,
+      "min": 0.0,
+      "max": 30.0
+    },
+    {
+      "column": "GenHlth",
+      "q1": 2.0,
+      "q3": 3.0,
+      "iqr_lower_fence": 0.5,
+      "iqr_upper_fence": 4.5,
+      "n_outliers": 12081,
+      "pct_outliers": 4.76,
+      "min": 1.0,
+      "max": 5.0
+    },
+    {
+      "column": "Age",
+      "q1": 6.0,
+      "q3": 10.0,
+      "iqr_lower_fence": 0.0,
+      "iqr_upper_fence": 16.0,
+      "n_outliers": 0,
+      "pct_outliers": 0.0,
+      "min": 1.0,
+      "max": 13.0
+    },
+    {
+      "column": "Education",
+      "q1": 4.0,
+      "q3": 6.0,
+      "iqr_lower_fence": 1.0,
+      "iqr_upper_fence": 9.0,
+      "n_outliers": 0,
+      "pct_outliers": 0.0,
+      "min": 1.0,
+      "max": 6.0
+    },
+    {
+      "column": "Income",
+      "q1": 5.0,
+      "q3": 8.0,
+      "iqr_lower_fence": 0.5,
+      "iqr_upper_fence": 12.5,
+      "n_outliers": 0,
+      "pct_outliers": 0.0,
+      "min": 1.0,
+      "max": 8.0
+    }
+  ],
+  "target_feature_association": [
+    {
+      "feature": "GenHlth",
+      "corr_with_target": 0.294
+    },
+    {
+      "feature": "BMI",
+      "corr_with_target": 0.217
+    },
+    {
+      "feature": "Age",
+      "corr_with_target": 0.177
+    },
+    {
+      "feature": "PhysHlth",
+      "corr_with_target": 0.171
+    },
+    {
+      "feature": "Income",
+      "corr_with_target": -0.164
+    },
+    {
+      "feature": "Education",
+      "corr_with_target": -0.124
+    },
+    {
+      "feature": "MentHlth",
+      "corr_with_target": 0.069
+    }
+  ],
+  "notes": "Target: 'Diabetes_binary' where 1 = prediabetes OR diabetes, 0 = neither. Derived from the CDC BRFSS survey (self-reported). Features are health indicators, not laboratory measurements: this module estimates a RISK ASSOCIATION, not a diagnosis. Full imbalanced release (~14% positive), n=253,680. Ordinal survey codes (GenHlth, Age, Education, Income) are modelled as numeric."
+}

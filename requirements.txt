@@ -1,0 +1,41 @@
+# Multi-Disease AI — pinned dependency set (verified working 2026-09-02, Python 3.12.6)
+#
+# NOTE: installing `shap` pulls in `numba`, which requires numpy >= 2.1. This upgraded
+# numpy from 1.26.x to 2.5.x in the environment used for development. If you need to
+# coexist with libraries that require numpy < 2 (e.g. older TensorFlow builds), install
+# this project into a dedicated virtual environment.
+
+# --- core data / ML ---
+numpy==2.5.2
+pandas==2.3.0
+scipy==1.16.2
+scikit-learn==1.7.2
+imbalanced-learn==0.14.0
+xgboost==3.0.5
+lightgbm==4.6.0
+
+# --- explainability ---
+shap==0.52.0
+
+# --- dataset acquisition ---
+ucimlrepo==0.0.7
+
+# --- visualisation ---
+matplotlib==3.10.3
+seaborn==0.13.2
+
+# --- serialization ---
+joblib==1.5.2
+
+# --- backend (used from Phase 8) ---
+fastapi==0.115.0
+uvicorn==0.30.6
+pydantic==2.9.1
+
+# --- notebooks & tests ---
+jupyter==1.1.1
+jupyterlab==4.6.3
+ipykernel==7.3.0
+nbconvert==7.17.1
+notebook==7.6.2
+pytest==9.1.1

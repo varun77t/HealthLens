@@ -1,0 +1,14 @@
+column,dtype,n_missing,pct_missing,n_unique
+ca,float64,4,1.32,4
+thal,float64,2,0.66,3
+chol,int64,0,0.0,152
+trestbps,int64,0,0.0,50
+age,int64,0,0.0,41
+oldpeak,float64,0,0.0,40
+thalach,int64,0,0.0,91
+restecg,int64,0,0.0,3
+cp,int64,0,0.0,4
+slope,int64,0,0.0,3
+sex,int64,0,0.0,2
+fbs,int64,0,0.0,2
+exang,int64,0,0.0,2

@@ -1,0 +1,269 @@
+{
+  "overview": {
+    "disease": "heart",
+    "n_rows": 303,
+    "n_features": 13,
+    "n_numeric": 5,
+    "n_categorical": 5,
+    "n_binary": 3,
+    "target": "heart_disease_present",
+    "target_positive_meaning": "Target: raw 'num' in {0",
+    "total_missing_cells": 6,
+    "rows_with_any_missing": 6,
+    "duplicate_rows": 0,
+    "memory_mb": 0.032
+  },
+  "class_imbalance_ratio": 1.18,
+  "target_distribution": [
+    {
+      "class": 0,
+      "count": 164,
+      "proportion": 0.5413
+    },
+    {
+      "class": 1,
+      "count": 139,
+      "proportion": 0.4587
+    }
+  ],
+  "missing_values": [
+    {
+      "column": "ca",
+      "dtype": "float64",
+      "n_missing": 4,
+      "pct_missing": 1.32,
+      "n_unique": 4
+    },
+    {
+      "column": "thal",
+      "dtype": "float64",
+      "n_missing": 2,
+      "pct_missing": 0.66,
+      "n_unique": 3
+    },
+    {
+      "column": "chol",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 152
+    },
+    {
+      "column": "trestbps",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 50
+    },
+    {
+      "column": "age",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 41
+    },
+    {
+      "column": "oldpeak",
+      "dtype": "float64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 40
+    },
+    {
+      "column": "thalach",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 91
+    },
+    {
+      "column": "restecg",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 3
+    },
+    {
+      "column": "cp",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4
+    },
+    {
+      "column": "slope",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 3
+    },
+    {
+      "column": "sex",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "fbs",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    },
+    {
+      "column": "exang",
+      "dtype": "int64",
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2
+    }
+  ],
+  "numeric_summary": [
+    {
+      "feature": "age",
+      "count": 303.0,
+      "mean": 54.439,
+      "std": 9.039,
+      "min": 29.0,
+      "25%": 48.0,
+      "50%": 56.0,
+      "75%": 61.0,
+      "max": 77.0,
+      "missing": 0,
+      "skew": -0.209
+    },
+    {
+      "feature": "trestbps",
+      "count": 303.0,
+      "mean": 131.69,
+      "std": 17.6,
+      "min": 94.0,
+      "25%": 120.0,
+      "50%": 130.0,
+      "75%": 140.0,
+      "max": 200.0,
+      "missing": 0,
+      "skew": 0.706
+    },
+    {
+      "feature": "chol",
+      "count": 303.0,
+      "mean": 246.693,
+      "std": 51.777,
+      "min": 126.0,
+      "25%": 211.0,
+      "50%": 241.0,
+      "75%": 275.0,
+      "max": 564.0,
+      "missing": 0,
+      "skew": 1.136
+    },
+    {
+      "feature": "thalach",
+      "count": 303.0,
+      "mean": 149.607,
+      "std": 22.875,
+      "min": 71.0,
+      "25%": 133.5,
+      "50%": 153.0,
+      "75%": 166.0,
+      "max": 202.0,
+      "missing": 0,
+      "skew": -0.537
+    },
+    {
+      "feature": "oldpeak",
+      "count": 303.0,
+      "mean": 1.04,
+      "std": 1.161,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 0.8,
+      "75%": 1.6,
+      "max": 6.2,
+      "missing": 0,
+      "skew": 1.27
+    }
+  ],
+  "outlier_scan": [
+    {
+      "column": "age",
+      "q1": 48.0,
+      "q3": 61.0,
+      "iqr_lower_fence": 28.5,
+      "iqr_upper_fence": 80.5,
+      "n_outliers": 0,
+      "pct_outliers": 0.0,
+      "min": 29.0,
+      "max": 77.0
+    },
+    {
+      "column": "trestbps",
+      "q1": 120.0,
+      "q3": 140.0,
+      "iqr_lower_fence": 90.0,
+      "iqr_upper_fence": 170.0,
+      "n_outliers": 9,
+      "pct_outliers": 2.97,
+      "min": 94.0,
+      "max": 200.0
+    },
+    {
+      "column": "chol",
+      "q1": 211.0,
+      "q3": 275.0,
+      "iqr_lower_fence": 115.0,
+      "iqr_upper_fence": 371.0,
+      "n_outliers": 5,
+      "pct_outliers": 1.65,
+      "min": 126.0,
+      "max": 564.0
+    },
+    {
+      "column": "thalach",
+      "q1": 133.5,
+      "q3": 166.0,
+      "iqr_lower_fence": 84.75,
+      "iqr_upper_fence": 214.75,
+      "n_outliers": 1,
+      "pct_outliers": 0.33,
+      "min": 71.0,
+      "max": 202.0
+    },
+    {
+      "column": "oldpeak",
+      "q1": 0.0,
+      "q3": 1.6,
+      "iqr_lower_fence": -2.4,
+      "iqr_upper_fence": 4.0,
+      "n_outliers": 5,
+      "pct_outliers": 1.65,
+      "min": 0.0,
+      "max": 6.2
+    }
+  ],
+  "target_feature_association": [
+    {
+      "feature": "oldpeak",
+      "corr_with_target": 0.425
+    },
+    {
+      "feature": "thalach",
+      "corr_with_target": -0.417
+    },
+    {
+      "feature": "age",
+      "corr_with_target": 0.223
+    },
+    {
+      "feature": "trestbps",
+      "corr_with_target": 0.151
+    },
+    {
+      "feature": "chol",
+      "corr_with_target": 0.085
+    }
+  ],
+  "notes": "Target: raw 'num' in {0..4} mapped to binary (num > 0 => 1). 'ca' and 'thal' contain missing values (originally '?'), imputed inside the model pipeline. 'ca' (vessel count) and 'slope' are ordinal but modelled as categorical. Cleveland single-site cohort, n=303."
+}
