@@ -1,9 +1,8 @@
 # Multi-Disease AI — pinned dependency set (verified working 2026-09-02, Python 3.12.6)
 #
-# NOTE: installing `shap` pulls in `numba`, which requires numpy >= 2.1. This upgraded
-# numpy from 1.26.x to 2.5.x in the environment used for development. If you need to
-# coexist with libraries that require numpy < 2 (e.g. older TensorFlow builds), install
-# this project into a dedicated virtual environment.
+# NOTE: installing `shap` pulls in `numba`, which requires numpy >= 2.1. Install this
+# project into its own virtual environment (`.venv/`) so numpy 2.x stays isolated from
+# any global packages that pin numpy < 2 (e.g. TensorFlow, mediapipe).
 
 # --- core data / ML ---
 numpy==2.5.2

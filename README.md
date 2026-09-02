@@ -58,16 +58,25 @@ tests/               structural tests (shapes, targets, roles)
 
 ## Setup
 
+This project lives in its own virtual environment (`.venv/`). Installing `shap` pulls in
+`numba`, which requires **numpy >= 2.1** — isolating it keeps that away from any global
+packages that pin `numpy < 2` (e.g. TensorFlow, mediapipe).
+
 ```bash
+python -m venv .venv
+# Windows (PowerShell):  .venv\Scripts\Activate.ps1
+# Windows (Git Bash):    source .venv/Scripts/activate
+# macOS / Linux:         source .venv/bin/activate
 python -m pip install -r requirements.txt
 python -m ipykernel install --user --name medicl --display-name "Python (medicl)"
 ```
 
-> Installing `shap` pulls in `numba`, which requires **numpy >= 2.1**. If you must coexist
-> with libraries that pin `numpy < 2` (e.g. some TensorFlow builds), install this project in a
-> dedicated virtual environment.
+Select the **Python (medicl)** kernel when running the notebooks. All `python -m ...`
+commands below assume the venv interpreter (`.venv/Scripts/python` on Windows).
 
 ## Reproduce Phase 1
+
+With the virtual environment activated (or prefix each command with `.venv/Scripts/python -m`):
 
 ```bash
 # 1. Download + cache + validate all datasets (Heart, Kidney, Diabetes, Statlog)
