@@ -2,6 +2,11 @@
 
 _Last updated: 2026-09-02 (Phase 5)_
 
+> **Looking for the current state rather than the build history?** See
+> [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — condensed orientation: the three models,
+> their real metrics, what drives each score, known limitations, and the next step.
+> This file is the phase-by-phase log.
+
 Research/education platform. **Not** a clinical diagnostic tool. Three independent
 disease pipelines (heart, kidney, diabetes). Scope of current build effort: through the
 FastAPI backend (Phases 0–8 of the implementation plan); React frontend and CNN/Grad-CAM
@@ -258,10 +263,17 @@ the test set, and that the model card carries a disclaimer and non-empty limitat
 | ROC-AUC | 0.9987 | 0.9987 |
 | PR-AUC | 0.9992 | 0.9992 |
 | recall / sensitivity | 0.9600 | 0.9600 |
-| specificity | 0.9667 | 0.9667 |
-| precision | 0.9796 | 0.9796 |
-| accuracy | 0.9625 | 0.9625 |
+| specificity | 0.9667 | **1.0000** |
+| precision | 0.9796 | **1.0000** |
+| F1 | 0.9697 | **0.9796** |
+| accuracy | 0.9625 | **0.9750** |
 | Brier | 0.0127 | 0.0127 |
+
+_(Corrected in Phase 5: this table previously repeated the threshold-0.5 column under the
+0.5792 heading. The values above are from `reports/kidney/metrics.json`. ROC-AUC, PR-AUC and
+Brier are threshold-free and genuinely identical across both columns; the four count-based
+metrics are not. Raising the threshold to 0.5792 removes the 1 false positive, leaving the
+2 false negatives untouched.)_
 
 Model `svc`, calibration `raw`. SHAP (KernelExplainer) additivity error 1.1e-16.
 Top features: `sg` 0.076, `pcv` 0.070, `hemo` 0.066, `al` 0.048 — the standard CKD
