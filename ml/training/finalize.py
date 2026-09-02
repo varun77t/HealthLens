@@ -13,6 +13,7 @@ Artifacts
     ``threshold_sweep.csv``      precision/recall/specificity across thresholds
     ``calibration/``             calibration selection (train CV) and test-set comparison
     ``shap_global.json``         mean |SHAP| per original feature
+    ``missingness_vs_target.csv`` is a column's missingness itself predictive?
     ``figures/``                 ROC, PR, confusion, calibration, SHAP plots
 ``models/<disease>/``
     ``pipeline.joblib``          the serving artifact (calibrated if calibration was chosen)
@@ -37,8 +38,14 @@ from sklearn.model_selection import cross_val_predict
 
 from config import DISEASES, MODELS_DIR, REPORTS_DIR
 from ml.data.loaders import load
+from ml.eda.profile import missingness_target_association
 from ml.evaluation import calibration as calib
 from ml.evaluation.curves import all_evaluation_plots
+from ml.evaluation.diagnostics import (
+    attribution_note,
+    complete_case_probe,
+    missingness_only_probe,
+)
 from ml.evaluation.metrics import classification_metrics, threshold_sweep, youden_threshold
 from ml.explainability.shap_explainer import (
     DiseaseExplainer,
@@ -149,6 +156,23 @@ def train_disease(
         y_test, y_prob, figures, threshold=0.5, title=f"— {DISEASES[disease]['label']}"
     )
 
+    # 4b. Why does it score this well? Attribute the performance before believing it.
+    probe = missingness_only_probe(
+        X_train, y_train, X_test, y_test, cv=cv_splitter(disease), groups=split.groups
+    )
+    miss_assoc = missingness_target_association(X, y)
+    diagnostics = {
+        "missingness_only_probe": probe,
+        "complete_case": complete_case_probe(X, y),
+        "attribution_note": attribution_note(probe, metrics_050["roc_auc"]),
+    }
+    if not miss_assoc.empty:
+        miss_assoc.to_csv(reports / "missingness_vs_target.csv", index=False)
+        diagnostics["missingness_vs_target_top"] = (
+            miss_assoc.head(8).to_dict(orient="records")
+        )
+    print(f"[{disease}] {diagnostics['attribution_note']}")
+
     # 5. SHAP on the base (uncalibrated) pipeline.
     print(f"[{disease}] computing SHAP ...")
     explainer = DiseaseExplainer(base_pipeline, spec, X_train, max_background=shap_background)
@@ -190,6 +214,7 @@ def train_disease(
             "calibration": choice.method,
             "split": split.meta,
             "selection_margin": exp.margin,
+            "diagnostics": diagnostics,
             "cross_validation_training_set": cv_row,
             "test_set_threshold_0.5": metrics_050,
             "test_set_alternative_threshold": metrics_alt,
@@ -213,6 +238,7 @@ def train_disease(
         test_metrics=metrics_050,
         alt_threshold_metrics=metrics_alt,
         calibration_table=test_cal,
+        diagnostics=diagnostics,
         shap_top_features=importance.head(10).to_dict(orient="records"),
         artifacts={
             "pipeline": pipeline_path.relative_to(MODELS_DIR.parent).as_posix(),
@@ -231,6 +257,7 @@ def train_disease(
         "test_metrics": metrics_050,
         "alt_threshold_metrics": metrics_alt,
         "shap_additivity_max_error": additivity,
+        "diagnostics": diagnostics,
         "artifacts": {
             "pipeline": pipeline_path,
             "base_pipeline": base_path,

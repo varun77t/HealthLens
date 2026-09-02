@@ -172,6 +172,41 @@ print(metrics["test_set_alternative_threshold"]["threshold_rule"])
 """),
     ("markdown", "### Threshold sweep\n\nHow precision, recall and specificity trade off across the decision threshold."),
     ("code", """pd.read_csv(reports / "threshold_sweep.csv")"""),
+    ("markdown", """## 4b. What actually drives this score?
+
+A high ROC-AUC is not by itself evidence that the model learned clinical structure — it
+can also come from how the data was collected. The probe below discards **every measured
+value** and trains only on *which values are missing*. If that alone reproduces most of
+the headline score, the model is largely reading which tests a clinician chose to order.
+
+That is not train/test leakage — the split stays clean — but it is a ceiling on how far
+the result transfers to a setting where these tests are ordered routinely.
+"""),
+    ("code", """diag = metrics.get("diagnostics", {})
+print(diag.get("attribution_note", "(no diagnostics recorded)"))
+print()
+
+probe = diag.get("missingness_only_probe")
+if probe:
+    print("missingness-indicators-only model:")
+    for k in ("n_indicator_features", "cv_roc_auc_mean", "cv_roc_auc_std",
+              "test_roc_auc", "test_pr_auc", "test_accuracy"):
+        if k in probe:
+            print(f"  {k:<22} {probe[k]}")
+    print(f"\\n  full model test ROC-AUC {metrics['test_set_threshold_0.5']['roc_auc']:.4f}")
+else:
+    print("No missing values in this dataset — measurement pattern cannot carry signal.")
+
+print("\\ncomplete-case analysis (why it was not used instead):")
+print(" ", diag.get("complete_case"))
+"""),
+    ("code", """miss_csv = reports / "missingness_vs_target.csv"
+if miss_csv.exists():
+    display(Markdown("**Is a column's missingness itself predictive of the target?**"))
+    display(pd.read_csv(miss_csv))
+else:
+    print("No missing values to analyse.")
+"""),
     ("markdown", """## 5. Explainability (SHAP)
 
 SHAP values are computed on the transformed matrix and summed back onto the **original**

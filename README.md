@@ -27,13 +27,14 @@ The three predictions are **never** combined into a single "overall health score
 | 1 | Dataset acquisition, EDA, target definitions | ✅ done |
 | 2 | Shared preprocessing / training / evaluation package | ✅ done |
 | 3 | Heart model end-to-end (CV, tuning, calibration, SHAP, model card) | ✅ done |
-| 4–5 | Kidney, Diabetes models end-to-end | ⏳ planned |
+| 4 | Kidney model end-to-end | ✅ done |
+| 5 | Diabetes model end-to-end | ⏳ planned |
 | 6 | External validation (Heart → Statlog) | ⏳ planned |
 | 7 | Calibration + fairness analysis | ⏳ planned |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ⏳ planned |
 | — | React frontend, CNN/Grad-CAM imaging module | deferred |
 
-**The heart model is trained; kidney and diabetes are not yet.** Every performance number
+**The heart and kidney models are trained; diabetes is not yet.** Every performance number
 in this repo is produced by an actual run and is reproducible with `RANDOM_STATE = 42`.
 No metric anywhere is a placeholder. See `models/heart/MODEL_CARD.md` for what that model
 may and may not be used for.
@@ -107,8 +108,9 @@ python -m pytest -q
 ## Train a model
 
 ```bash
-# Heart (Phase 3) - writes models/heart/ and reports/heart/
+# Heart (Phase 3) / Kidney (Phase 4) - writes models/<disease>/ and reports/<disease>/
 python -m scripts.train_heart
+python -m scripts.train_kidney
 
 # Rebuild the notebooks (a training notebook is generated only for trained diseases)
 python -m scripts.build_notebooks
@@ -127,8 +129,12 @@ a number that differs from `reports/<disease>/metrics.json`.
   disagree.
 - **Selection never happens on the test set** — the model, its hyper-parameters, the
   calibration wrapper and the decision threshold are all chosen on training folds only.
-- **Close results are reported as close** — when the winning model's margin is smaller
-  than cross-validation noise, the model card and `SELECTION.md` say so explicitly.
+- **Close results are reported as close** — a model only counts as decisively chosen if
+  its margin clears the fold-to-fold noise, a 0.005 resolution floor, *and* the metric
+  is not saturated. Neither current model clears all three, and both cards say so.
+- **A high score is attributed before it is believed** — `ml/evaluation/diagnostics.py`
+  retrains on missingness indicators alone to measure how much of the performance comes
+  from which measurements were taken rather than their values.
 - Fixed `RANDOM_STATE = 42`; pinned dependencies; raw data cached for reproducibility.
 - Outliers are **flagged, not dropped** — medical measurements legitimately contain extremes.
 - The three diseases stay fully independent (separate data, preprocessing, models, model cards).

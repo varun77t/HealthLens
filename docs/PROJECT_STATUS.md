@@ -1,6 +1,6 @@
 # Project Status — Multi-Disease AI
 
-_Last updated: 2026-09-02 (Phase 3)_
+_Last updated: 2026-09-02 (Phase 4)_
 
 Research/education platform. **Not** a clinical diagnostic tool. Three independent
 disease pipelines (heart, kidney, diabetes). Scope of current build effort: through the
@@ -17,13 +17,14 @@ Plan file: `C:\Users\Admin\.claude\plans\you-are-working-on-zippy-hammock.md`
 | 1 | Dataset acquisition, caching, loaders, EDA, target definitions | ✅ complete (`f64caa9`, `e3a06b4`) |
 | 2 | Shared leakage-safe preprocessing + training/evaluation package | ✅ complete (`3b0ffde`) |
 | 3 | **Heart** model end-to-end (CV, tuning, calibration, SHAP, model card) | ✅ trained |
-| 4–5 | Kidney / Diabetes models end-to-end | ⬜ next |
+| 4 | **Kidney** model end-to-end | ✅ trained |
+| 5 | **Diabetes** model end-to-end | ⬜ next |
 | 6 | External validation (Heart → Statlog) | ⬜ |
 | 7 | Calibration + fairness analysis | ⬜ |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ⬜ |
 | — | React frontend, CNN/Grad-CAM imaging | deferred |
 
-**One model trained (heart). Every metric in this repo comes from an actual run — none are fabricated.**
+**Two models trained (heart, kidney). Every metric in this repo comes from an actual run — none are fabricated.**
 
 ## Environment
 
@@ -242,10 +243,110 @@ split and asserts the result equals `metrics.json` — a fabricated or stale met
 pass. It also checks SHAP additivity, that the alternative threshold was not chosen on
 the test set, and that the model card carries a disclaimer and non-empty limitations.
 
-## Next step — Phase 4 (Kidney model end-to-end)
+## Phase 4 results — Kidney model (trained)
 
-`scripts/train_kidney.py` calling the same `train_disease("kidney")`. Expect near-perfect
-separation on a few laboratory values (n=400, heavy missingness) — the honest reporting
-of that over-optimism, and of the tiny sample, is the substance of this phase.
+`python -m scripts.train_kidney`. Artifacts: `models/kidney/`, `reports/kidney/`,
+`notebooks/kidney_training.ipynb`.
+
+### Held-out test performance (n = 80)
+
+| metric | threshold 0.5 | threshold 0.5792 |
+|---|---|---|
+| ROC-AUC | 0.9987 | 0.9987 |
+| PR-AUC | 0.9992 | 0.9992 |
+| recall / sensitivity | 0.9600 | 0.9600 |
+| specificity | 0.9667 | 0.9667 |
+| precision | 0.9796 | 0.9796 |
+| accuracy | 0.9625 | 0.9625 |
+| Brier | 0.0127 | 0.0127 |
+
+Model `svc`, calibration `raw`. SHAP (KernelExplainer) additivity error 1.1e-16.
+Top features: `sg` 0.076, `pcv` 0.070, `hemo` 0.066, `al` 0.048 — the standard CKD
+laboratory markers.
+
+**These numbers are close to meaningless as evidence of clinical usefulness.** Three
+independent reasons are measured and recorded in the model card:
+
+### 1. Missingness is confounded with the outcome
+
+New in this phase: `ml/evaluation/diagnostics.py` runs a **missingness-only probe** —
+discard every measured value, train logistic regression on 24 binary
+*is-this-value-missing* indicators alone:
+
+| | ROC-AUC |
+|---|---|
+| missingness indicators only, 5-fold CV | 0.8600 ± 0.0445 |
+| missingness indicators only, test | 0.8023 |
+| full model, test | 0.9987 |
+
+So "which labs were ordered" alone reaches 0.80. Supporting evidence in
+`reports/kidney/missingness_vs_target.csv`: `rbc` missing → 94.1% CKD vs 43.2% when
+present; `rbcc` 94.7% vs 46.8%; `wbcc` 93.4% vs 51.4%. Complete-case analysis is not a
+fix — only 158/400 rows (39.5%) are complete, and the positive rate collapses from
+0.625 to 0.272 in that subset, so dropping incomplete rows would discard most of the
+positive class.
+
+The real model does add a lot (0.9987 vs 0.8023), so the labs carry genuine signal. But
+a fifth of the separability is available from the measurement pattern alone, and because
+imputation runs inside the pipeline, an imputed value *is* a marker that the test was
+never ordered. The split stays clean — this is not train/test leakage — but it caps
+transfer to any setting where these labs are ordered routinely.
+
+### 2. Every model saturates the metric
+
+CV ROC-AUC across the whole zoo: random_forest 0.9996, lightgbm 0.9990, svc 1.0000,
+xgboost 0.9971, logreg 0.9990. The choice of algorithm is arbitrary and is reported as
+such.
+
+### 3. The labels are the diagnosis
+
+The target is a recorded clinical diagnosis and the features include the criteria used
+to make it. The model re-derives the diagnostic rule; it has no prognostic value.
+
+### Bug found and fixed: saturated metrics read as "decisive"
+
+Kidney exposed a real defect in the Phase 3 selection-margin check. It only compared the
+top-2 gap against the fold-to-fold standard deviation. On this dataset SVC scores exactly
+1.0 with a standard deviation of **0.0**, so a 0.0002 gap satisfied `gap > std` and the
+run reported the choice as *decisive* — the least trustworthy case possible, since a zero
+standard deviation at saturation means the metric has no resolution left, not that the
+estimate is precise.
+
+`selection_margin` now checks three independent failure modes and reports every reason
+to doubt: gap below fold-to-fold std, gap below a 0.005 resolution floor, and both
+candidates above 0.99 (saturation). Both models are now correctly reported as
+**not decisive**:
+
+- heart: gap 0.0005 vs std 0.0316 → noise, and below the resolution floor
+- kidney: gap 0.0002 → below the resolution floor, and both models saturated
+
+Heart was retrained after the fix (identical metrics — the change affects only the
+verdict wording). `tests/test_selection_and_diagnostics.py` carries a regression test
+for the saturation case.
+
+### Phase 4 verification
+
+| step | command | result |
+|---|---|---|
+| training | `python -m scripts.train_kidney` | exit 0, all artifacts written |
+| retrain heart after margin fix | `python -m scripts.train_heart` | exit 0, metrics unchanged |
+| full suite | `python -m pytest -q` | **99 passed, 12 skipped in 24 s** |
+| notebooks | `jupyter nbconvert --execute` ×2 | both execute end-to-end |
+
+The 12 skips are `tests/test_model_artifacts.py` for diabetes, which activates in Phase 5.
+
+### Note for Phase 8
+
+The kidney model is an `SVC`, so SHAP falls back to `KernelExplainer`, which is
+**slow per call**. Generating a local explanation for a single request is not free the
+way it is for the tree-based heart model. Either precompute, cache, or accept the latency
+— decide when building `/predict/kidney`.
+
+## Next step — Phase 5 (Diabetes model end-to-end)
+
+`scripts/train_diabetes.py` calling `train_disease("diabetes")`. Different challenges from
+the first two: 253,680 rows (CV cost — reduce `n_iter`, prefer LightGBM/XGBoost), 14%
+positive (report PR-AUC prominently, compare SMOTE against class weights), group-aware
+split already in place, and SHAP on a background sample for tractability.
 
 Reproduce Phase 1 from scratch: see `README.md` → "Reproduce Phase 1".

@@ -1,0 +1,229 @@
+{
+  "disease": "kidney",
+  "model": "svc",
+  "calibration": "raw",
+  "split": {
+    "n_total": 400,
+    "n_train": 320,
+    "n_test": 80,
+    "n_duplicate_rows": 0,
+    "overall_positive_rate": 0.625,
+    "train_positive_rate": 0.625,
+    "test_positive_rate": 0.625
+  },
+  "selection_margin": {
+    "selected": "svc",
+    "selected_tuned_roc_auc": 1.0,
+    "runner_up": "random_forest",
+    "runner_up_tuned_roc_auc": 0.9997916666666666,
+    "gap": 0.0002083333333333659,
+    "cv_roc_auc_std": 0.0,
+    "decisive": false,
+    "reasons_to_doubt": [
+      "the gap (0.0002) is below 0.005, the practical resolution of ROC-AUC at this sample size",
+      "both models exceed 0.99 ROC-AUC, where the metric is saturated and cannot separate them (a standard deviation of 0.0 here means no resolution left, not a precise estimate)"
+    ],
+    "gap_within_cv_noise": true
+  },
+  "diagnostics": {
+    "missingness_only_probe": {
+      "n_indicator_features": 24,
+      "indicator_columns": [
+        "age",
+        "bp",
+        "sg",
+        "al",
+        "su",
+        "bgr",
+        "bu",
+        "sc",
+        "sod",
+        "pot",
+        "hemo",
+        "pcv",
+        "wbcc",
+        "rbcc",
+        "rbc",
+        "pc",
+        "pcc",
+        "ba",
+        "htn",
+        "dm",
+        "cad",
+        "appet",
+        "pe",
+        "ane"
+      ],
+      "cv_roc_auc_mean": 0.86,
+      "cv_roc_auc_std": 0.044452934301973335,
+      "test_roc_auc": 0.8023333333333332,
+      "test_pr_auc": 0.8789651384651385,
+      "test_accuracy": 0.775
+    },
+    "complete_case": {
+      "n_total": 400,
+      "n_complete_cases": 158,
+      "pct_retained": 39.5,
+      "positive_rate_all": 0.625,
+      "positive_rate_complete_cases": 0.2722
+    },
+    "attribution_note": "Missingness indicators alone reach test ROC-AUC 0.8023 against the full model's 0.9987 (gap +0.1963). A meaningful part of the signal comes from which values were recorded rather than their values.",
+    "missingness_vs_target_top": [
+      {
+        "column": "pcc",
+        "n_missing": 4,
+        "pct_missing": 1.0,
+        "positive_rate_when_missing": 0.0,
+        "positive_rate_when_present": 0.6313,
+        "difference": -0.6313,
+        "overall_positive_rate": 0.625
+      },
+      {
+        "column": "ba",
+        "n_missing": 4,
+        "pct_missing": 1.0,
+        "positive_rate_when_missing": 0.0,
+        "positive_rate_when_present": 0.6313,
+        "difference": -0.6313,
+        "overall_positive_rate": 0.625
+      },
+      {
+        "column": "htn",
+        "n_missing": 2,
+        "pct_missing": 0.5,
+        "positive_rate_when_missing": 0.0,
+        "positive_rate_when_present": 0.6281,
+        "difference": -0.6281,
+        "overall_positive_rate": 0.625
+      },
+      {
+        "column": "dm",
+        "n_missing": 2,
+        "pct_missing": 0.5,
+        "positive_rate_when_missing": 0.0,
+        "positive_rate_when_present": 0.6281,
+        "difference": -0.6281,
+        "overall_positive_rate": 0.625
+      },
+      {
+        "column": "cad",
+        "n_missing": 2,
+        "pct_missing": 0.5,
+        "positive_rate_when_missing": 0.0,
+        "positive_rate_when_present": 0.6281,
+        "difference": -0.6281,
+        "overall_positive_rate": 0.625
+      },
+      {
+        "column": "pe",
+        "n_missing": 1,
+        "pct_missing": 0.25,
+        "positive_rate_when_missing": 0.0,
+        "positive_rate_when_present": 0.6266,
+        "difference": -0.6266,
+        "overall_positive_rate": 0.625
+      },
+      {
+        "column": "ane",
+        "n_missing": 1,
+        "pct_missing": 0.25,
+        "positive_rate_when_missing": 0.0,
+        "positive_rate_when_present": 0.6266,
+        "difference": -0.6266,
+        "overall_positive_rate": 0.625
+      },
+      {
+        "column": "appet",
+        "n_missing": 1,
+        "pct_missing": 0.25,
+        "positive_rate_when_missing": 0.0,
+        "positive_rate_when_present": 0.6266,
+        "difference": -0.6266,
+        "overall_positive_rate": 0.625
+      }
+    ]
+  },
+  "cross_validation_training_set": {
+    "smote": false,
+    "roc_auc_mean": 1.0,
+    "roc_auc_std": 0.0,
+    "pr_auc_mean": 1.0,
+    "pr_auc_std": 0.0,
+    "recall_mean": 0.9800000000000001,
+    "recall_std": 0.029154759474226483,
+    "precision_mean": 1.0,
+    "precision_std": 0.0,
+    "f1_mean": 0.9896761466381718,
+    "f1_std": 0.015134619572327555,
+    "rank_score": 0.9960000000000001
+  },
+  "test_set_threshold_0.5": {
+    "n": 80,
+    "prevalence": 0.625,
+    "threshold": 0.5,
+    "accuracy": 0.9625,
+    "precision": 0.9795918367346939,
+    "recall_sensitivity": 0.96,
+    "specificity": 0.9666666666666667,
+    "f1": 0.9696969696969697,
+    "roc_auc": 0.9986666666666667,
+    "pr_auc": 0.9992078431372551,
+    "brier": 0.01268129479342053,
+    "cm_tn": 29,
+    "cm_fp": 1,
+    "cm_fn": 2,
+    "cm_tp": 48
+  },
+  "test_set_alternative_threshold": {
+    "n": 80,
+    "prevalence": 0.625,
+    "threshold": 0.579237385582896,
+    "accuracy": 0.975,
+    "precision": 1.0,
+    "recall_sensitivity": 0.96,
+    "specificity": 1.0,
+    "f1": 0.9795918367346939,
+    "roc_auc": 0.9986666666666667,
+    "pr_auc": 0.9992078431372551,
+    "brier": 0.01268129479342053,
+    "cm_tn": 30,
+    "cm_fp": 0,
+    "cm_fn": 2,
+    "cm_tp": 48,
+    "threshold_rule": "Youden's J (max sensitivity + specificity - 1) maximised on out-of-fold predictions over the TRAINING set, then applied unchanged to the test set. The test set played no part in choosing it."
+  },
+  "calibration_selection_train_cv": [
+    {
+      "method": "raw",
+      "brier": 0.007669363159232845,
+      "roc_auc": 0.999875
+    },
+    {
+      "method": "sigmoid",
+      "brier": 0.014006292671766807,
+      "roc_auc": 0.9995416666666667
+    },
+    {
+      "method": "isotonic",
+      "brier": 0.007722491039843028,
+      "roc_auc": 0.9996250000000001
+    }
+  ],
+  "calibration_test_comparison": [
+    {
+      "method": "raw",
+      "brier": 0.01268129479342053,
+      "roc_auc": 0.9986666666666667
+    },
+    {
+      "method": "sigmoid",
+      "brier": 0.013441816253558735,
+      "roc_auc": 1.0
+    },
+    {
+      "method": "isotonic",
+      "brier": 0.00715992281951012,
+      "roc_auc": 1.0
+    }
+  ]
+}

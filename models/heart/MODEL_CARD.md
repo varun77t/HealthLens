@@ -42,7 +42,7 @@ Research and education: exploring how machine-learning models relate routinely c
 | `calibration_rationale` | Selected 'sigmoid' by out-of-fold Brier score on the training set: 0.1285 vs raw 0.1298; cross-validated ROC-AUC 0.8940 vs raw 0.8966 (tolerance 0.01). The test set played no part in this choice. |
 | `selection_rationale` | `xgboost` was chosen from 5 candidate pipelines. The cross-validated ranking (0.4·ROC-AUC + 0.4·PR-AUC + 0.2·recall) put `logreg` first before tuning, with `xgboost` at rank 3. After randomised hyper-parameter search the tuned cross-validated ROC-AUC scores were: xgboost 0.9079, logreg 0.9074, random_forest 0.9061; `xgboost` was highest and was refit on the full training set. Accuracy was recorded but was not used as a selection criterion. |
 
-> **The margin of selection is not meaningful.** `xgboost` beat `logreg` by 0.0005 cross-validated ROC-AUC, while the fold-to-fold standard deviation is 0.0316 — far larger. Treat the candidate models as performing comparably; a different random seed could easily reorder them. This choice should not be read as evidence that this algorithm is better suited to the problem.
+> **The margin of selection is not meaningful.** `xgboost` beat `logreg` by 0.0005 cross-validated ROC-AUC, but the gap (0.0005) is smaller than the selected model's fold-to-fold standard deviation (0.0316); the gap (0.0005) is below 0.005, the practical resolution of ROC-AUC at this sample size. Treat the candidate models as performing comparably; a different random seed could easily reorder them. This choice should not be read as evidence that this algorithm is better suited to the problem.
 
 Hyperparameters:
 
@@ -138,6 +138,14 @@ _All figures below are measured on the held-out test set (or by cross-validation
 | raw | 0.1003 | 0.9502 |
 | sigmoid | 0.0893 | 0.9535 |
 | isotonic | 0.0808 | 0.9540 |
+
+### What actually drives this score
+
+> Missingness indicators alone reach only test ROC-AUC 0.4394 against the full model's 0.9535 (gap +0.5141), so the measurement pattern does not explain most of the performance.
+
+Probe detail: a logistic regression trained on 2 binary *is-this-value-missing* indicators, with every measured value discarded, reaches test ROC-AUC 0.4394 (PR-AUC 0.4590, accuracy 0.4754).
+
+Complete-case analysis was not used as an alternative: dropping every row with a missing value would retain 297/303 rows (98.02%) and shift the positive rate from 0.4587 to 0.4613.
 
 ## Explainability
 

@@ -111,6 +111,50 @@ def outlier_scan(X: pd.DataFrame, spec: FeatureSpec, k: float = 1.5) -> pd.DataF
     return pd.DataFrame(rows)
 
 
+def missingness_target_association(X: pd.DataFrame, y: pd.Series) -> pd.DataFrame:
+    """Is a column's *missingness* itself predictive of the target?
+
+    For every column that has missing values, compares the positive rate among rows
+    where it is missing against rows where it is present.
+
+    This matters because imputation happens inside the pipeline: if a lab is only
+    ordered when a clinician already suspects the disease, then "this value is missing"
+    carries diagnostic information, and a model can score well by exploiting the
+    measurement pattern rather than the measurement. That is not train/test leakage —
+    the split is still clean — but it means performance may not transfer to a setting
+    where the test is ordered routinely. Reported so the effect can be judged, not
+    silently corrected.
+    """
+    y = pd.Series(y).reset_index(drop=True)
+    X = X.reset_index(drop=True)
+    overall = float(y.mean())
+    rows = []
+    for col in X.columns:
+        mask = X[col].isna()
+        n_missing = int(mask.sum())
+        if n_missing == 0:
+            continue
+        present = y[~mask]
+        rows.append(
+            {
+                "column": col,
+                "n_missing": n_missing,
+                "pct_missing": round(100 * n_missing / len(X), 2),
+                "positive_rate_when_missing": round(float(y[mask].mean()), 4),
+                "positive_rate_when_present": round(float(present.mean()), 4) if len(present) else float("nan"),
+                "difference": round(float(y[mask].mean() - present.mean()), 4) if len(present) else float("nan"),
+            }
+        )
+    if not rows:
+        return pd.DataFrame(
+            columns=["column", "n_missing", "pct_missing", "positive_rate_when_missing",
+                     "positive_rate_when_present", "difference"]
+        )
+    out = pd.DataFrame(rows)
+    out["overall_positive_rate"] = round(overall, 4)
+    return out.sort_values("difference", key=abs, ascending=False).reset_index(drop=True)
+
+
 def correlation_matrix(X: pd.DataFrame, spec: FeatureSpec, method: str = "spearman") -> pd.DataFrame:
     cols = spec.numeric
     if len(cols) < 2:

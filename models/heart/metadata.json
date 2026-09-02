@@ -64,6 +64,11 @@
       "runner_up_tuned_roc_auc": 0.9074051552312422,
       "gap": 0.0004954787563484775,
       "cv_roc_auc_std": 0.031616547101676516,
+      "decisive": false,
+      "reasons_to_doubt": [
+        "the gap (0.0005) is smaller than the selected model's fold-to-fold standard deviation (0.0316)",
+        "the gap (0.0005) is below 0.005, the practical resolution of ROC-AUC at this sample size"
+      ],
       "gap_within_cv_noise": true
     }
   },
@@ -135,7 +140,49 @@
         "roc_auc": 0.954004329004329
       }
     ],
-    "external_validation": null
+    "external_validation": null,
+    "what_drives_this_score": {
+      "missingness_only_probe": {
+        "n_indicator_features": 2,
+        "indicator_columns": [
+          "ca",
+          "thal"
+        ],
+        "cv_roc_auc_mean": 0.5,
+        "cv_roc_auc_std": 0.0,
+        "test_roc_auc": 0.4393939393939394,
+        "test_pr_auc": 0.45901639344262296,
+        "test_accuracy": 0.47540983606557374
+      },
+      "complete_case": {
+        "n_total": 303,
+        "n_complete_cases": 297,
+        "pct_retained": 98.02,
+        "positive_rate_all": 0.4587,
+        "positive_rate_complete_cases": 0.4613
+      },
+      "attribution_note": "Missingness indicators alone reach only test ROC-AUC 0.4394 against the full model's 0.9535 (gap +0.5141), so the measurement pattern does not explain most of the performance.",
+      "missingness_vs_target_top": [
+        {
+          "column": "ca",
+          "n_missing": 4,
+          "pct_missing": 1.32,
+          "positive_rate_when_missing": 0.25,
+          "positive_rate_when_present": 0.4615,
+          "difference": -0.2115,
+          "overall_positive_rate": 0.4587
+        },
+        {
+          "column": "thal",
+          "n_missing": 2,
+          "pct_missing": 0.66,
+          "positive_rate_when_missing": 0.5,
+          "positive_rate_when_present": 0.4585,
+          "difference": 0.0415,
+          "overall_positive_rate": 0.4587
+        }
+      ]
+    }
   },
   "explainability": {
     "method": "SHAP, aggregated from the transformed columns back to original features",

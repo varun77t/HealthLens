@@ -1,0 +1,327 @@
+{
+  "disease": "kidney",
+  "explainer": "kernel",
+  "base_value": 0.6386589743812254,
+  "additivity_max_error": 1.1102230246251565e-16,
+  "n_rows_explained": 80,
+  "global_importance": [
+    {
+      "rank": 1,
+      "feature": "sg",
+      "mean_abs_shap": 0.076202866974231,
+      "mean_shap": -0.0072786622691182,
+      "description": "Urine specific gravity (1.005-1.025)"
+    },
+    {
+      "rank": 2,
+      "feature": "pcv",
+      "mean_abs_shap": 0.06988094364516315,
+      "mean_shap": -0.019030610454729417,
+      "description": "Packed cell volume (%)"
+    },
+    {
+      "rank": 3,
+      "feature": "hemo",
+      "mean_abs_shap": 0.06540841876750694,
+      "mean_shap": -0.010730945985662124,
+      "description": "Haemoglobin (g/dl)"
+    },
+    {
+      "rank": 4,
+      "feature": "al",
+      "mean_abs_shap": 0.048012028445657794,
+      "mean_shap": 0.003992554388303292,
+      "description": "Albumin (0-5 ordinal scale)"
+    },
+    {
+      "rank": 5,
+      "feature": "htn",
+      "mean_abs_shap": 0.032775900749433644,
+      "mean_shap": -0.001380498619920722,
+      "description": "Hypertension (yes / no)"
+    },
+    {
+      "rank": 6,
+      "feature": "rbcc",
+      "mean_abs_shap": 0.032334261838575,
+      "mean_shap": -0.0021130225899150326,
+      "description": "Red blood cell count (millions/cu mm)"
+    },
+    {
+      "rank": 7,
+      "feature": "bgr",
+      "mean_abs_shap": 0.02826023048547436,
+      "mean_shap": 0.000506209478097519,
+      "description": "Random blood glucose (mg/dl)"
+    },
+    {
+      "rank": 8,
+      "feature": "dm",
+      "mean_abs_shap": 0.027673540449668632,
+      "mean_shap": 8.098601471512147e-05,
+      "description": "Diabetes mellitus (yes / no)"
+    },
+    {
+      "rank": 9,
+      "feature": "sc",
+      "mean_abs_shap": 0.0177928908807318,
+      "mean_shap": -0.005276060972830661,
+      "description": "Serum creatinine (mg/dl)"
+    },
+    {
+      "rank": 10,
+      "feature": "bu",
+      "mean_abs_shap": 0.01610449154086488,
+      "mean_shap": -0.00038787368768240967,
+      "description": "Blood urea (mg/dl)"
+    },
+    {
+      "rank": 11,
+      "feature": "su",
+      "mean_abs_shap": 0.0140111470620842,
+      "mean_shap": 0.007276321593778959,
+      "description": "Sugar (0-5 ordinal scale)"
+    },
+    {
+      "rank": 12,
+      "feature": "bp",
+      "mean_abs_shap": 0.011757913068956563,
+      "mean_shap": -0.0006830182925202774,
+      "description": "Blood pressure (mm Hg)"
+    },
+    {
+      "rank": 13,
+      "feature": "appet",
+      "mean_abs_shap": 0.009179735150551361,
+      "mean_shap": 0.009179735150551361,
+      "description": "Appetite (good / poor)"
+    },
+    {
+      "rank": 14,
+      "feature": "pot",
+      "mean_abs_shap": 0.004668662762192404,
+      "mean_shap": 0.004135190157834738,
+      "description": "Potassium (mEq/L)"
+    },
+    {
+      "rank": 15,
+      "feature": "age",
+      "mean_abs_shap": 0.0029353469661753478,
+      "mean_shap": 0.0024232898227690915,
+      "description": "Age in years"
+    },
+    {
+      "rank": 16,
+      "feature": "pe",
+      "mean_abs_shap": 0.0029069122893437523,
+      "mean_shap": 0.0029069122893437523,
+      "description": "Pedal edema (yes / no)"
+    },
+    {
+      "rank": 17,
+      "feature": "rbc",
+      "mean_abs_shap": 0.0019172751934593973,
+      "mean_shap": 0.0019172751934593973,
+      "description": "Red blood cells in urine (normal / abnormal)"
+    },
+    {
+      "rank": 18,
+      "feature": "sod",
+      "mean_abs_shap": 0.001128869510293596,
+      "mean_shap": 0.0010020926945157615,
+      "description": "Sodium (mEq/L)"
+    },
+    {
+      "rank": 19,
+      "feature": "ane",
+      "mean_abs_shap": 0.0007368858442114445,
+      "mean_shap": 0.0007368858442114445,
+      "description": "Anaemia (yes / no)"
+    },
+    {
+      "rank": 20,
+      "feature": "wbcc",
+      "mean_abs_shap": 0.000713597476355489,
+      "mean_shap": 0.000400683504932431,
+      "description": "White blood cell count (cells/cu mm)"
+    },
+    {
+      "rank": 21,
+      "feature": "pc",
+      "mean_abs_shap": 0.000557445619285258,
+      "mean_shap": 0.0004281616084315043,
+      "description": "Pus cell (normal / abnormal)"
+    },
+    {
+      "rank": 22,
+      "feature": "cad",
+      "mean_abs_shap": 8.515930089143121e-05,
+      "mean_shap": 8.515930089143121e-05,
+      "description": "Coronary artery disease (yes / no)"
+    },
+    {
+      "rank": 23,
+      "feature": "ba",
+      "mean_abs_shap": 4.445989390319779e-05,
+      "mean_shap": 4.445989390319779e-05,
+      "description": "Bacteria (present / notpresent)"
+    },
+    {
+      "rank": 24,
+      "feature": "pcc",
+      "mean_abs_shap": 0.0,
+      "mean_shap": 0.0,
+      "description": "Pus cell clumps (present / notpresent)"
+    }
+  ],
+  "example_local_explanation": {
+    "base_value": 0.6386589743812254,
+    "predicted_probability": 0.9999999999965276,
+    "contributions": [
+      {
+        "feature": "bgr",
+        "value": 423.0,
+        "contribution": 0.08461946337215562,
+        "description": "Random blood glucose (mg/dl)"
+      },
+      {
+        "feature": "sg",
+        "value": 1.01,
+        "contribution": 0.05621137902663608,
+        "description": "Urine specific gravity (1.005-1.025)"
+      },
+      {
+        "feature": "pcv",
+        "value": 31.0,
+        "contribution": 0.04974584725473396,
+        "description": "Packed cell volume (%)"
+      },
+      {
+        "feature": "hemo",
+        "value": 9.6,
+        "contribution": 0.04694065274464274,
+        "description": "Haemoglobin (g/dl)"
+      },
+      {
+        "feature": "su",
+        "value": 3.0,
+        "contribution": 0.03667366614038197,
+        "description": "Sugar (0-5 ordinal scale)"
+      },
+      {
+        "feature": "al",
+        "value": 2.0,
+        "contribution": 0.026225579941291478,
+        "description": "Albumin (0-5 ordinal scale)"
+      },
+      {
+        "feature": "dm",
+        "value": 1.0,
+        "contribution": 0.01951837484167834,
+        "description": "Diabetes mellitus (yes / no)"
+      },
+      {
+        "feature": "appet",
+        "value": 1.0,
+        "contribution": 0.019213368063075432,
+        "description": "Appetite (good / poor)"
+      },
+      {
+        "feature": "rbcc",
+        "value": null,
+        "contribution": 0.012668120305004285,
+        "description": "Red blood cell count (millions/cu mm)"
+      },
+      {
+        "feature": "bu",
+        "value": 53.0,
+        "contribution": 0.009524573925702162,
+        "description": "Blood urea (mg/dl)"
+      },
+      {
+        "feature": "age",
+        "value": 62.0,
+        "contribution": 0.0,
+        "description": "Age in years"
+      },
+      {
+        "feature": "bp",
+        "value": 80.0,
+        "contribution": 0.0,
+        "description": "Blood pressure (mm Hg)"
+      },
+      {
+        "feature": "sc",
+        "value": 1.8,
+        "contribution": 0.0,
+        "description": "Serum creatinine (mg/dl)"
+      },
+      {
+        "feature": "sod",
+        "value": null,
+        "contribution": 0.0,
+        "description": "Sodium (mEq/L)"
+      },
+      {
+        "feature": "pot",
+        "value": null,
+        "contribution": 0.0,
+        "description": "Potassium (mEq/L)"
+      },
+      {
+        "feature": "wbcc",
+        "value": 7500.0,
+        "contribution": 0.0,
+        "description": "White blood cell count (cells/cu mm)"
+      },
+      {
+        "feature": "rbc",
+        "value": 0.0,
+        "contribution": 0.0,
+        "description": "Red blood cells in urine (normal / abnormal)"
+      },
+      {
+        "feature": "pc",
+        "value": 0.0,
+        "contribution": 0.0,
+        "description": "Pus cell (normal / abnormal)"
+      },
+      {
+        "feature": "pcc",
+        "value": 0.0,
+        "contribution": 0.0,
+        "description": "Pus cell clumps (present / notpresent)"
+      },
+      {
+        "feature": "ba",
+        "value": 0.0,
+        "contribution": 0.0,
+        "description": "Bacteria (present / notpresent)"
+      },
+      {
+        "feature": "htn",
+        "value": 0.0,
+        "contribution": 0.0,
+        "description": "Hypertension (yes / no)"
+      },
+      {
+        "feature": "cad",
+        "value": 0.0,
+        "contribution": 0.0,
+        "description": "Coronary artery disease (yes / no)"
+      },
+      {
+        "feature": "pe",
+        "value": 0.0,
+        "contribution": 0.0,
+        "description": "Pedal edema (yes / no)"
+      },
+      {
+        "feature": "ane",
+        "value": 1.0,
+        "contribution": 0.0,
+        "description": "Anaemia (yes / no)"
+      }
+    ]
+  }
+}

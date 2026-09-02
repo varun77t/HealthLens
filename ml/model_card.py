@@ -54,12 +54,24 @@ _LIMITATIONS: dict[str, list[str]] = {
         "code these differently.",
     ],
     "kidney": [
-        "Very small sample: 400 records from a single Indian hospital over a two-month period.",
-        "Heavy missingness (60.5% of rows have at least one missing value) imputed inside the pipeline.",
-        "The classes are close to linearly separable on a few laboratory values, so metrics are optimistically high "
-        "and do not indicate the model would generalise to a screening population.",
-        "Labels reflect an existing clinical diagnosis, so the model largely re-derives the diagnostic criteria "
-        "rather than predicting anything ahead of time.",
+        "Very small sample: 400 records from a single Indian hospital over a two-month period. "
+        "The test set is 80 records, so one reclassified patient moves accuracy by 1.25 points.",
+        "MISSINGNESS IS CONFOUNDED WITH THE OUTCOME. Only 158/400 rows (39.5%) are complete, and "
+        "among those the positive rate falls from 0.625 to 0.272 — CKD patients are far more likely "
+        "to have unrecorded values. Missingness of 'rbc' alone splits the classes 94% vs 43%. "
+        "See the 'what drives this score' probe in the performance section for how much of the "
+        "measured performance this accounts for.",
+        "Because imputation happens inside the pipeline, an imputed value is itself a marker that "
+        "the test was not ordered. The model can therefore read the clinician's decision to order "
+        "a test, not only its result. This is not train/test leakage — the split is clean — but it "
+        "caps how far the result transfers to a setting where these labs are ordered routinely.",
+        "The classes are close to separable on a few laboratory values (specific gravity, packed cell "
+        "volume, haemoglobin, albumin), so near-perfect metrics are a property of this dataset, not "
+        "evidence of a clinically useful model.",
+        "Labels reflect an existing clinical diagnosis, so the model largely re-derives the diagnostic "
+        "criteria rather than predicting anything ahead of time. It has no prognostic value.",
+        "With every candidate model scoring above 0.99 ROC-AUC in cross-validation, the choice of "
+        "algorithm is arbitrary and should not be reported as a finding.",
     ],
     "diabetes": [
         "Features are self-reported survey answers (CDC BRFSS 2015), not laboratory measurements. "
@@ -88,6 +100,7 @@ def build_model_card(
     test_metrics: dict,
     alt_threshold_metrics: dict,
     calibration_table: pd.DataFrame,
+    diagnostics: dict,
     shap_top_features: list[dict],
     external_validation: dict | None = None,
     artifacts: dict | None = None,
@@ -142,6 +155,7 @@ def build_model_card(
             "test_set_alternative_threshold": alt_threshold_metrics,
             "calibration_comparison": calibration_table.reset_index().to_dict(orient="records"),
             "external_validation": external_validation,
+            "what_drives_this_score": diagnostics,
         },
         "explainability": {
             "method": "SHAP, aggregated from the transformed columns back to original features",
@@ -235,6 +249,7 @@ def _card_markdown(card: dict) -> list[str]:
         "",
         df_to_markdown(pd.DataFrame(perf["calibration_comparison"])),
         "",
+        *_attribution_lines(perf.get("what_drives_this_score") or {}),
         "## Explainability",
         "",
         f"Method: {card['explainability']['method']}",
@@ -257,22 +272,50 @@ def _card_markdown(card: dict) -> list[str]:
     return lines
 
 
+def _attribution_lines(diag: dict) -> list[str]:
+    """Surface the performance-attribution probe next to the headline metrics."""
+    note = diag.get("attribution_note")
+    if not note:
+        return []
+    lines = ["### What actually drives this score", "", f"> {note}", ""]
+    probe = diag.get("missingness_only_probe")
+    if probe:
+        lines += [
+            f"Probe detail: a logistic regression trained on {probe['n_indicator_features']} "
+            "binary *is-this-value-missing* indicators, with every measured value discarded, "
+            f"reaches test ROC-AUC {probe['test_roc_auc']:.4f} "
+            f"(PR-AUC {probe['test_pr_auc']:.4f}, accuracy {probe['test_accuracy']:.4f}).",
+            "",
+        ]
+    cc = diag.get("complete_case")
+    if cc and cc["pct_retained"] < 100:
+        lines += [
+            f"Complete-case analysis was not used as an alternative: dropping every row with "
+            f"a missing value would retain {cc['n_complete_cases']}/{cc['n_total']} rows "
+            f"({cc['pct_retained']}%) and shift the positive rate from "
+            f"{cc['positive_rate_all']} to {cc['positive_rate_complete_cases']}.",
+            "",
+        ]
+    return lines
+
+
 def _margin_lines(margin: dict) -> list[str]:
     """A prominent warning when the winning model only won by noise."""
     if not margin or margin.get("runner_up") is None:
         return []
-    if not margin.get("gap_within_cv_noise"):
+    if margin.get("decisive"):
         return [
             f"Chosen over `{margin['runner_up']}` by {margin['gap']:.4f} cross-validated "
             f"ROC-AUC, which exceeds the fold-to-fold standard deviation "
-            f"({margin['cv_roc_auc_std']:.4f}).",
+            f"({margin['cv_roc_auc_std']:.4f}) and the metric's resolution floor.",
             "",
         ]
+    reasons = margin.get("reasons_to_doubt") or []
     return [
         f"> **The margin of selection is not meaningful.** `{margin['selected']}` beat "
-        f"`{margin['runner_up']}` by {margin['gap']:.4f} cross-validated ROC-AUC, while the "
-        f"fold-to-fold standard deviation is {margin['cv_roc_auc_std']:.4f} — far larger. "
-        "Treat the candidate models as performing comparably; a different random seed "
+        f"`{margin['runner_up']}` by {margin['gap']:.4f} cross-validated ROC-AUC, but "
+        + "; ".join(reasons)
+        + ". Treat the candidate models as performing comparably; a different random seed "
         "could easily reorder them. This choice should not be read as evidence that this "
         "algorithm is better suited to the problem.",
         "",

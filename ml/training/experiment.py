@@ -148,26 +148,69 @@ def _write_comparison(disease: str, ranked: pd.DataFrame) -> Path:
     return path
 
 
-def selection_margin(ranked: pd.DataFrame, tuned: dict, selected: str) -> dict:
-    """How decisive was the choice? Compares the tuned top-2 against CV noise.
+# A ROC-AUC gap below this is smaller than the practical resolution of the metric on a
+# few-hundred-row test set: one reclassified patient moves it further than this.
+MIN_MEANINGFUL_GAP = 0.005
+# Above this, ROC-AUC is saturated and can no longer separate candidates. A *zero*
+# standard deviation here means the metric ran out of resolution, not that the estimate
+# is precise — which is exactly when a naive "gap > std" test wrongly reads as decisive.
+SATURATION_LEVEL = 0.99
 
-    With a few hundred training rows the fold-to-fold standard deviation of ROC-AUC is
-    often an order of magnitude larger than the gap between the best models. Saying so
-    explicitly stops the leaderboard being read as a real quality ordering.
+
+def selection_margin(ranked: pd.DataFrame, tuned: dict, selected: str) -> dict:
+    """How decisive was the choice? Returns the evidence and every reason to doubt it.
+
+    Three separate ways a win can be meaningless, checked independently:
+
+    1. the gap is smaller than the fold-to-fold standard deviation (ordinary noise);
+    2. the gap is below :data:`MIN_MEANINGFUL_GAP` (below the metric's resolution);
+    3. both candidates sit above :data:`SATURATION_LEVEL`, where ROC-AUC has no
+       headroom left to distinguish them.
+
+    Checking (1) alone is not enough. On an easy dataset every model can score ~1.0
+    with a standard deviation of exactly 0.0, and "gap > 0.0" would then declare a
+    0.0002 win decisive — the least trustworthy case of all.
     """
     scores = sorted(((v["cv_roc_auc"], k) for k, v in tuned.items()), reverse=True)
     runner_up = scores[1] if len(scores) > 1 else None
     cv_std = float(ranked.set_index("model").loc[selected, "roc_auc_std"])
-    gap = float(scores[0][0] - runner_up[0]) if runner_up else float("nan")
-    return {
+    top_score = float(scores[0][0])
+
+    result = {
         "selected": selected,
-        "selected_tuned_roc_auc": float(scores[0][0]),
+        "selected_tuned_roc_auc": top_score,
         "runner_up": runner_up[1] if runner_up else None,
         "runner_up_tuned_roc_auc": float(runner_up[0]) if runner_up else None,
-        "gap": gap,
+        "gap": float(top_score - runner_up[0]) if runner_up else float("nan"),
         "cv_roc_auc_std": cv_std,
-        "gap_within_cv_noise": bool(runner_up is not None and gap < cv_std),
     }
+    if runner_up is None:
+        result.update({"decisive": False, "reasons_to_doubt": ["only one model was tuned"]})
+        return result
+
+    gap = result["gap"]
+    reasons = []
+    if gap < cv_std:
+        reasons.append(
+            f"the gap ({gap:.4f}) is smaller than the selected model's fold-to-fold "
+            f"standard deviation ({cv_std:.4f})"
+        )
+    if gap < MIN_MEANINGFUL_GAP:
+        reasons.append(
+            f"the gap ({gap:.4f}) is below {MIN_MEANINGFUL_GAP}, the practical resolution "
+            "of ROC-AUC at this sample size"
+        )
+    if top_score >= SATURATION_LEVEL and float(runner_up[0]) >= SATURATION_LEVEL:
+        reasons.append(
+            f"both models exceed {SATURATION_LEVEL} ROC-AUC, where the metric is saturated "
+            "and cannot separate them (a standard deviation of 0.0 here means no "
+            "resolution left, not a precise estimate)"
+        )
+    result["decisive"] = not reasons
+    result["reasons_to_doubt"] = reasons
+    # Kept for backwards compatibility with earlier artifacts.
+    result["gap_within_cv_noise"] = not result["decisive"]
+    return result
 
 
 def _write_selection_md(
@@ -203,20 +246,23 @@ def _write_selection_md(
     ]
     if margin["runner_up"] is None:
         lines.append("Only one model was tuned, so there is nothing to compare against.")
-    elif margin["gap_within_cv_noise"]:
+    elif not margin["decisive"]:
         lines += [
             f"**Not decisive.** `{selected}` beat `{margin['runner_up']}` by "
-            f"{margin['gap']:.4f} ROC-AUC, but the selected model's own fold-to-fold "
-            f"standard deviation is {margin['cv_roc_auc_std']:.4f} — an order of magnitude "
-            "larger. On this sample size that gap is noise, not evidence that one model "
-            "is genuinely better. Read the leaderboard as 'these models perform "
-            "comparably', not as a ranking. A different random seed could reorder them.",
+            f"{margin['gap']:.4f} cross-validated ROC-AUC, but:",
+            "",
+            *[f"- {r}." for r in margin["reasons_to_doubt"]],
+            "",
+            "Read the leaderboard as *these models perform comparably*, not as a quality "
+            "ranking. A different random seed could reorder them. The choice of algorithm "
+            "here should not be presented as a finding.",
         ]
     else:
         lines += [
-            f"`{selected}` beat `{margin['runner_up']}` by {margin['gap']:.4f} ROC-AUC, "
-            f"which exceeds the selected model's fold-to-fold standard deviation "
-            f"({margin['cv_roc_auc_std']:.4f}).",
+            f"`{selected}` beat `{margin['runner_up']}` by {margin['gap']:.4f} "
+            f"cross-validated ROC-AUC, which exceeds both the fold-to-fold standard "
+            f"deviation ({margin['cv_roc_auc_std']:.4f}) and the {MIN_MEANINGFUL_GAP} "
+            "resolution floor, with neither model saturated.",
         ]
     lines += [
         "",

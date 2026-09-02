@@ -87,9 +87,16 @@ def youden_threshold(y_true, y_prob) -> float:
     """Threshold maximising Youden's J (sensitivity + specificity - 1).
 
     A common sensitivity-oriented operating point; reported, not imposed.
+
+    ``roc_curve`` returns ``inf`` as its first threshold (the "predict nothing positive"
+    corner). That corner never maximises J unless the scores carry no signal at all, but
+    a returned ``inf`` would silently turn every prediction negative downstream, so the
+    result is always clamped into ``[0, 1]``.
     """
     from sklearn.metrics import roc_curve
 
     fpr, tpr, thr = roc_curve(np.asarray(y_true).astype(int), np.asarray(y_prob, dtype=float))
-    j = tpr - fpr
-    return float(thr[int(np.argmax(j))])
+    best = float(thr[int(np.argmax(tpr - fpr))])
+    if not np.isfinite(best):
+        return 0.5
+    return float(np.clip(best, 0.0, 1.0))

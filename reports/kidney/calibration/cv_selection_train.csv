@@ -1,0 +1,4 @@
+method,brier,roc_auc
+raw,0.007669,0.999875
+sigmoid,0.014006,0.999542
+isotonic,0.007722,0.999625
