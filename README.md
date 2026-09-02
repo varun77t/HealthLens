@@ -25,7 +25,7 @@ The three predictions are **never** combined into a single "overall health score
 |---|---|---|
 | 0 | Repo scaffold, environment, config | ✅ done |
 | 1 | Dataset acquisition, EDA, target definitions | ✅ done |
-| 2 | Shared preprocessing / training / evaluation package | ⏳ planned |
+| 2 | Shared preprocessing / training / evaluation package | ✅ done (not yet run) |
 | 3–5 | Heart, Kidney, Diabetes models end-to-end (CV, tuning, SHAP, model cards) | ⏳ planned |
 | 6 | External validation (Heart → Statlog) | ⏳ planned |
 | 7 | Calibration + fairness analysis | ⏳ planned |

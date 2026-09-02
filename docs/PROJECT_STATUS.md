@@ -1,6 +1,6 @@
 # Project Status — Multi-Disease AI
 
-_Last updated: 2026-09-02_
+_Last updated: 2026-09-02 (Phase 2)_
 
 Research/education platform. **Not** a clinical diagnostic tool. Three independent
 disease pipelines (heart, kidney, diabetes). Scope of current build effort: through the
@@ -15,8 +15,8 @@ Plan file: `C:\Users\Admin\.claude\plans\you-are-working-on-zippy-hammock.md`
 |---|---|---|
 | 0 | Repo scaffold, environment, `config.py` | ✅ complete (`f64caa9`, `e3a06b4`) |
 | 1 | Dataset acquisition, caching, loaders, EDA, target definitions | ✅ complete (`f64caa9`, `e3a06b4`) |
-| 2 | Shared leakage-safe preprocessing + training/evaluation package (no training) | ⬜ next |
-| 3–5 | Heart / Kidney / Diabetes models end-to-end (CV, tuning, SHAP, model cards) | ⬜ |
+| 2 | Shared leakage-safe preprocessing + training/evaluation package (no training) | ✅ built, not yet run |
+| 3–5 | Heart / Kidney / Diabetes models end-to-end (CV, tuning, SHAP, model cards) | ⬜ next |
 | 6 | External validation (Heart → Statlog) | ⬜ |
 | 7 | Calibration + fairness analysis | ⬜ |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ⬜ |
@@ -104,22 +104,65 @@ byte-identical. PNG figures / notebook exec-metadata are not byte-stable across 
 4. Statlog feature encodings (cp/slope/thal) are *assumed* compatible with Cleveland for
    Phase 6 external validation — to be verified when that phase runs.
 
-## Next step — Phase 2 (no model training)
+## Phase 2 results — shared ML package (built, not yet run)
 
-Build the shared, leakage-safe ML package in `ml/`:
+Leakage-safe preprocessing + training/evaluation package in `ml/`. **No model is
+trained, no `model_comparison.csv` / `SELECTION.md` / metric exists.** The orchestration
+in `experiment.py` is implemented but nothing calls it (its `__main__` refuses to run and
+points here); that is Phase 3+.
 
-- `ml/preprocessing/build_preprocessor.py` — per-disease `ColumnTransformer`
-  (median impute + scale numeric; most-frequent impute + one-hot categorical), always used
-  inside a `Pipeline`; never fit on the full dataset.
-- `ml/training/model_zoo.py` — LogisticRegression, RandomForest, XGBoost, SVC, LightGBM,
-  each wrapped as `imblearn.pipeline.Pipeline` with optional in-fold SMOTE.
-- `ml/training/param_space.py` — RandomizedSearchCV distributions per model.
-- `ml/training/experiment.py` — `run_experiment(disease)`: stratified split → 5-fold
-  StratifiedKFold comparison → tuning → documented selection → refit. Writes
-  `reports/<disease>/model_comparison.csv` + `SELECTION.md` (scaffolding only in Phase 2).
-- `ml/evaluation/{metrics,curves,calibration}.py` — full metric suite, curve plots,
-  Brier + calibration comparison.
-- Decide diabetes train/test split strategy given the 25,772 duplicates.
-- Unit tests: preprocessor fits only on train; no leakage; pipelines are picklable.
+| module | what it provides |
+|---|---|
+| `ml/preprocessing/build_preprocessor.py` | `build_preprocessor(spec)` → unfitted `ColumnTransformer`: numeric = median-impute + `StandardScaler`; categorical = most-frequent-impute + `OneHotEncoder(handle_unknown="ignore")`; binary = most-frequent-impute (unscaled). `verbose_feature_names_out=False`; `output_feature_names()` helper for SHAP/model cards. |
+| `ml/training/splits.py` | `make_split(disease, X, y)` → single hold-out (`TEST_SIZE=0.20`, `RANDOM_STATE=42`). **Diabetes** groups identical feature rows (hash) and keeps each group on one side via `GroupShuffleSplit`; `cv_splitter("diabetes")` → `GroupKFold(shuffle=True)`. Heart/kidney/statlog → `train_test_split(stratify=y)` / `StratifiedKFold`. Indices returned sorted; `SplitResult.meta` records overall vs train vs test positive rate. |
+| `ml/training/model_zoo.py` | `build_model(name, spec, smote=False)` → `imblearn.pipeline.Pipeline` `[preprocess, (smote), clf]`. Models: `logreg`, `random_forest`, `svc`, `xgboost`, `lightgbm`. SMOTE and `class_weight="balanced"` are mutually exclusive (SMOTE on ⇒ default weights). SMOTE only ever resamples inside a CV fold's train portion. |
+| `ml/training/param_space.py` | `param_space(name, smote=)` — modest `RandomizedSearchCV` distributions (`clf__*`, `smote__k_neighbors`); `search_iter(name, disease)` — smaller `n_iter` for diabetes. |
+| `ml/training/experiment.py` | `run_experiment(disease)` orchestration: load → `make_split` → `cross_validate_models` (5-fold) → `rank_models` (composite 0.4·ROC-AUC + 0.4·PR-AUC + 0.2·recall, **not accuracy**) → `tune_model` top-k → documented selection → refit. Writes `reports/<disease>/model_comparison.csv` + `SELECTION.md` **only when run**. Scaffolding in Phase 2 — nothing calls it, `__main__` refuses. |
+| `ml/evaluation/metrics.py` | `classification_metrics()` (accuracy, precision, recall/sensitivity, specificity, F1, ROC-AUC, PR-AUC, Brier, confusion counts), `threshold_sweep()`, `confusion_at()`, `youden_threshold()`. |
+| `ml/evaluation/curves.py` | ROC / precision-recall / confusion-matrix / calibration-curve PNGs (`matplotlib` Agg), `all_evaluation_plots()`. |
+| `ml/evaluation/calibration.py` | `compare_calibration()` — raw vs sigmoid (Platt) vs isotonic via `CalibratedClassifierCV` cross-fitted on **train only**, scored on test (Brier + ROC-AUC); `pick_calibration()` picks lowest Brier within `auc_tol` of raw. |
+
+### Diabetes split-strategy decision
+
+Naive random split rejected: 25,772 rows share a full 21-feature vector with another row,
+so a model could score partly by memorising rows seen in both splits. **Decision:**
+group identical feature vectors (`pd.util.hash_pandas_object` → `factorize`) and keep each
+group wholly on one side of the split.
+
+- Hold-out: `GroupShuffleSplit(n_splits=1, test_size=0.20, random_state=42)`.
+- CV: `GroupKFold(n_splits=5, shuffle=True, random_state=42)`.
+- `StratifiedGroupKFold` was tried and **rejected on performance**: ~227,900 groups over
+  253,680 rows (nearly every row unique) makes its greedy class-balancing ≈ O(n_groups²)
+  — one split measured at ≈140 s, which made the test suite take 12+ min.
+- Stratification is not enforced but is empirically fine at this group granularity:
+  measured hold-out positive rates 0.1396 train / 0.1383 test vs 0.1393 overall;
+  5-fold CV fold rates 0.138–0.141. `SplitResult.meta` records the real numbers each run.
+
+Verified: 0 feature-vector hashes shared across the diabetes split. Heart/kidney/statlog
+have 0 duplicate rows → plain stratified split.
+
+### Phase 2 verification
+
+| step | command | result |
+|---|---|---|
+| full suite (venv) | `python -m pytest -q` | **62 passed in 16.4 s** |
+
+Runs in the venv (numpy 2.5.2, scikit-learn 1.7.2, imbalanced-learn 0.14.0). The 13
+warnings are matplotlib/pyparsing deprecation noise pulled in via seaborn — cosmetic.
+
+New tests: `tests/test_preprocessing.py` (fit_transform leaves no NaN / non-finite;
+numeric imputer's `statistics_` equals the **train** median, not the full-data median;
+`OneHotEncoder` tolerates unseen test categories; feature names exposed),
+`tests/test_pipeline_leakage.py` (split disjoint + deterministic + ~stratified; no shared
+diabetes feature vectors; correct CV splitter per disease; model pipelines are `imblearn`
+Pipelines with a `ColumnTransformer` first step; SMOTE⇔class_weight exclusivity;
+joblib round-trip), `tests/test_evaluation_metrics.py` (metric arithmetic on hand-built
+arrays — no model involved).
+
+## Next step — Phase 3 (Heart model end-to-end)
+
+First run of `run_experiment("heart")`: CV comparison → tuning → `SELECTION.md` rationale
+→ SHAP (global + `explain_one`) → `models/heart/pipeline.joblib` + `metadata.json` model
+card. This is the first phase that trains a model and produces real metrics.
 
 Reproduce Phase 1 from scratch: see `README.md` → "Reproduce Phase 1".
