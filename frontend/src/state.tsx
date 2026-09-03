@@ -1,19 +1,30 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import type { Disease, IntakeValues, PredictionResponse, SchemaResponse } from "./types";
+import type {
+  Disease,
+  ExtractionResult,
+  IntakeValues,
+  PredictionResponse,
+  SchemaResponse,
+} from "./types";
 
 /**
- * The working set for one consultation, shared by intake, review and result.
+ * The working set for one assessment, shared by upload, review and result.
  *
- * Held in memory only. Nothing entered here is written to localStorage or sent anywhere
- * except the prediction request — health details should not outlive the tab by accident.
+ * Held in memory only. Nothing entered or extracted is written to localStorage or sent
+ * anywhere except the prediction request — health details should not outlive the tab by
+ * accident, and an uploaded document is never stored at all.
  */
 interface Session {
   disease: Disease | null;
   schema: SchemaResponse | null;
   values: IntakeValues;
   prediction: PredictionResponse | null;
-  /** True once the user has been through review and pressed the confirm button. */
+  /** Set once the user has been through review and pressed confirm. */
   confirmed: boolean;
+  /** Present when the values came from a document, for provenance on the review screen. */
+  extraction: ExtractionResult | null;
+  /** What to name as the source on the generated report. */
+  sourceDocument: string | null;
   sampleId: string | null;
 }
 
@@ -22,6 +33,7 @@ interface SessionApi extends Session {
   setValues: (values: IntakeValues) => void;
   setPrediction: (p: PredictionResponse | null) => void;
   setConfirmed: (v: boolean) => void;
+  setExtraction: (r: ExtractionResult | null, sourceDocument: string | null) => void;
   setSampleId: (id: string | null) => void;
   reset: () => void;
 }
@@ -32,6 +44,8 @@ const empty: Session = {
   values: {},
   prediction: null,
   confirmed: false,
+  extraction: null,
+  sourceDocument: null,
   sampleId: null,
 };
 
@@ -43,14 +57,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const api = useMemo<SessionApi>(
     () => ({
       ...s,
-      start: (disease, schema, values) =>
-        setS({ ...empty, disease, schema, values }),
+      start: (disease, schema, values) => setS({ ...empty, disease, schema, values }),
       setValues: (values) =>
         // Any edit invalidates a prediction made from the previous values, so the result
-        // screen can never show a number computed from inputs the user has since changed.
+        // screen can never show a number computed from inputs since changed.
         setS((p) => ({ ...p, values, prediction: null, confirmed: false })),
       setPrediction: (prediction) => setS((p) => ({ ...p, prediction })),
       setConfirmed: (confirmed) => setS((p) => ({ ...p, confirmed })),
+      setExtraction: (extraction, sourceDocument) =>
+        setS((p) => ({ ...p, extraction, sourceDocument })),
       setSampleId: (sampleId) => setS((p) => ({ ...p, sampleId })),
       reset: () => setS(empty),
     }),

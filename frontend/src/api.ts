@@ -1,5 +1,7 @@
 import type {
+  DemoReportsResponse,
   Disease,
+  ExtractionResult,
   ModelSummary,
   PredictionResponse,
   SamplesResponse,
@@ -51,6 +53,7 @@ async function readError(res: Response): Promise<string> {
 
 export const api = {
   models: () => get<ModelSummary[]>("/models"),
+  modelCard: (d: Disease) => get<Record<string, unknown>>(`/models/${d}`),
   schema: (d: Disease) => get<SchemaResponse>(`/models/${d}/schema`),
   samples: (d: Disease) => get<SamplesResponse>(`/samples/${d}`),
   predict: (d: Disease, features: Record<string, number | null>) =>
@@ -60,4 +63,27 @@ export const api = {
     features: Record<string, number | null>,
     overrides: Record<string, number | null>,
   ) => post<ScenarioResponse>(`/scenario/${d}`, { features, overrides }),
+
+  /** Upload a report for extraction. Returns candidates for review — never a prediction. */
+  extract: async (d: Disease, file: File): Promise<ExtractionResult> => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`${BASE}/extract/${d}`, { method: "POST", body: form });
+    if (!res.ok) throw new ApiError(res.status, await readError(res));
+    return res.json() as Promise<ExtractionResult>;
+  },
+
+  demoReports: (d: Disease) => get<DemoReportsResponse>(`/demo-reports/${d}`),
+  demoReportUrl: (d: Disease, caseId: string) => `${BASE}/demo-reports/${d}/${caseId}`,
+
+  /** The take-away PDF, rendered server-side from a prediction response. */
+  reportPdf: async (d: Disease, prediction: PredictionResponse): Promise<Blob> => {
+    const res = await fetch(`${BASE}/report/${d}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(prediction),
+    });
+    if (!res.ok) throw new ApiError(res.status, await readError(res));
+    return res.blob();
+  },
 };

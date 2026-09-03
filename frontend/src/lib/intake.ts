@@ -1,4 +1,10 @@
-import type { FeatureSpec, FieldState, IntakeValues, SchemaResponse } from "../types";
+import type {
+  ExtractionResult,
+  FeatureSpec,
+  FieldState,
+  IntakeValues,
+  SchemaResponse,
+} from "../types";
 
 /** Every field starts blank — nothing is pre-filled with a plausible-looking default. */
 export function emptyIntake(schema: SchemaResponse): IntakeValues {
@@ -7,17 +13,31 @@ export function emptyIntake(schema: SchemaResponse): IntakeValues {
   return out;
 }
 
-export function fromSample(
+/**
+ * Turn an extraction result into form values.
+ *
+ * A field the document did not yield becomes `blank`, not `unavailable` — even when the
+ * report said "Not performed". Both reach the model as missing, but `blank` is what the
+ * review screen refuses to run on, so the person has to make that call rather than inherit
+ * it from a parser. For kidney that matters more than it looks: missingness there is
+ * confounded with the outcome, so an unconsidered blank is a real risk, not a formality.
+ */
+export function fromExtraction(
   schema: SchemaResponse,
-  features: Record<string, number | null>,
+  result: ExtractionResult,
 ): IntakeValues {
+  const byName = new Map(result.fields.map((f) => [f.name, f]));
   const out: IntakeValues = {};
   for (const f of schema.features) {
-    const v = features[f.name];
-    out[f.name] =
-      v === null || v === undefined
-        ? { value: null, status: "unavailable" }
-        : { value: v, status: "sample" };
+    const got = byName.get(f.name);
+    if (!got || got.value === null) {
+      out[f.name] = { value: null, status: "blank" };
+    } else {
+      out[f.name] = {
+        value: got.value,
+        status: got.status === "found" ? "extracted" : "flagged",
+      };
+    }
   }
   return out;
 }
@@ -29,39 +49,8 @@ export function toPayload(values: IntakeValues): Record<string, number | null> {
   return out;
 }
 
-export function isAnswered(s: FieldState): boolean {
-  return s.status !== "blank";
-}
-
 export function hasValue(s: FieldState): boolean {
   return s.value !== null && s.status !== "blank";
-}
-
-/**
- * Share of the model's total attribution mass covered by the fields that have values.
- *
- * This is the honest progress bar. "12 of 24 fields" implies every field is worth the
- * same; summing `shap_mass_share` says how much of what the model actually uses is
- * present, so supplying kidney's `sg` (16.4%) counts for more than supplying `su` (0.2%).
- */
-export function coverage(schema: SchemaResponse, values: IntakeValues): number {
-  let sum = 0;
-  for (const f of schema.features) {
-    const s = values[f.name];
-    if (s && hasValue(s)) sum += f.shap_mass_share;
-  }
-  return sum;
-}
-
-export function coreCoverage(schema: SchemaResponse, values: IntakeValues): number {
-  const core = schema.features.filter((f) => f.tier === "core");
-  if (!core.length) return 1;
-  const have = core.filter((f) => values[f.name] && hasValue(values[f.name])).length;
-  return have / core.length;
-}
-
-export function unansweredCount(schema: SchemaResponse, values: IntakeValues): number {
-  return schema.features.filter((f) => !values[f.name] || !isAnswered(values[f.name])).length;
 }
 
 export function byGroup(schema: SchemaResponse): Map<string, FeatureSpec[]> {
@@ -89,4 +78,3 @@ export function outOfObservedRange(f: FeatureSpec, v: number | null): boolean {
   return v < f.observed_min || v > f.observed_max;
 }
 
-export const pct = (x: number) => `${Math.round(x * 100)}%`;

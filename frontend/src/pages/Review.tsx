@@ -1,26 +1,19 @@
 import { Fragment, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "../api";
-import { Banner, ErrorBox } from "../components/Chrome";
-import { CoverageMeter } from "../components/CoverageMeter";
+import { ErrorBox, Note, PageHead } from "../components/Chrome";
 import { FieldInput } from "../components/FieldInput";
-import {
-  coverage,
-  formatValue,
-  hasValue,
-  outOfObservedRange,
-  toPayload,
-} from "../lib/intake";
+import { byGroup, formatValue, outOfObservedRange, toPayload } from "../lib/intake";
 import { useSession } from "../state";
-import type { Disease, FieldState } from "../types";
+import type { Disease, ExtractedField, FeatureSpec, FieldState } from "../types";
 
 /**
- * The verification step. Nothing is predicted until the user has settled every field.
+ * The verification step. Nothing is predicted until every field has been settled.
  *
- * Fields are ordered by how much the model actually leans on them, not by the order they
- * were entered, so attention goes where a mistake would matter most. An untouched field
- * blocks the run: leaving it blank and marking it unavailable both reach the model as
- * missing, but only one of them is a decision the user made.
+ * Grouped the way the information physically arrives (patient details, blood tests, urine
+ * tests) rather than by model importance, because this screen is read against a document.
+ * A field that is merely untouched blocks the run: leaving it blank and saying you don't
+ * have it both reach the model as missing, but only one of them is a decision a person made.
  */
 export default function Review() {
   const { disease } = useParams<{ disease: Disease }>();
@@ -32,10 +25,15 @@ export default function Review() {
 
   const schema = session.schema;
   const values = session.values;
+  const extraction = session.extraction;
 
-  const rows = useMemo(
-    () => (schema ? [...schema.features].sort((a, b) => a.shap_rank - b.shap_rank) : []),
+  const groups = useMemo(
+    () => (schema ? byGroup(schema) : new Map<string, FeatureSpec[]>()),
     [schema],
+  );
+  const extractedByName = useMemo(
+    () => new Map((extraction?.fields ?? []).map((f) => [f.name, f])),
+    [extraction],
   );
 
   if (!schema || !disease || session.disease !== disease) {
@@ -43,17 +41,17 @@ export default function Review() {
     return null;
   }
 
-  const blanks = rows.filter((f) => (values[f.name]?.status ?? "blank") === "blank");
-  const core = schema.features.filter((f) => f.tier === "core");
-  const coreDone = core.filter((f) => values[f.name] && hasValue(values[f.name])).length;
-  const covered = coverage(schema, values);
+  const unsettled = schema.features.filter(
+    (f) => (values[f.name]?.status ?? "blank") === "blank",
+  );
+  const fromDocument = Boolean(extraction);
 
   const update = (name: string, next: FieldState) =>
     session.setValues({ ...values, [name]: next });
 
   const markRemainingUnavailable = () => {
     const next = { ...values };
-    for (const f of blanks) next[f.name] = { value: null, status: "unavailable" };
+    for (const f of unsettled) next[f.name] = { value: null, status: "unavailable" };
     session.setValues(next);
   };
 
@@ -73,127 +71,193 @@ export default function Review() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <button className="btn-ghost -ml-2 mb-2 text-xs" onClick={() => nav(`/${disease}`)}>
-          ← Back to the form
-        </button>
-        <h1 className="text-2xl font-semibold tracking-tight">Review your information</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-          Check every line before anything is analysed. Fields are listed by how much this
-          model relies on them, so the ones at the top are where a wrong value would change
-          the answer most.
-        </p>
-      </div>
+    <div>
+      <PageHead
+        title={fromDocument ? "We found your information" : "Review your information"}
+        lead="Please review the details before we run the analysis."
+        back={{
+          to: fromDocument ? `/${disease}` : `/${disease}/enter`,
+          label: fromDocument ? "Upload a different report" : "Back to the form",
+        }}
+      />
 
-      {error && <ErrorBox error={error} />}
+      {extraction && (
+        <div className="mb-8">
+          <Note>
+            <p>
+              Read <span className="font-medium text-ink">{extraction.n_found}</span> of{" "}
+              {extraction.n_expected} pieces of information from{" "}
+              <span className="font-medium text-ink">{session.sourceDocument}</span>
+              {extraction.n_missing > 0 && (
+                <>
+                  {" "}
+                  · {extraction.n_missing} not found in the document
+                </>
+              )}
+              {extraction.n_needs_review > 0 && (
+                <>
+                  {" "}
+                  · {extraction.n_needs_review} to check
+                </>
+              )}
+              .
+            </p>
+            <p className="mt-1.5 text-xs text-muted">
+              Anything not found is left blank rather than guessed.
+            </p>
+          </Note>
+        </div>
+      )}
 
-      <div className="grid gap-4 md:grid-cols-[2fr_1fr] md:items-start">
-        <div className="card overflow-hidden md:order-1">
-          <table className="w-full text-sm">
-            <caption className="sr-only">Extracted and entered values for review</caption>
-            <thead className="border-b border-line bg-canvas text-left text-xs text-muted">
-              <tr>
-                <th scope="col" className="px-4 py-2 font-medium">Field</th>
-                <th scope="col" className="px-4 py-2 font-medium">Value</th>
-                <th scope="col" className="px-4 py-2 font-medium">Status</th>
-                <th scope="col" className="px-4 py-2" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {rows.map((f) => {
-                const st = values[f.name] ?? { value: null, status: "blank" as const };
-                const open = editing === f.name;
-                const extrapolated = outOfObservedRange(f, st.value);
-                return (
+      {error && (
+        <div className="mb-8">
+          <ErrorBox error={error} />
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {schema.groups.map((g) => {
+          const fields = groups.get(g.id) ?? [];
+          if (!fields.length) return null;
+          return (
+            <section key={g.id} className="surface overflow-hidden">
+              <h2 className="border-b border-line px-6 py-4 text-sm font-semibold text-ink">
+                {g.label}
+              </h2>
+              <dl className="divide-y divide-hairline">
+                {fields.map((f) => (
                   <Fragment key={f.name}>
-                    <tr className={open ? "bg-canvas" : undefined}>
-                      <td className="px-4 py-2.5">
-                        <span className="font-medium">{f.label}</span>
-                        {f.tier === "core" && (
-                          <span className="ml-2 chip bg-accent/10 text-accent">key</span>
-                        )}
-                      </td>
-                      <td className="tnum px-4 py-2.5">
-                        {st.status === "blank" ? (
-                          <span className="text-muted">—</span>
-                        ) : st.status === "unavailable" ? (
-                          <span className="text-muted">Unavailable</span>
-                        ) : (
-                          formatValue(f, st.value)
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        {st.status === "blank" ? (
-                          <span className="chip bg-warnBg text-warn">⚠ Not answered</span>
-                        ) : st.status === "unavailable" ? (
-                          <span className="chip bg-canvas text-muted">— Unavailable</span>
-                        ) : extrapolated ? (
-                          <span className="chip bg-warnBg text-warn">⚠ Out of range</span>
-                        ) : (
-                          <span className="chip bg-clearBg text-clear">✓ Confirmed</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
+                    <ValueRow
+                      feature={f}
+                      state={values[f.name] ?? { value: null, status: "blank" }}
+                      extracted={extractedByName.get(f.name)}
+                      open={editing === f.name}
+                      onToggle={() => setEditing(editing === f.name ? null : f.name)}
+                    />
+                    {editing === f.name && (
+                      <div className="bg-hairline px-6 py-4">
+                        <FieldInput
+                          feature={f}
+                          state={values[f.name] ?? { value: null, status: "blank" }}
+                          onChange={(next) => update(f.name, next)}
+                          compact
+                        />
                         <button
-                          className="text-xs text-accent underline-offset-2 hover:underline"
-                          onClick={() => setEditing(open ? null : f.name)}
+                          className="btn-secondary mt-4 py-2 text-xs"
+                          onClick={() => setEditing(null)}
                         >
-                          {open ? "Done" : "Edit"}
+                          Done
                         </button>
-                      </td>
-                    </tr>
-                    {open && (
-                      <tr className="bg-canvas">
-                        <td colSpan={4} className="px-4 pb-3">
-                          <FieldInput
-                            feature={f}
-                            state={st}
-                            onChange={(next) => update(f.name, next)}
-                          />
-                        </td>
-                      </tr>
+                      </div>
                     )}
                   </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </dl>
+            </section>
+          );
+        })}
+      </div>
 
-        <aside className="space-y-4 md:sticky md:top-4 md:order-2">
-          <CoverageMeter covered={covered} coreDone={coreDone} coreTotal={core.length} />
-
-          {blanks.length > 0 ? (
-            <Banner tone="warn" title={`${blanks.length} field${blanks.length === 1 ? "" : "s"} still unanswered`}>
-              <p>
-                Leaving a field blank and saying you do not have it both reach the model as
-                missing — but only one of them is a decision you made. Settle each one before
-                running.
+      <div className="mt-10 border-t border-line pt-8">
+        {unsettled.length > 0 ? (
+          <div className="max-w-prose">
+            <Note tone="attention">
+              <p className="font-medium text-ink">
+                {unsettled.length} {unsettled.length === 1 ? "item still needs" : "items still need"}{" "}
+                your attention
               </p>
-              <button className="btn-secondary mt-3 w-full" onClick={markRemainingUnavailable}>
-                I don&apos;t have any of these
+              <p className="mt-1">
+                Add a value, or say you don't have it. Both are fine — but the analysis
+                shouldn't guess on your behalf.
+              </p>
+              <button className="btn-secondary mt-4 py-2 text-xs" onClick={markRemainingUnavailable}>
+                I don't have any of these
               </button>
-            </Banner>
-          ) : (
-            <Banner tone="info" title="Everything is settled">
-              You can run the analysis. Values marked unavailable will be filled from the
-              training data, and the result will list exactly which ones.
-            </Banner>
-          )}
-
-          <button
-            className="btn-primary w-full"
-            disabled={blanks.length > 0 || busy}
-            onClick={run}
-          >
-            {busy ? "Analysing…" : "Confirm and run analysis"}
-          </button>
-          <p className="text-center text-xs text-muted">
-            Nothing has been predicted yet.
-          </p>
-        </aside>
+            </Note>
+          </div>
+        ) : (
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            <button className="btn-primary" disabled={busy} onClick={run}>
+              {busy ? "Analyzing…" : "Everything looks correct — Analyze →"}
+            </button>
+            <p className="text-sm text-muted">Nothing has been analyzed yet.</p>
+          </div>
+        )}
       </div>
     </div>
   );
+}
+
+function ValueRow({
+  feature,
+  state,
+  extracted,
+  open,
+  onToggle,
+}: {
+  feature: FeatureSpec;
+  state: FieldState;
+  extracted?: ExtractedField;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const outOfRange = outOfObservedRange(feature, state.value);
+  const status = statusOf(state, outOfRange);
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3.5">
+      <dt className="min-w-0 flex-1 text-sm text-body">{feature.label}</dt>
+
+      <dd className="tnum text-sm font-medium text-ink">
+        {state.status === "blank" ? (
+          <span className="font-normal text-faint">—</span>
+        ) : state.status === "unavailable" ? (
+          <span className="font-normal text-muted">Not available</span>
+        ) : (
+          <>
+            {formatValue(feature, state.value)}
+            {feature.unit && state.value !== null && (
+              <span className="ml-1 text-xs font-normal text-faint">{feature.unit}</span>
+            )}
+          </>
+        )}
+      </dd>
+
+      <span className={`pill w-32 justify-center ${status.className}`}>{status.label}</span>
+
+      <div className="flex w-24 justify-end gap-3">
+        {extracted?.page && state.status !== "blank" && (
+          <details className="group relative">
+            <summary className="cursor-pointer list-none text-xs text-faint hover:text-muted">
+              Source
+            </summary>
+            <div className="absolute right-0 z-10 mt-2 w-72 rounded-lg border border-line bg-surface p-3 text-xs shadow-lift">
+              <p className="text-muted">Extracted from page {extracted.page}</p>
+              <p className="mt-1.5 break-words font-mono text-2xs text-body">
+                “{extracted.raw_text}”
+              </p>
+              {extracted.note && <p className="mt-2 text-muted">{extracted.note}</p>}
+            </div>
+          </details>
+        )}
+        <button className="text-xs text-accent underline-offset-4 hover:underline" onClick={onToggle}>
+          {open ? "Close" : "Edit"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function statusOf(state: FieldState, outOfRange: boolean): { label: string; className: string } {
+  if (state.status === "blank")
+    return { label: "⚠ Needs review", className: "bg-attention-soft text-attention" };
+  if (state.status === "flagged")
+    return { label: "⚠ Please verify", className: "bg-attention-soft text-attention" };
+  if (outOfRange)
+    return { label: "⚠ Check units", className: "bg-caution-soft text-caution" };
+  if (state.status === "unavailable")
+    return { label: "Not available", className: "bg-hairline text-muted" };
+  if (state.status === "extracted")
+    return { label: "✓ Found", className: "bg-steady-soft text-steady" };
+  return { label: "✓ Confirmed", className: "bg-steady-soft text-steady" };
 }

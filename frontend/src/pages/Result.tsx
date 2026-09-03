@@ -1,16 +1,35 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
-import { Banner } from "../components/Chrome";
-import { formatValue, pct } from "../lib/intake";
+import { Disclosure, Note, PageHead } from "../components/Chrome";
+import { formatValue } from "../lib/intake";
 import { useSession } from "../state";
-import type { Disease, Explanation, ModelSummary } from "../types";
+import type { Contribution, Disease, FeatureSpec, ModelSummary } from "../types";
 
+const TITLES: Record<string, string> = {
+  heart: "Your heart health analysis",
+  kidney: "Your kidney health analysis",
+  diabetes: "Your diabetes health analysis",
+};
+
+/**
+ * The result.
+ *
+ * The **category** is the headline rather than the percentage, and that is a deliberate
+ * departure from showing a bare number first. The category's upper boundary is the model's
+ * own operating threshold, so it cannot contradict the model's decision — whereas a
+ * percentage read against an assumed 50% can. For diabetes the threshold is 13.9%, so
+ * "14.5%" looks reassuring and means the opposite.
+ *
+ * SHAP is translated into plain sentences with a direction. The raw values, the methodology
+ * and every measured metric stay available underneath, in the disclosure.
+ */
 export default function Result() {
   const { disease } = useParams<{ disease: Disease }>();
   const nav = useNavigate();
   const session = useSession();
   const [card, setCard] = useState<ModelSummary | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   const p = session.prediction;
   const schema = session.schema;
@@ -28,137 +47,118 @@ export default function Result() {
     return null;
   }
 
-  const sample = session.sampleId;
+  const featureOf = (name: string): FeatureSpec | undefined =>
+    schema.features.find((f) => f.name === name);
+
+  const download = async () => {
+    setDownloading(true);
+    try {
+      const blob = await api.reportPdf(disease!, {
+        ...p,
+        ...(session.sourceDocument
+          ? { source_document: `${session.sourceDocument} (synthetic demonstration document)` }
+          : {}),
+      } as never);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${disease}-analysis.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const band = p.risk_band.label;
+  const tone = p.flagged
+    ? "border-attention-line bg-attention-soft"
+    : "border-steady-line bg-steady-soft";
 
   return (
-    <div className="space-y-6">
-      <div>
-        <button
-          className="btn-ghost -ml-2 mb-2 text-xs"
-          onClick={() => nav(`/${disease}/review`)}
-        >
-          ← Change an answer
-        </button>
-        <h1 className="text-2xl font-semibold tracking-tight">{p.module}</h1>
-      </div>
+    <div>
+      <PageHead
+        title={TITLES[disease!] ?? p.module}
+        back={{ to: `/${disease}/review`, label: "Change an answer" }}
+      />
 
-      {/* The decision, not the probability, is the headline — it is what the model
-          actually concluded, taken at its own threshold rather than at 0.5. */}
-      <section
-        className={`card p-6 ${p.flagged ? "border-flagged/30 bg-flaggedBg" : "border-clear/30 bg-clearBg"}`}
-      >
-        <p className="text-xs uppercase tracking-wide text-muted">
-          At this model&apos;s operating threshold
+      {/* Category first, percentage second. See the note at the top of this file. */}
+      <section className={`rounded-2xl border p-8 ${tone}`}>
+        <p className="eyebrow">Estimated risk</p>
+        <p className="mt-2 text-5xl font-semibold capitalize tracking-tight text-ink">
+          {band}
         </p>
-        <p className="mt-2 text-xl font-semibold leading-snug">
-          {p.flagged
-            ? "This model would flag this case for follow-up."
-            : "This model would not flag this case."}
+        <p className="tnum mt-4 text-lg text-body">
+          {(p.probability * 100).toFixed(1)}% estimated probability
         </p>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed">
-          It is not a diagnosis and not a statement about what will happen. It means the
-          case does or does not resemble the records the model was trained to identify as{" "}
-          <em>{p.positive_class_meaning}</em>.
+        <p className="mt-1 text-sm text-muted">
+          {p.flagged ? "Above" : "Below"} the threshold this model uses (
+          <span className="tnum">{(p.threshold * 100).toFixed(1)}%</span>)
         </p>
-
-        <dl className="mt-5 grid gap-4 border-t border-line/60 pt-4 sm:grid-cols-3">
-          <div>
-            <dt className="text-xs text-muted">Estimated probability</dt>
-            <dd className="tnum mt-0.5 text-lg font-semibold">
-              {(p.probability * 100).toFixed(1)}%
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Decision threshold</dt>
-            <dd className="tnum mt-0.5 text-lg font-semibold">
-              {(p.threshold * 100).toFixed(1)}%
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Presentation band</dt>
-            <dd className="mt-0.5 text-lg font-semibold capitalize">{p.risk_band.label}</dd>
-          </div>
-        </dl>
+        <p className="mt-6 max-w-prose border-t border-line/60 pt-5 text-sm text-body">
+          This is a model-estimated probability based on the information you provided. It is
+          not a diagnosis, and it does not say what will happen in future.
+        </p>
       </section>
 
-      <Banner title="Why the threshold is not 50%">
-        <p>{p.threshold_rule}</p>
-        <p className="mt-2">{p.risk_band.note}</p>
-      </Banner>
-
-      {sample && (
-        <Banner title="This was an example case">
-          You loaded <span className="tnum font-medium">{sample}</span> — a record from the
-          held-out test split, which the model was never trained on. The outcome recorded in
-          the source dataset is shown on the form screen. One case agreeing or disagreeing
-          with the model proves nothing either way; the model card&apos;s metrics come from{" "}
-          <span className="tnum">{card?.n_test.toLocaleString() ?? "all"}</span> such rows.
-        </Banner>
+      {session.sourceDocument && (
+        <p className="mt-4 text-xs text-faint">
+          Based on {session.sourceDocument}, reviewed by you before analysis.
+        </p>
       )}
 
-      <section className="card p-5">
-        <h2 className="text-sm font-semibold">What the model used</h2>
-        <p className="mt-1 text-xs leading-relaxed text-muted">
-          {p.n_features_provided} of {p.n_features_expected} fields came from you.
+      {/* --- factors, in plain language ------------------------------------------- */}
+      {p.explanation && (
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold">What influenced this estimate?</h2>
+          <p className="mt-2 max-w-prose text-sm text-muted">
+            The information that moved this estimate most. These describe how the model
+            weighed your details — not causes of disease, and not things to change.
+          </p>
+          <ul className="mt-6 space-y-3">
+            {p.explanation.contributions.slice(0, 6).map((c) => (
+              <Factor key={c.feature} contribution={c} feature={featureOf(c.feature)} />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* --- what it knew ---------------------------------------------------------- */}
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold">What this analysis knew</h2>
+        <p className="mt-2 max-w-prose text-sm text-body">
+          You provided {p.n_features_provided} of {p.n_features_expected} pieces of
+          information.
           {p.imputed_features.length > 0 && (
             <>
               {" "}
-              The remaining {p.imputed_features.length} were filled from the training data:{" "}
-              <span className="text-ink">
-                {p.imputed_features
-                  .map((n) => schema.features.find((f) => f.name === n)?.label ?? n)
-                  .join(", ")}
-              </span>
+              The rest were filled from the training data, so the estimate didn't know your{" "}
+              {p.imputed_features
+                .map((n) => (featureOf(n)?.label ?? n).toLowerCase())
+                .join(", ")}
               .
             </>
           )}
         </p>
         {p.extrapolated_features.length > 0 && (
-          <p className="mt-2 text-xs leading-relaxed text-warn">
-            Outside the training range:{" "}
-            {p.extrapolated_features.map((e) => e.feature).join(", ")}. The model has no
-            support for values there.
+          <p className="mt-3 max-w-prose text-sm text-caution">
+            Some values sit outside the range this model was trained on (
+            {p.extrapolated_features.map((e) => featureOf(e.feature)?.label ?? e.feature).join(", ")}
+            ), so its output there is unreliable.
           </p>
         )}
       </section>
 
-      {p.warnings.length > 0 && (
-        <section className="card p-5">
-          <h2 className="text-sm font-semibold">Caveats that apply to this result</h2>
-          <ul className="mt-3 space-y-2.5">
-            {p.warnings.map((w, i) => (
-              <li key={i} className="flex gap-2.5 text-xs leading-relaxed text-muted">
-                <span aria-hidden className="text-warn">
-                  ▲
-                </span>
-                <span>{w}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {p.explanation && <ShapPanel explanation={p.explanation} schema={schema} />}
-
-      {card && (
-        <section className="card p-5">
-          <h2 className="text-sm font-semibold">Known limitations of this model</h2>
-          <ul className="mt-3 space-y-2.5">
-            {card.limitations.map((l, i) => (
-              <li key={i} className="text-xs leading-relaxed text-muted">
-                • {l}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <div className="flex flex-wrap gap-3">
+      {/* --- actions --------------------------------------------------------------- */}
+      <div className="mt-12 flex flex-wrap items-center gap-3 border-t border-line pt-8">
+        <button className="btn-primary" onClick={download} disabled={downloading}>
+          {downloading ? "Preparing…" : "↓ Download report"}
+        </button>
         <button className="btn-secondary" onClick={() => nav(`/${disease}/review`)}>
           Change an answer
         </button>
         <button
-          className="btn-ghost"
+          className="btn-quiet"
           onClick={() => {
             session.reset();
             nav("/");
@@ -167,73 +167,137 @@ export default function Result() {
           Start over
         </button>
       </div>
+
+      {/* --- the research layer, one click away ------------------------------------ */}
+      <div className="mt-12 space-y-4">
+        <Disclosure summary="How was this estimated?">
+          <div className="space-y-5 text-sm text-body">
+            <Facts
+              rows={[
+                ["Model", `${p.model_name} (${p.calibration} calibration)`],
+                ["Version", p.model_version],
+                ["Decision threshold", `${(p.threshold * 100).toFixed(2)}%`],
+                ["Estimated probability", `${(p.probability * 100).toFixed(2)}%`],
+                [
+                  "Category boundaries",
+                  `${(p.risk_band.lower * 100).toFixed(1)}% – ${(p.risk_band.upper * 100).toFixed(1)}%`,
+                ],
+                ["Positive class", p.positive_class_meaning],
+              ]}
+            />
+            <p className="max-w-prose">{p.threshold_rule}</p>
+            <p className="max-w-prose">{p.risk_band.note}</p>
+            {p.explanation && (
+              <>
+                <p className="max-w-prose border-t border-line pt-4">{p.explanation.note}</p>
+                <div>
+                  <p className="eyebrow mb-2">Raw SHAP contributions</p>
+                  <dl className="text-sm">
+                    {p.explanation.contributions.slice(0, 12).map((c) => (
+                      <div
+                        key={c.feature}
+                        className="flex justify-between gap-4 border-b border-hairline py-1.5"
+                      >
+                        <dt className="text-muted">{featureOf(c.feature)?.label ?? c.feature}</dt>
+                        <dd className="tnum text-ink">
+                          {c.contribution >= 0 ? "+" : ""}
+                          {c.contribution.toFixed(4)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              </>
+            )}
+            <p>
+              <Link to={`/${disease}/about`} className="btn-link">
+                Full model card, dataset and validation details →
+              </Link>
+            </p>
+          </div>
+        </Disclosure>
+
+        {p.warnings.length > 0 && (
+          <Disclosure summary={`Caveats that apply to this result (${p.warnings.length})`}>
+            <ul className="max-w-prose space-y-3 text-sm text-body">
+              {p.warnings.map((w, i) => (
+                <li key={i}>• {w}</li>
+              ))}
+            </ul>
+          </Disclosure>
+        )}
+
+        {card && card.limitations.length > 0 && (
+          <Disclosure summary={`Known limitations of this model (${card.limitations.length})`}>
+            <ul className="max-w-prose space-y-3 text-sm text-body">
+              {card.limitations.map((l, i) => (
+                <li key={i}>• {l}</li>
+              ))}
+            </ul>
+          </Disclosure>
+        )}
+      </div>
+
+      <div className="mt-8">
+        <Note>
+          This is a research and education tool. It cannot diagnose anything and is not a
+          substitute for a clinician. If you have a health concern, speak to a doctor.
+        </Note>
+      </div>
     </div>
   );
 }
 
-/**
- * Per-feature SHAP contributions, drawn from a shared centre so direction reads at a glance.
- *
- * The panel says plainly that these explain the uncalibrated model rather than the
- * calibrated probability above — the API returns both numbers precisely so the UI does not
- * have to imply the bars sum to the headline figure.
- */
-function ShapPanel({
-  explanation,
-  schema,
+function Factor({
+  contribution,
+  feature,
 }: {
-  explanation: Explanation;
-  schema: { features: { name: string; label: string; options: { value: number; label: string }[] | null; kind: string }[] };
+  contribution: Contribution;
+  feature?: FeatureSpec;
 }) {
-  const top = explanation.contributions.slice(0, 10);
-  const max = Math.max(...top.map((c) => Math.abs(c.contribution)), 1e-9);
+  const up = contribution.contribution >= 0;
+  const label = feature?.label ?? contribution.feature;
+  const shown =
+    contribution.value === null
+      ? "not provided"
+      : feature
+        ? `${formatValue(feature, contribution.value)}${feature.unit ? ` ${feature.unit}` : ""}`
+        : String(contribution.value);
 
   return (
-    <section className="card p-5">
-      <h2 className="text-sm font-semibold">What pushed this estimate</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
-        The ten fields that moved this case most, from SHAP on the model itself. Bars to the
-        right pushed towards {""}
-        <span className="text-ink">the positive class</span>; bars to the left pushed away.
-      </p>
+    <li className="surface flex items-start gap-4 p-5">
+      <span
+        aria-hidden
+        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+          up ? "bg-attention-soft text-attention" : "bg-steady-soft text-steady"
+        }`}
+      >
+        {up ? "↑" : "↓"}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-medium text-ink">
+          {label}
+          <span className="tnum ml-2 font-normal text-muted">{shown}</span>
+        </span>
+        <span className="mt-1 block text-sm text-muted">
+          {up
+            ? "pushed the estimate higher"
+            : "pushed the estimate lower"}
+        </span>
+      </span>
+    </li>
+  );
+}
 
-      <ul className="mt-4 space-y-2">
-        {top.map((c) => {
-          const f = schema.features.find((x) => x.name === c.feature);
-          const w = (Math.abs(c.contribution) / max) * 50;
-          const positive = c.contribution >= 0;
-          return (
-            <li key={c.feature} className="grid grid-cols-[minmax(0,11rem)_1fr_auto] items-center gap-3">
-              <span className="truncate text-xs" title={f?.label ?? c.feature}>
-                {f?.label ?? c.feature}
-              </span>
-              <span className="relative h-4 rounded bg-canvas">
-                <span className="absolute inset-y-0 left-1/2 w-px bg-line" />
-                <span
-                  className={`absolute inset-y-0.5 rounded ${positive ? "bg-flagged/70" : "bg-clear/70"}`}
-                  style={
-                    positive
-                      ? { left: "50%", width: `${w}%` }
-                      : { right: "50%", width: `${w}%` }
-                  }
-                />
-              </span>
-              <span className="tnum w-20 text-right text-xs text-muted">
-                {f ? formatValue(f as never, c.value) : (c.value ?? "—")}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-
-      <p className="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-muted">
-        {explanation.note}
-      </p>
-      <p className="mt-2 text-xs text-muted">
-        Explainer: <span className="text-ink">{explanation.explainer}</span> · uncalibrated
-        model output{" "}
-        <span className="tnum text-ink">{pct(explanation.uncalibrated_probability)}</span>
-      </p>
-    </section>
+function Facts({ rows }: { rows: [string, string][] }) {
+  return (
+    <dl className="text-sm">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex justify-between gap-4 border-b border-hairline py-1.5">
+          <dt className="text-muted">{k}</dt>
+          <dd className="tnum text-right text-ink">{v}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

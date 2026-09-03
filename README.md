@@ -32,8 +32,9 @@ The three predictions are **never** combined into a single "overall health score
 | 6 | External validation (Heart → Statlog) | ✅ done — **attempted and rejected** |
 | 7 | Calibration + fairness analysis | ✅ done |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ✅ done |
-| 9 (v1) | Frontend: guided form, review step, worked examples | ✅ done |
-| 9 (v2/v3) | Paste report text, then document upload + OCR | ⏳ planned |
+| 9 | Frontend: guided form, review step, worked examples | ✅ done |
+| 10 | Upload a report → extract → review → analyse → explain → PDF report | ✅ done |
+| — | Paste report text; image/OCR extraction | ⏳ planned |
 | — | CNN/Grad-CAM imaging module | deferred |
 
 **All three models are trained and served.** Every performance number in this repo is
@@ -52,7 +53,7 @@ dataset.
 ```
 config.py            global seed, paths, disease registry, risk bands, disclaimer
 docs/API.md          how to run and read the API (Phase 8)
-docs/FRONTEND.md     the web app: flow, form generation, defects found (Phase 9 v1)
+docs/FRONTEND.md     the web app: upload flow, screens, defects found (Phases 9-10)
 ml/
   data/              ucimlrepo acquisition + caching, disease loaders, validation, TARGET.md generator
   eda/               profiling + plotting utilities, EDA runner
@@ -64,7 +65,10 @@ ml/
   reporting.py       markdown/JSON report helpers
   fairness/          (Phase 7) subgroup analysis
   external/          (Phase 6) Heart -> Statlog no-retrain validation
-  serving/           field groups, labels and coded value labels for the form (Phase 9)
+  serving/           field groups, labels, units and coded value labels (Phase 9)
+  extraction/        deterministic PDF -> model fields; never invents a value (Phase 10)
+  reports/           synthetic demonstration reports + the take-away analysis PDF
+demo_reports/        synthetic demonstration PDFs (regenerable)
 data/raw/            cached CSVs (git-ignored; re-downloadable)
 reports/<disease>/   eda_profile.json, EDA.md, TARGET.md, figures/, *.csv
 models/<disease>/    pipeline.joblib (serving) + base_pipeline.joblib (SHAP) + model card
@@ -132,6 +136,9 @@ python -m scripts.fairness_report
 # Export what the API serves: thresholds, feature ranges, SHAP background (Phase 8)
 python -m scripts.export_serving_assets
 
+# Generate the synthetic demonstration reports from held-out test rows (Phase 10)
+python -m ml.reports.demo_report
+
 # Rebuild the notebooks (a training notebook is generated only for trained diseases)
 python -m scripts.build_notebooks
 ```
@@ -163,12 +170,16 @@ npm --prefix frontend install
 npm --prefix frontend run dev
 ```
 
-Needs the API running on port 8000; the dev server proxies `/api` to it. Pick one module,
-fill in what you have, review every value, then run. See `docs/FRONTEND.md` — in short: the
-form is generated from the model's own feature dictionary, "I don't have this" is a
-first-class answer distinct from an empty box, nothing is predicted until you confirm, and
-the result leads with the model's decision at its own threshold rather than a bare
-probability.
+Needs the API running on port 8000; the dev server proxies `/api` to it.
+
+Pick an assessment, upload a report, review what was found, then analyse. Sample reports are
+downloadable from the entry screen — synthetic documents built from real held-out test
+records, so the analysis at the end is genuine. No report? "Enter information manually".
+
+See `docs/FRONTEND.md`. In short: extraction never invents a value (anything not found stays
+blank), nothing is analysed until you have settled every field, the result leads with a
+category whose boundary *is* the model's own threshold rather than a bare percentage, and the
+research layer — metrics, methodology, limitations — is one click away rather than deleted.
 
 ## Methodology guardrails
 

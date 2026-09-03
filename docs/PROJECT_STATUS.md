@@ -1,6 +1,6 @@
 # Project Status — Multi-Disease AI
 
-_Last updated: 2026-09-03 (Phase 9 v1 — frontend)_
+_Last updated: 2026-09-03 (Phase 10 — upload-first flow)_
 
 > **Looking for the current state rather than the build history?** See
 > [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — condensed orientation: the three models,
@@ -28,8 +28,8 @@ Plan file: `C:\Users\Admin\.claude\plans\you-are-working-on-zippy-hammock.md`
 | 7 | Calibration + fairness subgroup analysis | ✅ complete |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ✅ complete (`739eeac`) |
 | 9 (v1) | Frontend: guided form, review step, worked examples | ✅ complete |
-| 9 (v2) | Paste report text → pre-fills the same form | ⬜ |
-| 9 (v3) | Drag & drop PDF/image → OCR → same pre-fill path | ⬜ |
+| 10 | Upload-first flow: PDF extraction, synthetic reports, report PDF, redesign | ✅ complete |
+| — | Paste report text; image/OCR extraction | ⬜ |
 | — | CNN/Grad-CAM imaging module | deferred |
 
 **All three models trained (heart, kidney, diabetes). Every metric in this repo comes from an actual run — none are fabricated.**
@@ -810,6 +810,81 @@ the rest follow the codebook unverified.
 | full suite | `python -m pytest -q` | **260 passed, 0 skipped in 62 s** |
 
 224 -> 260: 36 new tests over the intake metadata and sample cases.
+
+## Phase 10 — Upload-first assessment flow — COMPLETE
+
+Backend spine committed as `6625553`; the frontend redesign sits on top of it. Full write-up:
+[`docs/FRONTEND.md`](FRONTEND.md).
+
+The requested journey — **choose → upload → review → analyse → explain → report** — with the
+guided form kept as the fallback. Upload, paste and manual entry all write the same session
+state and produce a byte-identical backend request; the review screen is the single
+verified-data surface. Phase 8 API contracts are untouched; everything added is additive.
+
+### Extraction, and the test that makes it real
+
+Deterministic pattern matching against each model's own schema. No LLM: for a text-layer PDF
+with a label/value layout it is more reliable and, unlike a language model, cannot invent a
+value. Three invariants, each pinned:
+
+* an unfound label or unparseable value returns `missing` with `value=None` — never a median
+  or a plausible number;
+* a coded field can only take a level the model was trained on;
+* an out-of-range number is surfaced as `needs_review`, not clipped.
+
+The central test hands the extractor **only the PDF bytes** and asserts every extracted value
+equals the row the document was rendered from: **0 mismatches across all 12 reports**. Without
+it, a working-looking demo could simply be echoing data it already had.
+
+The blood-pressure split is explicit per field: `heart.trestbps` takes the systolic half of a
+"142/90" pair, `kidney.bp` the diastolic. Training medians are 130 and 80; feeding one into
+the other's model would be silently, confidently wrong.
+
+### Synthetic demonstration reports
+
+Values from a real **held-out test row** the model was never fitted on; the document around
+them fabricated and marked as such on its face. So extraction runs on a genuine document and
+the prediction at the end is a genuine prediction on an unseen record. Kidney reports
+naturally carry unrecorded labs (3, 1, 0, 0 across the four), which is what produces the
+"complete what's missing" step rather than a staged one.
+
+### Two deliberate departures from the brief
+
+**The category is the headline, not the percentage.** The category's upper boundary *is* the
+operating threshold, so it cannot contradict the model's decision — a bare percentage read
+against an assumed 50% can. For diabetes that is recall 0.7984 vs 0.1464.
+
+**The dropzone advertises PDF only.** The brief listed "PDF, JPG or PNG", but image
+extraction is not implemented and the server answers a JPG with 415. An affordance that does
+not work is worse than one that is absent.
+
+### Density
+
+Removed from the primary path: coverage meter, "key field" badges, feature-count
+percentages, landing-page metrics, raw SHAP values, long paragraphs. **Almost none deleted** —
+moved to `/:disease/about` and the result page's disclosures. Only `CoverageMeter.tsx` and the
+coverage helpers went for good.
+
+### Phase 10 verification
+
+| step | command | result |
+|---|---|---|
+| demo reports | `python -m ml.reports.demo_report` | 12 PDFs, 1 page each, text layer extracts |
+| extraction round-trip | `pytest tests/test_extraction.py` | 24 passed, **0 mismatches / 12 reports** |
+| typecheck + build | `npx tsc --noEmit`, `npm run build` | clean, 201 KB (64 KB gzip) |
+| kidney end to end | browser, real dropzone | 21/24 read, gate held on 3, **High · 100.0% · above 57.9%**, report 200 |
+| full suite | `python -m pytest -q` | **301 passed, 0 skipped in 62 s** |
+
+260 -> 301: 24 extraction tests, 17 document-endpoint tests.
+
+## Next step — remaining work
+
+* **Heart and diabetes upload flows.** The architecture is disease-agnostic and their demo
+  reports already generate and round-trip; what is unverified is the end-to-end browser run.
+* **Paste report text** — the same extractor minus the PDF step.
+* **Image/OCR extraction** — needs Tesseract, and the PHI questions answered if any cloud
+  service is involved.
+* **CNN/Grad-CAM imaging module** — still deferred, "Coming Soon" until a real model exists.
 
 ## Next step — deferred work
 

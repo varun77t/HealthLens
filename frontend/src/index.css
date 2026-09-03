@@ -5,43 +5,61 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
   body {
-    @apply bg-canvas text-ink antialiased;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
-      Arial, sans-serif;
+    @apply bg-canvas text-body antialiased;
+    font-feature-settings: "kern" 1, "liga" 1;
   }
-  /* Numeric tables and metrics line up only with tabular figures. */
+  h1, h2, h3 {
+    @apply text-ink;
+    letter-spacing: -0.014em;
+  }
+  /* Numbers only line up in tables and metrics with tabular figures. */
   .tnum {
     font-variant-numeric: tabular-nums;
   }
   :focus-visible {
-    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-canvas;
+    @apply outline-none ring-2 ring-accent/45 ring-offset-2 ring-offset-canvas;
+  }
+  ::selection {
+    @apply bg-accent/15;
   }
 }
 
 @layer components {
-  .card {
-    @apply rounded-lg border border-line bg-surface;
+  .surface {
+    @apply rounded-xl border border-line bg-surface shadow-card;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm
-           font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium
+           transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-45;
   }
   .btn-primary {
-    @apply btn bg-accent text-white hover:bg-accent/90;
+    @apply btn bg-accent px-5 py-2.5 text-white shadow-sm hover:bg-accent-hover
+           active:translate-y-px;
   }
   .btn-secondary {
-    @apply btn border border-line bg-surface text-ink hover:bg-canvas;
+    @apply btn border border-line bg-surface px-5 py-2.5 text-ink hover:border-accent-line
+           hover:bg-accent-soft;
   }
-  .btn-ghost {
-    @apply btn text-muted hover:bg-canvas hover:text-ink;
+  .btn-quiet {
+    @apply btn px-3 py-1.5 text-muted hover:text-accent;
   }
-  .field-input {
-    @apply w-full rounded-md border border-line bg-surface px-3 py-2 text-sm
-           placeholder:text-muted/60 focus:border-accent;
+  .btn-link {
+    @apply inline-flex items-center gap-1.5 text-sm font-medium text-accent
+           underline-offset-4 hover:underline;
   }
-  .chip {
-    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+  .input {
+    @apply w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-base
+           text-ink transition-colors placeholder:text-faint
+           hover:border-accent-line focus:border-accent;
+  }
+  .pill {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium;
+  }
+  /* One shared eyebrow style so section headings read consistently everywhere. */
+  .eyebrow {
+    @apply text-2xs font-semibold uppercase tracking-[0.09em] text-faint;
   }
 }

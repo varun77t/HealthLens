@@ -7,6 +7,8 @@ export interface FeatureSpec {
   kind: "numeric" | "categorical" | "binary";
   description: string;
   label: string;
+  /** Training unit ("g/dL", "mm Hg"), or "" for coded and dimensionless fields. */
+  unit: string;
   group: string;
   tier: "core" | "optional";
   shap_rank: number;
@@ -132,6 +134,54 @@ export interface ScenarioResponse {
   disclaimer: string;
 }
 
+// --- document extraction ---------------------------------------------------------------
+
+export type ExtractionStatus = "found" | "needs_review" | "missing";
+
+export interface ExtractedField {
+  name: string;
+  label: string;
+  unit: string;
+  value: number | null;
+  /** Human-readable rendering of the value ("Poor", "9.6"), or "—" if absent. */
+  display: string;
+  /** The line the value was read from, for provenance. */
+  raw_text: string;
+  page: number | null;
+  status: ExtractionStatus;
+  confidence: "high" | "medium" | "low";
+  note: string;
+}
+
+export interface ExtractionResult {
+  disease: Disease;
+  module: string;
+  n_expected: number;
+  n_found: number;
+  n_needs_review: number;
+  n_missing: number;
+  pages: number;
+  note: string;
+  warnings: string[];
+  fields: ExtractedField[];
+  disclaimer: string;
+}
+
+export interface DemoReportCase {
+  id: string;
+  recorded_label: number;
+  recorded_label_meaning: string;
+  filename: string;
+  available: boolean;
+}
+
+export interface DemoReportsResponse {
+  disease: Disease;
+  cases: DemoReportCase[];
+  note: string;
+  disclaimer: string;
+}
+
 /**
  * How a field came to have (or not have) its value.
  *
@@ -139,8 +189,17 @@ export interface ScenarioResponse {
  * on purpose: "I had this test and it was not recorded" is a different statement from
  * "I have not answered yet", and only the first is a considered answer. The review
  * screen refuses to run while anything is still `blank`.
+ *
+ * `extracted` and `flagged` both came from a document: the first was read cleanly, the
+ * second could not be read confidently and must be looked at before anything runs.
  */
-export type FieldStatus = "entered" | "sample" | "unavailable" | "blank";
+export type FieldStatus =
+  | "entered"
+  | "sample"
+  | "extracted"
+  | "flagged"
+  | "unavailable"
+  | "blank";
 
 export interface FieldState {
   value: number | null;
