@@ -314,3 +314,115 @@ def test_serving_assets_are_in_step_with_the_model_card(disease):
     )
     assert card["model"]["algorithm"] == serving["model"]
     assert card["model"]["calibration"] == serving["calibration"]
+
+
+# --- document endpoints (Phase 10) -----------------------------------------------------
+
+
+def _demo_pdf(disease: str) -> bytes:
+    from config import ROOT_DIR
+    path = ROOT_DIR / "demo_reports" / f"{disease}-positive-1.pdf"
+    if not path.exists():
+        pytest.skip("demo reports not generated; run python -m ml.reports.demo_report")
+    return path.read_bytes()
+
+
+@pytest.mark.parametrize("disease", DISEASES)
+def test_upload_extracts_without_predicting(client, disease):
+    """Extraction returns candidates for review. It must not score anything."""
+    r = client.post(
+        f"/extract/{disease}",
+        files={"file": ("report.pdf", _demo_pdf(disease), "application/pdf")},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert "probability" not in body and "flagged" not in body
+    assert body["n_found"] + body["n_needs_review"] + body["n_missing"] == body["n_expected"]
+    assert "not be interpreted as medical diagnosis" in body["disclaimer"]
+
+
+@pytest.mark.parametrize("disease", DISEASES)
+def test_extracted_values_feed_predict_unchanged(client, disease):
+    """Upload and manual entry must reach the model as the same request."""
+    extracted = client.post(
+        f"/extract/{disease}",
+        files={"file": ("report.pdf", _demo_pdf(disease), "application/pdf")},
+    ).json()
+    values = {f["name"]: f["value"] for f in extracted["fields"]}
+    r = client.post(f"/predict/{disease}", json=values)
+    assert r.status_code == 200, r.text
+    assert 0.0 <= r.json()["probability"] <= 1.0
+
+
+def test_extraction_reports_missing_fields_rather_than_filling_them(client):
+    """kidney-positive-1 has unrecorded labs; they come back null, not imputed."""
+    body = client.post(
+        "/extract/kidney",
+        files={"file": ("r.pdf", _demo_pdf("kidney"), "application/pdf")},
+    ).json()
+    missing = [f for f in body["fields"] if f["status"] == "missing"]
+    assert missing, "this fixture is expected to have unrecorded values"
+    assert all(f["value"] is None for f in missing)
+    assert any("left blank rather than guessed" in w for w in body["warnings"])
+
+
+def test_non_pdf_upload_is_refused_with_a_useful_message(client):
+    r = client.post(
+        "/extract/kidney", files={"file": ("scan.png", b"\x89PNG\r\n\x1a\n", "image/png")}
+    )
+    assert r.status_code == 415
+    assert "not a PDF" in r.json()["detail"]
+
+
+def test_empty_upload_is_refused(client):
+    r = client.post("/extract/kidney", files={"file": ("x.pdf", b"", "application/pdf")})
+    assert r.status_code == 422
+
+
+def test_extract_404s_for_an_unknown_module(client):
+    r = client.post(
+        "/extract/liver", files={"file": ("x.pdf", _demo_pdf("kidney"), "application/pdf")}
+    )
+    assert r.status_code == 404
+
+
+@pytest.mark.parametrize("disease", DISEASES)
+def test_demo_reports_are_listed_and_downloadable(client, disease):
+    listing = client.get(f"/demo-reports/{disease}").json()
+    assert {c["recorded_label"] for c in listing["cases"]} == {0, 1}
+    assert "never trained on" in listing["note"]
+    case_id = listing["cases"][0]["id"]
+    r = client.get(f"/demo-reports/{disease}/{case_id}")
+    assert r.status_code == 200
+    assert r.content.startswith(b"%PDF-")
+
+
+def test_demo_report_download_refuses_a_path_outside_the_directory(client):
+    assert client.get("/demo-reports/kidney/..%2F..%2Fconfig").status_code == 404
+
+
+def test_result_report_pdf_is_generated_from_the_prediction(client):
+    prediction = client.post("/predict/kidney", json=example_payload("kidney")).json()
+    r = client.post("/report/kidney", json=prediction)
+    assert r.status_code == 200
+    assert r.content.startswith(b"%PDF-")
+    assert "attachment" in r.headers["content-disposition"]
+
+
+def test_result_report_carries_the_disclaimer_and_the_threshold(client):
+    """This file outlives the screen, so its caveats must be on the page."""
+    from ml.extraction.extractor import pdf_lines
+
+    prediction = client.post("/predict/diabetes", json=example_payload("diabetes")).json()
+    pdf = client.post("/report/diabetes", json=prediction).content
+    text = " ".join(line for _, line in pdf_lines(pdf))
+    assert "NOT A MEDICAL DIAGNOSIS" in text
+    assert "not be interpreted as medical diagnosis" in text
+    assert "Decision threshold used" in text
+    assert f"{prediction['threshold'] * 100:.1f}" in text
+
+
+def test_report_endpoint_refuses_a_body_that_is_not_a_prediction(client):
+    r = client.post("/report/kidney", json={"hello": "world"})
+    assert r.status_code == 422
+    assert "missing" in str(r.json()["detail"]).lower()

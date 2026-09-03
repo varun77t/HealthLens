@@ -44,6 +44,7 @@ from ml.serving.field_groups import (
     group_of,
     groups_for,
     options_for,
+    unit_of,
 )
 from ml.training.splits import make_split
 
@@ -169,6 +170,7 @@ def _annotate(disease: str, descriptors: list[dict], importance: dict[str, dict]
         annotated.append({
             **d,
             "label": field_label(disease, name, d["description"]),
+            "unit": unit_of(disease, name),
             "group": group_of(disease, name),
             "options": options_for(
                 disease,

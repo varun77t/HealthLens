@@ -48,9 +48,9 @@
   },
   "explainer": {
     "kind": "tree",
-    "init_seconds": 0.298,
-    "explain_one_median_ms": 35.0,
-    "explain_one_max_ms": 37.4,
+    "init_seconds": 0.286,
+    "explain_one_median_ms": 33.9,
+    "explain_one_max_ms": 39.4,
     "n_timed_calls": 5,
     "background_rows": 200
   },
@@ -67,6 +67,7 @@
       "hard_max": 184.0,
       "n_missing_in_training": 0,
       "label": "Body Mass Index",
+      "unit": "kg/m\u00b2",
       "group": "vitals",
       "options": null,
       "shap_rank": 3,
@@ -85,6 +86,7 @@
       "hard_max": 60.0,
       "n_missing_in_training": 0,
       "label": "Days of poor mental health in the last 30",
+      "unit": "days",
       "group": "wellbeing",
       "options": null,
       "shap_rank": 11,
@@ -103,6 +105,7 @@
       "hard_max": 60.0,
       "n_missing_in_training": 0,
       "label": "Days of poor physical health in the last 30",
+      "unit": "days",
       "group": "wellbeing",
       "options": null,
       "shap_rank": 15,
@@ -121,6 +124,7 @@
       "hard_max": 9.0,
       "n_missing_in_training": 0,
       "label": "In general, your health is",
+      "unit": "",
       "group": "wellbeing",
       "options": [
         {
@@ -160,6 +164,7 @@
       "hard_max": 25.0,
       "n_missing_in_training": 0,
       "label": "Age group",
+      "unit": "",
       "group": "about_you",
       "options": [
         {
@@ -231,6 +236,7 @@
       "hard_max": 11.0,
       "n_missing_in_training": 0,
       "label": "Highest level of education",
+      "unit": "",
       "group": "about_you",
       "options": [
         {
@@ -274,6 +280,7 @@
       "hard_max": 15.0,
       "n_missing_in_training": 0,
       "label": "Annual household income",
+      "unit": "",
       "group": "about_you",
       "options": [
         {
@@ -324,6 +331,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Ever told you have high blood pressure",
+      "unit": "",
       "group": "history",
       "options": [
         {
@@ -350,6 +358,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Ever told you have high cholesterol",
+      "unit": "",
       "group": "history",
       "options": [
         {
@@ -376,6 +385,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Cholesterol checked in the last 5 years",
+      "unit": "",
       "group": "history",
       "options": [
         {
@@ -402,6 +412,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Smoked at least 100 cigarettes in your life",
+      "unit": "",
       "group": "lifestyle",
       "options": [
         {
@@ -428,6 +439,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Ever told you had a stroke",
+      "unit": "",
       "group": "history",
       "options": [
         {
@@ -454,6 +466,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Ever told you had coronary heart disease or a heart attack",
+      "unit": "",
       "group": "history",
       "options": [
         {
@@ -480,6 +493,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Physical activity in the last 30 days, not job-related",
+      "unit": "",
       "group": "lifestyle",
       "options": [
         {
@@ -506,6 +520,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Eat fruit at least once a day",
+      "unit": "",
       "group": "lifestyle",
       "options": [
         {
@@ -532,6 +547,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Eat vegetables at least once a day",
+      "unit": "",
       "group": "lifestyle",
       "options": [
         {
@@ -558,6 +574,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Heavy alcohol consumption",
+      "unit": "",
       "group": "lifestyle",
       "options": [
         {
@@ -584,6 +601,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Have any health-care coverage",
+      "unit": "",
       "group": "healthcare_access",
       "options": [
         {
@@ -610,6 +628,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Could not see a doctor in the last year because of cost",
+      "unit": "",
       "group": "healthcare_access",
       "options": [
         {
@@ -636,6 +655,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Serious difficulty walking or climbing stairs",
+      "unit": "",
       "group": "symptoms",
       "options": [
         {
@@ -662,6 +682,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Sex",
+      "unit": "",
       "group": "about_you",
       "options": [
         {

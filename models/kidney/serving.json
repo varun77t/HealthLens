@@ -48,9 +48,9 @@
   },
   "explainer": {
     "kind": "kernel",
-    "init_seconds": 2.357,
-    "explain_one_median_ms": 615.6,
-    "explain_one_max_ms": 667.0,
+    "init_seconds": 3.197,
+    "explain_one_median_ms": 392.6,
+    "explain_one_max_ms": 447.4,
     "n_timed_calls": 5,
     "background_rows": 200
   },
@@ -67,6 +67,7 @@
       "hard_max": 178.0,
       "n_missing_in_training": 8,
       "label": "Age",
+      "unit": "years",
       "group": "about_you",
       "options": null,
       "shap_rank": 16,
@@ -85,6 +86,7 @@
       "hard_max": 310.0,
       "n_missing_in_training": 11,
       "label": "Blood pressure (diastolic)",
+      "unit": "mm Hg",
       "group": "vitals",
       "options": null,
       "shap_rank": 12,
@@ -103,6 +105,7 @@
       "hard_max": 1.045,
       "n_missing_in_training": 41,
       "label": "Urine specific gravity",
+      "unit": "",
       "group": "urine_test",
       "options": null,
       "shap_rank": 1,
@@ -121,6 +124,7 @@
       "hard_max": 10.0,
       "n_missing_in_training": 40,
       "label": "Albumin in urine",
+      "unit": "",
       "group": "urine_test",
       "options": null,
       "shap_rank": 4,
@@ -139,6 +143,7 @@
       "hard_max": 10.0,
       "n_missing_in_training": 42,
       "label": "Sugar in urine",
+      "unit": "",
       "group": "urine_test",
       "options": null,
       "shap_rank": 11,
@@ -157,6 +162,7 @@
       "hard_max": 958.0,
       "n_missing_in_training": 38,
       "label": "Random blood glucose",
+      "unit": "mg/dL",
       "group": "blood_test",
       "options": null,
       "shap_rank": 7,
@@ -175,6 +181,7 @@
       "hard_max": 642.5,
       "n_missing_in_training": 19,
       "label": "Blood urea",
+      "unit": "mg/dL",
       "group": "blood_test",
       "options": null,
       "shap_rank": 10,
@@ -193,6 +200,7 @@
       "hard_max": 151.6,
       "n_missing_in_training": 16,
       "label": "Serum creatinine",
+      "unit": "mg/dL",
       "group": "blood_test",
       "options": null,
       "shap_rank": 9,
@@ -211,6 +219,7 @@
       "hard_max": 295.5,
       "n_missing_in_training": 75,
       "label": "Sodium",
+      "unit": "mEq/L",
       "group": "blood_test",
       "options": null,
       "shap_rank": 18,
@@ -229,6 +238,7 @@
       "hard_max": 12.7,
       "n_missing_in_training": 76,
       "label": "Potassium",
+      "unit": "mEq/L",
       "group": "blood_test",
       "options": null,
       "shap_rank": 14,
@@ -247,6 +257,7 @@
       "hard_max": 32.5,
       "n_missing_in_training": 43,
       "label": "Haemoglobin",
+      "unit": "g/dL",
       "group": "blood_test",
       "options": null,
       "shap_rank": 3,
@@ -265,6 +276,7 @@
       "hard_max": 99.0,
       "n_missing_in_training": 58,
       "label": "Packed cell volume",
+      "unit": "%",
       "group": "blood_test",
       "options": null,
       "shap_rank": 2,
@@ -283,6 +295,7 @@
       "hard_max": 50600.0,
       "n_missing_in_training": 84,
       "label": "White blood cell count",
+      "unit": "cells/cumm",
       "group": "blood_test",
       "options": null,
       "shap_rank": 20,
@@ -301,6 +314,7 @@
       "hard_max": 10.9,
       "n_missing_in_training": 105,
       "label": "Red blood cell count",
+      "unit": "millions/cmm",
       "group": "blood_test",
       "options": null,
       "shap_rank": 6,
@@ -318,6 +332,7 @@
       ],
       "n_missing_in_training": 126,
       "label": "Red blood cells in urine",
+      "unit": "",
       "group": "urine_test",
       "options": [
         {
@@ -344,6 +359,7 @@
       ],
       "n_missing_in_training": 54,
       "label": "Pus cells",
+      "unit": "",
       "group": "urine_test",
       "options": [
         {
@@ -370,6 +386,7 @@
       ],
       "n_missing_in_training": 4,
       "label": "Pus cell clumps",
+      "unit": "",
       "group": "urine_test",
       "options": [
         {
@@ -396,6 +413,7 @@
       ],
       "n_missing_in_training": 4,
       "label": "Bacteria",
+      "unit": "",
       "group": "urine_test",
       "options": [
         {
@@ -422,6 +440,7 @@
       ],
       "n_missing_in_training": 2,
       "label": "Diagnosed with high blood pressure",
+      "unit": "",
       "group": "history",
       "options": [
         {
@@ -448,6 +467,7 @@
       ],
       "n_missing_in_training": 2,
       "label": "Diagnosed with diabetes",
+      "unit": "",
       "group": "history",
       "options": [
         {
@@ -474,6 +494,7 @@
       ],
       "n_missing_in_training": 2,
       "label": "Diagnosed with coronary artery disease",
+      "unit": "",
       "group": "history",
       "options": [
         {
@@ -500,6 +521,7 @@
       ],
       "n_missing_in_training": 1,
       "label": "Appetite",
+      "unit": "",
       "group": "symptoms",
       "options": [
         {
@@ -526,6 +548,7 @@
       ],
       "n_missing_in_training": 1,
       "label": "Swelling in feet or ankles",
+      "unit": "",
       "group": "symptoms",
       "options": [
         {
@@ -552,6 +575,7 @@
       ],
       "n_missing_in_training": 1,
       "label": "Diagnosed with anaemia",
+      "unit": "",
       "group": "symptoms",
       "options": [
         {

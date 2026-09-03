@@ -28,7 +28,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routes import analytics, health, models, predict, scenario
+from backend.routes import analytics, documents, health, models, predict, scenario
 from backend.services.registry import load_registry
 from config import DISCLAIMER
 
@@ -112,6 +112,7 @@ app.include_router(models.router)
 app.include_router(predict.router)
 app.include_router(analytics.router)
 app.include_router(scenario.router)
+app.include_router(documents.router)
 
 
 @app.get("/", tags=["health"], summary="Service description and disclaimer")

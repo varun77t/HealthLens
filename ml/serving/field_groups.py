@@ -273,6 +273,48 @@ VALUE_LABELS: dict[str, dict[str, dict[str, str]]] = {
     },
 }
 
+# ------------------------------------------------------------------------------------
+# Units
+# ------------------------------------------------------------------------------------
+# Units were previously only readable inside each feature's prose description, which is
+# fine for an API and useless for a UI that wants to print "12.4 g/dL". They are the units
+# the model was TRAINED on: a value entered or extracted in anything else is wrong, not
+# merely differently formatted. Coded and dimensionless fields carry no unit.
+UNITS: dict[str, dict[str, str]] = {
+    "heart": {
+        "age": "years",
+        "trestbps": "mm Hg",
+        "chol": "mg/dL",
+        "thalach": "bpm",
+        "oldpeak": "mm",
+    },
+    "kidney": {
+        "age": "years",
+        "bp": "mm Hg",
+        "bgr": "mg/dL",
+        "bu": "mg/dL",
+        "sc": "mg/dL",
+        "sod": "mEq/L",
+        "pot": "mEq/L",
+        "hemo": "g/dL",
+        "pcv": "%",
+        "wbcc": "cells/cumm",
+        "rbcc": "millions/cmm",
+        # sg (specific gravity), al and su (0-5 ordinal scales) are dimensionless.
+    },
+    "diabetes": {
+        "BMI": "kg/m²",
+        "MentHlth": "days",
+        "PhysHlth": "days",
+    },
+}
+
+
+def unit_of(disease: str, field: str) -> str:
+    """The training unit for ``field``, or an empty string if it is coded/dimensionless."""
+    return UNITS.get(disease, {}).get(field, "")
+
+
 LABEL_SOURCES: dict[str, str] = {
     "heart": "Cleveland processed release (UCI id 45) attribute documentation.",
     "kidney": "UCI Chronic Kidney Disease (id 336) attribute documentation. The loader maps "

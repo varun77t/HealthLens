@@ -49,9 +49,9 @@
   },
   "explainer": {
     "kind": "tree",
-    "init_seconds": 1.267,
-    "explain_one_median_ms": 38.5,
-    "explain_one_max_ms": 40.6,
+    "init_seconds": 1.942,
+    "explain_one_median_ms": 39.7,
+    "explain_one_max_ms": 42.8,
     "n_timed_calls": 5,
     "background_rows": 200
   },
@@ -68,6 +68,7 @@
       "hard_max": 125.0,
       "n_missing_in_training": 0,
       "label": "Age",
+      "unit": "years",
       "group": "about_you",
       "options": null,
       "shap_rank": 10,
@@ -86,6 +87,7 @@
       "hard_max": 306.0,
       "n_missing_in_training": 0,
       "label": "Resting blood pressure (systolic)",
+      "unit": "mm Hg",
       "group": "vitals",
       "options": null,
       "shap_rank": 12,
@@ -104,6 +106,7 @@
       "hard_max": 1002.0,
       "n_missing_in_training": 0,
       "label": "Serum cholesterol",
+      "unit": "mg/dL",
       "group": "blood_test",
       "options": null,
       "shap_rank": 9,
@@ -122,6 +125,7 @@
       "hard_max": 333.0,
       "n_missing_in_training": 0,
       "label": "Maximum heart rate achieved",
+      "unit": "bpm",
       "group": "exercise_test",
       "options": null,
       "shap_rank": 7,
@@ -140,6 +144,7 @@
       "hard_max": 12.4,
       "n_missing_in_training": 0,
       "label": "ST depression, exercise vs rest",
+      "unit": "mm",
       "group": "exercise_test",
       "options": null,
       "shap_rank": 6,
@@ -159,6 +164,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Chest pain type",
+      "unit": "",
       "group": "symptoms",
       "options": [
         {
@@ -194,6 +200,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Resting ECG result",
+      "unit": "",
       "group": "resting_ecg",
       "options": [
         {
@@ -225,6 +232,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Slope of the peak exercise ST segment",
+      "unit": "",
       "group": "exercise_test",
       "options": [
         {
@@ -257,6 +265,7 @@
       ],
       "n_missing_in_training": 1,
       "label": "Major vessels seen on fluoroscopy",
+      "unit": "",
       "group": "cardiac_imaging",
       "options": [
         {
@@ -292,6 +301,7 @@
       ],
       "n_missing_in_training": 1,
       "label": "Thallium scan result",
+      "unit": "",
       "group": "cardiac_imaging",
       "options": [
         {
@@ -322,6 +332,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Sex",
+      "unit": "",
       "group": "about_you",
       "options": [
         {
@@ -348,6 +359,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Fasting blood sugar above 120 mg/dl",
+      "unit": "",
       "group": "blood_test",
       "options": [
         {
@@ -374,6 +386,7 @@
       ],
       "n_missing_in_training": 0,
       "label": "Angina brought on by exercise",
+      "unit": "",
       "group": "exercise_test",
       "options": [
         {

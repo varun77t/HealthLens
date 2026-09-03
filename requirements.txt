@@ -16,6 +16,16 @@ lightgbm==4.6.0
 # --- explainability ---
 shap==0.52.0
 
+# --- document generation & extraction (Phase 10) ---
+# reportlab writes the synthetic demonstration reports; pdfplumber reads them back with
+# word-level positions, which is what makes label -> value matching on a two-column lab
+# report robust and supplies the "extracted from page 1" provenance. Both are pure Python:
+# no system binaries, so nothing to install outside the venv.
+reportlab==5.0.1
+pdfplumber==0.11.10
+# FastAPI needs this to accept multipart file uploads.
+python-multipart==0.0.32
+
 # --- dataset acquisition ---
 ucimlrepo==0.0.7
 
