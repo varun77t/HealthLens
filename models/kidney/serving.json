@@ -1,0 +1,341 @@
+{
+  "disease": "kidney",
+  "module": "Chronic Kidney Disease Presence Prediction",
+  "positive_class_meaning": "chronic kidney disease present (labelled 'ckd')",
+  "generated": "2026-09-03",
+  "generated_by": "scripts/export_serving_assets.py",
+  "model": "svc",
+  "calibration": "raw",
+  "operating_threshold": 0.579237385582896,
+  "threshold_rule": "Youden's J (max sensitivity + specificity - 1) maximised on out-of-fold predictions over the TRAINING set, then applied unchanged to the test set. The test set played no part in choosing it.",
+  "threshold_test_recall": 0.96,
+  "threshold_test_specificity": 1.0,
+  "threshold_test_precision": 1.0,
+  "metrics_at_0.5": {
+    "recall_sensitivity": 0.96,
+    "specificity": 0.9666666666666667,
+    "precision": 0.9795918367346939,
+    "accuracy": 0.9625
+  },
+  "risk_bands": {
+    "note": "Presentation buckets, not clinical categories. The boundary between 'moderate' and 'high' is this model's own operating threshold (Youden's J on training out-of-fold predictions), so 'high' means only 'this model would flag this case at its selected operating point'. The low/moderate boundary is half the threshold \u2014 an arbitrary split of the remaining range with no medical meaning. Neither boundary is a clinical decision threshold, and the bands say nothing about diagnosis or severity.",
+    "operating_threshold": 0.579237385582896,
+    "bands": [
+      {
+        "label": "low",
+        "min": 0.0,
+        "max": 0.289618692791448
+      },
+      {
+        "label": "moderate",
+        "min": 0.289618692791448,
+        "max": 0.579237385582896
+      },
+      {
+        "label": "high",
+        "min": 0.579237385582896,
+        "max": 1.01
+      }
+    ]
+  },
+  "training_positive_rate": 0.625,
+  "n_train": 320,
+  "n_test": 80,
+  "roc_auc_test": 0.9986666666666667,
+  "external_validation": {
+    "status": "never_attempted",
+    "summary": "No external validation was attempted. Every performance figure comes from a single held-out split of one dataset."
+  },
+  "explainer": {
+    "kind": "kernel",
+    "init_seconds": 2.935,
+    "explain_one_median_ms": 809.1,
+    "explain_one_max_ms": 843.6,
+    "n_timed_calls": 5,
+    "background_rows": 200
+  },
+  "range_note": "`observed_min`/`observed_max` are the minimum and maximum seen in the 320 TRAINING rows. `hard_min`/`hard_max` widen that by one observed range either side (clipped at zero for quantities never observed negative). This envelope is mechanical, not clinical: it encodes no medical knowledge about which values are physiologically possible. Values outside the observed range but inside the envelope are accepted and flagged as extrapolation, because the model has no training support there.",
+  "features": [
+    {
+      "name": "age",
+      "kind": "numeric",
+      "description": "Age in years",
+      "observed_min": 2.0,
+      "observed_max": 90.0,
+      "observed_median": 54.0,
+      "hard_min": 0.0,
+      "hard_max": 178.0,
+      "n_missing_in_training": 8
+    },
+    {
+      "name": "bp",
+      "kind": "numeric",
+      "description": "Blood pressure (mm Hg)",
+      "observed_min": 50.0,
+      "observed_max": 180.0,
+      "observed_median": 80.0,
+      "hard_min": 0.0,
+      "hard_max": 310.0,
+      "n_missing_in_training": 11
+    },
+    {
+      "name": "sg",
+      "kind": "numeric",
+      "description": "Urine specific gravity (1.005-1.025)",
+      "observed_min": 1.005,
+      "observed_max": 1.025,
+      "observed_median": 1.02,
+      "hard_min": 0.9849999999999999,
+      "hard_max": 1.045,
+      "n_missing_in_training": 41
+    },
+    {
+      "name": "al",
+      "kind": "numeric",
+      "description": "Albumin (0-5 ordinal scale)",
+      "observed_min": 0.0,
+      "observed_max": 5.0,
+      "observed_median": 0.0,
+      "hard_min": 0.0,
+      "hard_max": 10.0,
+      "n_missing_in_training": 40
+    },
+    {
+      "name": "su",
+      "kind": "numeric",
+      "description": "Sugar (0-5 ordinal scale)",
+      "observed_min": 0.0,
+      "observed_max": 5.0,
+      "observed_median": 0.0,
+      "hard_min": 0.0,
+      "hard_max": 10.0,
+      "n_missing_in_training": 42
+    },
+    {
+      "name": "bgr",
+      "kind": "numeric",
+      "description": "Random blood glucose (mg/dl)",
+      "observed_min": 22.0,
+      "observed_max": 490.0,
+      "observed_median": 120.5,
+      "hard_min": 0.0,
+      "hard_max": 958.0,
+      "n_missing_in_training": 38
+    },
+    {
+      "name": "bu",
+      "kind": "numeric",
+      "description": "Blood urea (mg/dl)",
+      "observed_min": 1.5,
+      "observed_max": 322.0,
+      "observed_median": 42.0,
+      "hard_min": 0.0,
+      "hard_max": 642.5,
+      "n_missing_in_training": 19
+    },
+    {
+      "name": "sc",
+      "kind": "numeric",
+      "description": "Serum creatinine (mg/dl)",
+      "observed_min": 0.4,
+      "observed_max": 76.0,
+      "observed_median": 1.2,
+      "hard_min": 0.0,
+      "hard_max": 151.6,
+      "n_missing_in_training": 16
+    },
+    {
+      "name": "sod",
+      "kind": "numeric",
+      "description": "Sodium (mEq/L)",
+      "observed_min": 4.5,
+      "observed_max": 150.0,
+      "observed_median": 138.0,
+      "hard_min": 0.0,
+      "hard_max": 295.5,
+      "n_missing_in_training": 75
+    },
+    {
+      "name": "pot",
+      "kind": "numeric",
+      "description": "Potassium (mEq/L)",
+      "observed_min": 2.5,
+      "observed_max": 7.6,
+      "observed_median": 4.3,
+      "hard_min": 0.0,
+      "hard_max": 12.7,
+      "n_missing_in_training": 76
+    },
+    {
+      "name": "hemo",
+      "kind": "numeric",
+      "description": "Haemoglobin (g/dl)",
+      "observed_min": 3.1,
+      "observed_max": 17.8,
+      "observed_median": 12.6,
+      "hard_min": 0.0,
+      "hard_max": 32.5,
+      "n_missing_in_training": 43
+    },
+    {
+      "name": "pcv",
+      "kind": "numeric",
+      "description": "Packed cell volume (%)",
+      "observed_min": 9.0,
+      "observed_max": 54.0,
+      "observed_median": 40.0,
+      "hard_min": 0.0,
+      "hard_max": 99.0,
+      "n_missing_in_training": 58
+    },
+    {
+      "name": "wbcc",
+      "kind": "numeric",
+      "description": "White blood cell count (cells/cu mm)",
+      "observed_min": 2200.0,
+      "observed_max": 26400.0,
+      "observed_median": 8100.0,
+      "hard_min": 0.0,
+      "hard_max": 50600.0,
+      "n_missing_in_training": 84
+    },
+    {
+      "name": "rbcc",
+      "kind": "numeric",
+      "description": "Red blood cell count (millions/cu mm)",
+      "observed_min": 2.1,
+      "observed_max": 6.5,
+      "observed_median": 4.8,
+      "hard_min": 0.0,
+      "hard_max": 10.9,
+      "n_missing_in_training": 105
+    },
+    {
+      "name": "rbc",
+      "kind": "binary",
+      "description": "Red blood cells in urine (normal / abnormal)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 126
+    },
+    {
+      "name": "pc",
+      "kind": "binary",
+      "description": "Pus cell (normal / abnormal)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 54
+    },
+    {
+      "name": "pcc",
+      "kind": "binary",
+      "description": "Pus cell clumps (present / notpresent)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 4
+    },
+    {
+      "name": "ba",
+      "kind": "binary",
+      "description": "Bacteria (present / notpresent)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 4
+    },
+    {
+      "name": "htn",
+      "kind": "binary",
+      "description": "Hypertension (yes / no)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 2
+    },
+    {
+      "name": "dm",
+      "kind": "binary",
+      "description": "Diabetes mellitus (yes / no)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 2
+    },
+    {
+      "name": "cad",
+      "kind": "binary",
+      "description": "Coronary artery disease (yes / no)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 2
+    },
+    {
+      "name": "appet",
+      "kind": "binary",
+      "description": "Appetite (good / poor)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 1
+    },
+    {
+      "name": "pe",
+      "kind": "binary",
+      "description": "Pedal edema (yes / no)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 1
+    },
+    {
+      "name": "ane",
+      "kind": "binary",
+      "description": "Anaemia (yes / no)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 1
+    }
+  ],
+  "feature_order": [
+    "age",
+    "bp",
+    "sg",
+    "al",
+    "su",
+    "bgr",
+    "bu",
+    "sc",
+    "sod",
+    "pot",
+    "hemo",
+    "pcv",
+    "wbcc",
+    "rbcc",
+    "rbc",
+    "pc",
+    "pcc",
+    "ba",
+    "htn",
+    "dm",
+    "cad",
+    "appet",
+    "pe",
+    "ane"
+  ],
+  "spec_notes": "Target: 'class' text {'ckd','notckd'} mapped to {1,0}. Extensive missing values across most columns; imputed inside the model pipeline. Numeric columns pcv/wbcc/rbcc were stored as text (stray tab characters) and coerced to numbers. Nominal yes/no and normal/abnormal columns mapped to 0/1. 'sg','al','su' are ordinal clinical scales kept as numeric. n=400."
+}

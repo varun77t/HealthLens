@@ -615,14 +615,131 @@ their own bias, and parity on two attributes says nothing about who a model harm
 | full suite | `python -m pytest -q` | **170 passed, 0 skipped in 73 s** |
 | notebook | `jupyter nbconvert --execute notebooks/calibration_fairness.ipynb` | 7/7 cells, 0 errors |
 
-## Next step — Phase 8 (FastAPI backend)
+## Phase 8 — FastAPI backend — COMPLETE
 
-`POST /predict/{heart,kidney,diabetes}`, `GET /models`, `GET /analytics/{disease}`,
-`POST /scenario/{disease}`, `GET /health`. Pipelines load once at startup; **no training in
-the request path, ever**. Six findings from earlier phases must be carried in rather than
-rediscovered — risk bands are broken for diabetes, 0.5 is the wrong default threshold there,
-kidney SHAP is slow, no module has external validation, error profiles are age-dependent,
-and every response needs the disclaimer. See `PROJECT_CONTEXT.md` §10 for the detail.
+Three independent modules behind one API. No combined endpoint, no aggregate health score,
+and **no training, fitting or dataset read in any request path**. Full reference:
+[`docs/API.md`](API.md).
+
+```
+backend/
+├── main.py                        app, CORS, lifespan model loading, OpenAPI description
+├── schemas/features.py            request models GENERATED from serving.json
+├── schemas/responses.py           response models
+├── services/registry.py           all artifacts loaded once at startup
+├── services/prediction_service.py request -> row -> probability -> explanation -> caveats
+└── routes/{health,models,predict,analytics,scenario,deps}.py
+```
+
+Startup measured at **~7 s** for three pipelines, three model cards and three SHAP
+explainers, dominated by the kidney `KernelExplainer`. Building explainers eagerly is
+deliberate: lazily would move that cost onto whichever request arrived first.
+
+### The API reads `models/`, never `data/`
+
+`python -m scripts.export_serving_assets` writes two files per disease after training:
+
+| file | contents |
+|---|---|
+| `serving.json` | operating threshold, risk bands, per-feature ranges/categories, explainer profile, external-validation status |
+| `shap_background.joblib` | the exact 200 training rows the training run's explainer used |
+
+Ranges are taken from the **training** split only, so nothing the API advertises about its
+own inputs was derived from held-out data. Exporting the same background rows (same
+`RANDOM_STATE`, same sample size) means the served explanation is the one that was
+validated, not a re-derived approximation.
+
+### The risk-band defect, found and fixed
+
+The fixed 0.33/0.66 bands in `config.py` were wrong for diabetes, and the size of the error
+is worth recording. On the 50,961-row diabetes test set:
+
+| band | rows | share |
+|---|---|---|
+| low | 44,243 | 86.8% |
+| moderate | 6,435 | 12.6% |
+| high | 283 | 0.56% |
+
+The model's operating threshold is 0.1388, which sits deep inside the "low" band — so
+**every case the model flags, including every true positive it catches, was labelled "low"
+or "moderate"**. The presentation label contradicted the model's own decision.
+
+Bands are now anchored on each model's threshold `t`: `[0, t/2)`, `[t/2, t)`, `[t, 1]`.
+`flagged == (risk_band == "high")` holds by construction and is pinned by tests in both
+`tests/test_api.py` and `tests/test_model_artifacts.py`. Only the upper boundary carries
+meaning; the response's `note` field says the lower one is arbitrary.
+
+`config.risk_band(probability, threshold)` now takes the threshold with **no default** — a
+band computed without one is meaningless, so it is not possible to ask for one.
+
+Model cards were amended in place (`_amend_risk_bands`) rather than retrained: only that
+block changed, and `_card_markdown` is a pure function of the card dict.
+
+### Findings from Phases 3-7 carried into the response body
+
+| finding | where it surfaces |
+|---|---|
+| risk bands broken for diabetes | bands anchored on the operating threshold; `flagged` reported separately from the label |
+| 0.5 is the wrong decision point | `threshold` + `threshold_rule` on every response; 0.5 is never used |
+| kidney SHAP is slow (809 ms, measured) | published in `/models`; `?include_explanation=false`; off by default on `/scenario` |
+| no module has external validation | a warning on every prediction; heart's says *rejected*, not *absent* |
+| error profiles differ by age band | the case's own band's measured recall/specificity, where Phase 7 marked it reliable |
+| every response needs the disclaimer | `disclaimer` on every response and in the OpenAPI description |
+| SHAP explains the uncalibrated model | `uncalibrated_probability` returned next to `probability`, with a note |
+
+Heart and kidney contribute nothing to the subgroup line: 1 of 6 and 0 of 4 of their
+subgroups were reliable on 61 and 80 test rows. An unreliable subgroup produces silence.
+
+### Input validation: three levels, not two
+
+Rejected (422): outside the mechanical envelope, unrecognised categorical level, unknown
+field, or *no fields at all*. Accepted and flagged (200): a value inside the envelope but
+outside the observed training range, and any omitted field.
+
+Unknown categories are **rejected rather than warned about** because the one-hot encoder
+runs with `handle_unknown="ignore"` — an unrecognised level is silently encoded as
+all-zeros and would return a confident-looking prediction for a case whose category the
+model never saw. That is the failure mode worth spending an error code on.
+
+An empty body is refused: every field is optional, so it would otherwise be scored entirely
+from imputed training medians and returned as a prediction of nothing. A *partially*
+specified case is a legitimate research question and is answered, with the imputation
+listed.
+
+The envelope (one observed range either side of the training min/max) is mechanical and
+encodes **no clinical knowledge**. `GET /models/{disease}/schema` returns both it and the
+observed training range, and `range_note` says which is which.
+
+### Request schemas are generated, not typed
+
+`backend/schemas/features.py` builds the three pydantic models from each `serving.json` at
+import. Fifty-eight fields with individual bounds and category lists is exactly the kind of
+thing that accumulates silent transcription errors, and a bound that disagrees with the
+training data is worse than no bound — it would reject valid inputs or admit ones the
+encoder cannot represent. Generating them means the API can only advertise ranges that were
+measured.
+
+### Phase 8 verification
+
+| step | command | result |
+|---|---|---|
+| serving assets | `python -m scripts.export_serving_assets` | 3 diseases, thresholds 0.6436 / 0.5792 / 0.1388 |
+| app boots | `uvicorn backend.main:app --port 8123` | `/health` `ok`, `/docs` 200, `/openapi.json` 200 |
+| live prediction | `POST /predict/heart` (Cleveland row 0) | p=0.3666, flagged=false, band=moderate, SHAP returned |
+| full suite | `python -m pytest -q` | **224 passed, 0 skipped in 61 s** |
+
+170 → 224: 48 new API tests plus 6 new risk-band tests.
+
+## Next step — deferred work
+
+Neither is started, and neither is required for the platform to be complete as scoped.
+
+* **React frontend** (Vite/Tailwind/Recharts) consuming these endpoints: landing, three
+  independent disease cards, per-disease forms, result screen (prediction → SHAP → scenario
+  → model card), analytics pages. It must show `flagged` and `threshold`, not a bare
+  probability against 0.5, and must not aggregate the three modules into one score.
+* **CNN + Grad-CAM imaging module**, architecturally separate. "Coming Soon" until a real
+  model exists — no placeholder predictions.
 
 ### Superseded — the original Phase 6 plan, kept for the record
 

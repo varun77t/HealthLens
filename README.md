@@ -28,21 +28,28 @@ The three predictions are **never** combined into a single "overall health score
 | 2 | Shared preprocessing / training / evaluation package | ✅ done |
 | 3 | Heart model end-to-end (CV, tuning, calibration, SHAP, model card) | ✅ done |
 | 4 | Kidney model end-to-end | ✅ done |
-| 5 | Diabetes model end-to-end | ⏳ planned |
-| 6 | External validation (Heart → Statlog) | ⏳ planned |
-| 7 | Calibration + fairness analysis | ⏳ planned |
-| 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ⏳ planned |
+| 5 | Diabetes model end-to-end | ✅ done |
+| 6 | External validation (Heart → Statlog) | ✅ done — **attempted and rejected** |
+| 7 | Calibration + fairness analysis | ✅ done |
+| 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ✅ done |
 | — | React frontend, CNN/Grad-CAM imaging module | deferred |
 
-**The heart and kidney models are trained; diabetes is not yet.** Every performance number
-in this repo is produced by an actual run and is reproducible with `RANDOM_STATE = 42`.
-No metric anywhere is a placeholder. See `models/heart/MODEL_CARD.md` for what that model
-may and may not be used for.
+**All three models are trained and served.** Every performance number in this repo is
+produced by an actual run and is reproducible with `RANDOM_STATE = 42`. No metric anywhere
+is a placeholder. See `models/<disease>/MODEL_CARD.md` for what each model may and may not
+be used for, and `docs/API.md` for how to read a prediction.
+
+**No module has external validation.** Heart's intended external cohort (Statlog, UCI 145)
+was tested in Phase 6 and rejected: all 270 of its rows match a Cleveland row exactly, and
+82.2% sit inside heart's own training split. It is a redistributed subset, not a second
+cohort. Every performance figure here comes from a single held-out split of a single
+dataset.
 
 ## Repository layout
 
 ```
 config.py            global seed, paths, disease registry, risk bands, disclaimer
+docs/API.md          how to run and read the API (Phase 8)
 ml/
   data/              ucimlrepo acquisition + caching, disease loaders, validation, TARGET.md generator
   eda/               profiling + plotting utilities, EDA runner
@@ -57,9 +64,10 @@ ml/
 data/raw/            cached CSVs (git-ignored; re-downloadable)
 reports/<disease>/   eda_profile.json, EDA.md, TARGET.md, figures/, *.csv
 models/<disease>/    pipeline.joblib (serving) + base_pipeline.joblib (SHAP) + model card
+                     + serving.json / shap_background.joblib (what the API loads)
 notebooks/           thin notebooks over the ml package (training notebooks never retrain)
-scripts/             train_<disease>.py entrypoints, notebook builder
-backend/             (Phase 8) FastAPI service
+scripts/             train_<disease>.py entrypoints, notebook builder, serving-asset export
+backend/             FastAPI service: schemas (generated), services, routes
 tests/               structure, leakage, and shipped-artifact tests
 ```
 
@@ -108,9 +116,16 @@ python -m pytest -q
 ## Train a model
 
 ```bash
-# Heart (Phase 3) / Kidney (Phase 4) - writes models/<disease>/ and reports/<disease>/
+# Writes models/<disease>/ and reports/<disease>/
 python -m scripts.train_heart
 python -m scripts.train_kidney
+python -m scripts.train_diabetes
+
+# Subgroup + calibration reporting (Phase 7)
+python -m scripts.fairness_report
+
+# Export what the API serves: thresholds, feature ranges, SHAP background (Phase 8)
+python -m scripts.export_serving_assets
 
 # Rebuild the notebooks (a training notebook is generated only for trained diseases)
 python -m scripts.build_notebooks
@@ -119,6 +134,22 @@ python -m scripts.build_notebooks
 Training scripts are the single source of truth for every metric. The training notebooks
 read the artifacts those scripts produce and never retrain, so a notebook cannot display
 a number that differs from `reports/<disease>/metrics.json`.
+
+## Run the API
+
+```bash
+uvicorn backend.main:app --reload
+```
+
+Interactive docs at `/docs`. Startup loads three pipelines and three SHAP explainers once
+(~7 s); **no request path fits, trains or reads a dataset.**
+
+Read `docs/API.md` before consuming a prediction. In short: `flagged` is the model's
+decision at **its own** operating threshold — for diabetes that is 0.1388, and applying 0.5
+instead drops test recall from 0.7984 to 0.1464. `risk_band` is a presentation label
+anchored on the same threshold, not a clinical category. Every response carries the
+disclaimer, what was imputed, what was extrapolated, and the fact that the model has no
+external validation.
 
 ## Methodology guardrails
 
@@ -131,10 +162,17 @@ a number that differs from `reports/<disease>/metrics.json`.
   calibration wrapper and the decision threshold are all chosen on training folds only.
 - **Close results are reported as close** — a model only counts as decisively chosen if
   its margin clears the fold-to-fold noise, a 0.005 resolution floor, *and* the metric
-  is not saturated. Neither current model clears all three, and both cards say so.
+  is not saturated. **None of the three clears all three checks** (winning margins of
+  0.0005, 0.0002 and 0.0003 cross-validated ROC-AUC), and every card says so.
 - **A high score is attributed before it is believed** — `ml/evaluation/diagnostics.py`
   retrains on missingness indicators alone to measure how much of the performance comes
   from which measurements were taken rather than their values.
+- **The API cannot invent a number** — analytics endpoints read the artifacts the training
+  runs wrote; nothing is recomputed at request time, and a test asserts byte-equality with
+  `reports/<disease>/metrics.json`. No model is fitted in any request path.
+- **A caveat travels with the prediction** — external-validation status, imputed fields,
+  extrapolated fields and the case's own age-band error profile are in the response body,
+  not in documentation elsewhere.
 - Fixed `RANDOM_STATE = 42`; pinned dependencies; raw data cached for reproducibility.
 - Outliers are **flagged, not dropped** — medical measurements legitimately contain extremes.
 - The three diseases stay fully independent (separate data, preprocessing, models, model cards).

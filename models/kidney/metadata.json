@@ -346,21 +346,22 @@
     ]
   },
   "risk_bands": {
-    "note": "Illustrative presentation buckets for a model-estimated probability. Not clinical decision thresholds; they carry no medical meaning.",
+    "note": "Presentation buckets, not clinical categories. The boundary between 'moderate' and 'high' is this model's own operating threshold (Youden's J on training out-of-fold predictions), so 'high' means only 'this model would flag this case at its selected operating point'. The low/moderate boundary is half the threshold \u2014 an arbitrary split of the remaining range with no medical meaning. Neither boundary is a clinical decision threshold, and the bands say nothing about diagnosis or severity.",
+    "operating_threshold": 0.579237385582896,
     "bands": [
       {
         "label": "low",
         "min": 0.0,
-        "max": 0.33
+        "max": 0.289618692791448
       },
       {
         "label": "moderate",
-        "min": 0.33,
-        "max": 0.66
+        "min": 0.289618692791448,
+        "max": 0.579237385582896
       },
       {
         "label": "high",
-        "min": 0.66,
+        "min": 0.579237385582896,
         "max": 1.01
       }
     ]

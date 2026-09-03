@@ -1,0 +1,219 @@
+{
+  "disease": "heart",
+  "module": "Heart Disease Presence Prediction",
+  "positive_class_meaning": "angiographic heart disease present (>50% diameter narrowing)",
+  "generated": "2026-09-03",
+  "generated_by": "scripts/export_serving_assets.py",
+  "model": "xgboost",
+  "calibration": "sigmoid",
+  "operating_threshold": 0.6435845785678462,
+  "threshold_rule": "Youden's J (max sensitivity + specificity - 1) maximised on out-of-fold predictions over the TRAINING set, then applied unchanged to the test set. The test set played no part in choosing it.",
+  "threshold_test_recall": 0.8214285714285714,
+  "threshold_test_specificity": 0.9393939393939394,
+  "threshold_test_precision": 0.92,
+  "metrics_at_0.5": {
+    "recall_sensitivity": 0.8928571428571429,
+    "specificity": 0.8787878787878788,
+    "precision": 0.8620689655172413,
+    "accuracy": 0.8852459016393442
+  },
+  "risk_bands": {
+    "note": "Presentation buckets, not clinical categories. The boundary between 'moderate' and 'high' is this model's own operating threshold (Youden's J on training out-of-fold predictions), so 'high' means only 'this model would flag this case at its selected operating point'. The low/moderate boundary is half the threshold \u2014 an arbitrary split of the remaining range with no medical meaning. Neither boundary is a clinical decision threshold, and the bands say nothing about diagnosis or severity.",
+    "operating_threshold": 0.6435845785678462,
+    "bands": [
+      {
+        "label": "low",
+        "min": 0.0,
+        "max": 0.3217922892839231
+      },
+      {
+        "label": "moderate",
+        "min": 0.3217922892839231,
+        "max": 0.6435845785678462
+      },
+      {
+        "label": "high",
+        "min": 0.6435845785678462,
+        "max": 1.01
+      }
+    ]
+  },
+  "training_positive_rate": 0.45867768595041325,
+  "n_train": 242,
+  "n_test": 61,
+  "roc_auc_test": 0.9534632034632033,
+  "external_validation": {
+    "status": "rejected",
+    "dataset": "statlog",
+    "summary": "NOT INDEPENDENT \u2014 this dataset is a subset of the training dataset, not an independent cohort. 270 of 270 rows (100.0%) match a row in the training dataset exactly on every feature, against a maximum acceptable overlap of 5%. All 270 matched rows also carry the same label, so these are the same records rather than coincidentally similar patients. 222 rows (82.22%) are in the model's own training split \u2014 the model was fitted on them. No row in this dataset is unseen by the model. Any metric computed on it measures memorisation as much as generalisation and must not be published as external validation."
+  },
+  "explainer": {
+    "kind": "tree",
+    "init_seconds": 2.044,
+    "explain_one_median_ms": 43.6,
+    "explain_one_max_ms": 45.4,
+    "n_timed_calls": 5,
+    "background_rows": 200
+  },
+  "range_note": "`observed_min`/`observed_max` are the minimum and maximum seen in the 242 TRAINING rows. `hard_min`/`hard_max` widen that by one observed range either side (clipped at zero for quantities never observed negative). This envelope is mechanical, not clinical: it encodes no medical knowledge about which values are physiologically possible. Values outside the observed range but inside the envelope are accepted and flagged as extrapolation, because the model has no training support there.",
+  "features": [
+    {
+      "name": "age",
+      "kind": "numeric",
+      "description": "Age in years",
+      "observed_min": 29.0,
+      "observed_max": 77.0,
+      "observed_median": 56.0,
+      "hard_min": 0.0,
+      "hard_max": 125.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "trestbps",
+      "kind": "numeric",
+      "description": "Resting blood pressure on admission (mm Hg)",
+      "observed_min": 94.0,
+      "observed_max": 200.0,
+      "observed_median": 130.0,
+      "hard_min": 0.0,
+      "hard_max": 306.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "chol",
+      "kind": "numeric",
+      "description": "Serum cholesterol (mg/dl)",
+      "observed_min": 126.0,
+      "observed_max": 564.0,
+      "observed_median": 244.5,
+      "hard_min": 0.0,
+      "hard_max": 1002.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "thalach",
+      "kind": "numeric",
+      "description": "Maximum heart rate achieved",
+      "observed_min": 71.0,
+      "observed_max": 202.0,
+      "observed_median": 153.5,
+      "hard_min": 0.0,
+      "hard_max": 333.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "oldpeak",
+      "kind": "numeric",
+      "description": "ST depression induced by exercise relative to rest",
+      "observed_min": 0.0,
+      "observed_max": 6.2,
+      "observed_median": 0.8,
+      "hard_min": 0.0,
+      "hard_max": 12.4,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "cp",
+      "kind": "categorical",
+      "description": "Chest pain type (1 typical angina, 2 atypical angina, 3 non-anginal, 4 asymptomatic)",
+      "categories": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "restecg",
+      "kind": "categorical",
+      "description": "Resting electrocardiographic result (0 normal, 1 ST-T abnormality, 2 LV hypertrophy)",
+      "categories": [
+        0.0,
+        1.0,
+        2.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "slope",
+      "kind": "categorical",
+      "description": "Slope of the peak exercise ST segment (1 upsloping, 2 flat, 3 downsloping)",
+      "categories": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "ca",
+      "kind": "categorical",
+      "description": "Number of major vessels (0-3) coloured by fluoroscopy",
+      "categories": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "n_missing_in_training": 1
+    },
+    {
+      "name": "thal",
+      "kind": "categorical",
+      "description": "Thalassemia (3 normal, 6 fixed defect, 7 reversible defect)",
+      "categories": [
+        3.0,
+        6.0,
+        7.0
+      ],
+      "n_missing_in_training": 1
+    },
+    {
+      "name": "sex",
+      "kind": "binary",
+      "description": "Sex (1 = male, 0 = female)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "fbs",
+      "kind": "binary",
+      "description": "Fasting blood sugar > 120 mg/dl (1 = true, 0 = false)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "exang",
+      "kind": "binary",
+      "description": "Exercise-induced angina (1 = yes, 0 = no)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    }
+  ],
+  "feature_order": [
+    "age",
+    "trestbps",
+    "chol",
+    "thalach",
+    "oldpeak",
+    "cp",
+    "restecg",
+    "slope",
+    "ca",
+    "thal",
+    "sex",
+    "fbs",
+    "exang"
+  ],
+  "spec_notes": "Target: raw 'num' in {0..4} mapped to binary (num > 0 => 1). 'ca' and 'thal' contain missing values (originally '?'), imputed inside the model pipeline. 'ca' (vessel count) and 'slope' are ordinal but modelled as categorical. Cleveland single-site cohort, n=303."
+}

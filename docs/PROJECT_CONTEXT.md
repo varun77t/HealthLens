@@ -538,41 +538,81 @@ about who a model harms. The word "fair" appears nowhere in the generated report
 
 ---
 
-## 10. Next step — Phase 8: FastAPI backend
+## 10. Phase 8 — FastAPI backend (complete)
 
-Serve the three models. No model training in the request path, ever.
+Three independent modules behind one API. No combined endpoint, no aggregate health score,
+and **no training, fitting or dataset read in any request path**. Startup loads three
+pipelines, three cards and three SHAP explainers in ~7 s; after that a request does
+`predict_proba` and `shap_values` and nothing else. Full reference: `docs/API.md`.
 
-**Endpoints:** `POST /predict/{heart,kidney,diabetes}`, `GET /models` (the three cards),
-`GET /analytics/{disease}` (saved metrics + comparison + figure URLs),
-`POST /scenario/{disease}`, `GET /health`.
+`POST /predict/{heart,kidney,diabetes}` · `POST /scenario/{disease}` · `GET /models` ·
+`GET /models/{disease}` · `GET /models/{disease}/schema` · `GET /analytics/{disease}` ·
+`GET /analytics/{disease}/figures/{name}` · `GET /health`
 
-**Structure:** `backend/schemas/` one pydantic model per disease mirroring that disease's
-own feature form, with `Field(ge=, le=)` ranges from its feature dictionary;
-`backend/services/prediction_service.py` loading all pipelines **once at startup**;
-`backend/routes/`; `backend/main.py` with CORS for local dev and the disclaimer in the
-OpenAPI description.
+**The API reads `models/`, never `data/`.** `python -m scripts.export_serving_assets` writes
+`serving.json` (threshold, bands, per-feature ranges and categories, explainer profile,
+external-validation status) and `shap_background.joblib` (the exact 200 training rows the
+training run's explainer used). Ranges come from the **training** split only.
 
-Carry these findings into the API rather than rediscovering them:
+**Request schemas are generated** from those feature dictionaries rather than hand-written —
+58 fields of bounds and category lists is where transcription errors live, and a bound that
+disagrees with the training data is worse than no bound.
 
-1. **Risk bands are broken for diabetes** (§9.1). Decide before shipping: per-disease
-   quantile bands, prevalence-relative bands, or a percentile instead of a band.
-2. **Do not default to threshold 0.5 for diabetes.** It recovers 14.6% of positives. Serve
-   the probability plus the recorded operating threshold, and label which is which.
-3. **Kidney SHAP is `KernelExplainer`** — slow per call. Precompute, cache, or accept it.
-4. **No module has external validation** (§7a). The API must not imply otherwise.
-5. **Age-dependent error profiles** (§7b) mean a single global threshold behaves very
-   differently across age bands. If the API exposes a threshold, this belongs next to it.
-6. Every response carries `DISCLAIMER`, and `/scenario` results must be labelled
-   *illustrative model behaviour*, never a prediction of real medical risk.
+### 10.1 The risk-band defect (§9.1), resolved
 
-**Deferred beyond this pass:** React frontend, CNN/Grad-CAM imaging module.
+The fixed 0.33/0.66 bands put **44,243 of 50,961 diabetes test rows (86.8%) in "low" and 283
+(0.56%) in "high"**. The operating threshold is 0.1388, deep inside "low" — so every case
+the model flags, including every true positive, was labelled "low" or "moderate". The label
+contradicted the model.
+
+Bands are now `[0, t/2)`, `[t/2, t)`, `[t, 1]` per model. `flagged == (risk_band == "high")`
+by construction, pinned in `tests/test_api.py` and `tests/test_model_artifacts.py`. Only the
+upper boundary means anything and the response says so.
+`config.risk_band(probability, threshold)` takes the threshold with **no default**. Model
+cards were amended in place, not retrained.
+
+### 10.2 The other findings, carried into the response body
+
+| finding | where it surfaces |
+|---|---|
+| 0.5 is the wrong decision point (recall 0.1464 vs 0.7984) | `threshold` + `threshold_rule` on every response; 0.5 never used |
+| kidney SHAP is `KernelExplainer`, **809 ms measured** | published in `/models`; `?include_explanation=false`; off by default on `/scenario` |
+| no module has external validation (§7a) | warning on every prediction — heart's says *rejected*, not *absent* |
+| age-dependent error profiles (§7b) | the case's own age band's measured recall/specificity, only where Phase 7 marked it reliable |
+| disclaimer everywhere | every response body and the OpenAPI description |
+| SHAP explains the **uncalibrated** model | `uncalibrated_probability` next to `probability`, with a note on what carries over |
+
+Heart and kidney contribute nothing to the subgroup line — 1 of 6 and 0 of 4 reliable
+subgroups. Unreliable means silence, not noise.
+
+### 10.3 Validation policy
+
+Rejected (422): outside the mechanical envelope, unrecognised categorical level, unknown
+field, no fields at all. Accepted and flagged (200): inside the envelope but outside the
+observed training range; any omitted field (listed in `imputed_features`).
+
+Unknown categories are rejected, not warned about: `handle_unknown="ignore"` would encode an
+unseen level as all-zeros and return a confident-looking prediction. An empty body is
+refused because it describes no case. The envelope is mechanical and encodes **no clinical
+knowledge**; `range_note` on every schema response says so.
+
+**Verified:** `python -m pytest -q` → **224 passed, 0 skipped in 61 s** (170 → 224: 48 API
+tests, 6 risk-band tests). `uvicorn backend.main:app` boots to `/health` `ok` with `/docs`
+and `/openapi.json` at 200 and a live `POST /predict/heart` returning p=0.3666, flagged
+false, band moderate, with SHAP.
+
+### 10.4 Still deferred
+
+React frontend (must show `flagged` and `threshold`, not a bare probability against 0.5, and
+must not aggregate the three modules); CNN/Grad-CAM imaging module ("Coming Soon" until a
+real model exists — no placeholder predictions).
 
 ---
 
 ## 11. Where things live
 
 ```
-config.py                     RANDOM_STATE, paths, DISEASES registry, RISK_BANDS, DISCLAIMER
+config.py                     RANDOM_STATE, paths, DISEASES registry, risk_bands(t), DISCLAIMER
 ml/data/loaders.py            one loader per dataset -> (X, y, FeatureSpec); caches raw CSV
 ml/preprocessing/             build_preprocessor(spec) -> unfitted ColumnTransformer
 ml/training/splits.py         make_split / cv_splitter (diabetes is group-aware)
@@ -591,7 +631,14 @@ ml/fairness/subgroup_metrics.py Wilson/Hanley-McNeil intervals, disparity verdic
 ml/model_card.py              metadata.json + MODEL_CARD.md
 scripts/train_{heart,kidney,diabetes}.py    entry points
 scripts/fairness_report.py    Phase 7 subgroup + calibration reporting
-models/<disease>/             pipeline.joblib, base_pipeline.joblib, metadata.json, MODEL_CARD.md
+scripts/export_serving_assets.py  serving.json + shap_background.joblib   (Phase 8)
+backend/main.py               app, CORS, lifespan model loading, OpenAPI description
+backend/schemas/features.py   request models GENERATED from serving.json
+backend/services/registry.py  every artifact loaded once, at startup
+backend/services/prediction_service.py  request -> probability -> explanation -> caveats
+backend/routes/               health, models, predict, analytics, scenario, deps
+models/<disease>/             pipeline.joblib, base_pipeline.joblib, metadata.json,
+                              MODEL_CARD.md, serving.json, shap_background.joblib
 reports/<disease>/            metrics.json, model_comparison.csv, SELECTION.md, figures/, ...
 ```
 

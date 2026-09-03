@@ -80,18 +80,48 @@ EXTERNAL_DATASETS: dict[str, dict] = {
 # --------------------------------------------------------------------------------------
 # Risk bands
 # --------------------------------------------------------------------------------------
-# These thresholds are ILLUSTRATIVE presentation buckets for a model-estimated
-# probability. They are NOT clinical decision thresholds and carry no medical meaning.
-RISK_BANDS: list[tuple[str, float, float]] = [
-    ("low", 0.00, 0.33),
-    ("moderate", 0.33, 0.66),
-    ("high", 0.66, 1.01),
-]
+# Presentation buckets for a model-estimated probability. They are NOT clinical decision
+# thresholds and carry no medical meaning.
+#
+# They are anchored on each model's OWN operating threshold rather than on fixed cut-points
+# such as 0.33/0.66, because a fixed grid is wrong for any model whose probabilities are
+# calibrated to a low-prevalence population. Measured on the diabetes test set (n=50,961)
+# with the old fixed bands: 86.8% of respondents landed in "low" and 0.56% in "high", and
+# every case the model actually flags at its 0.1388 operating threshold — including every
+# true positive it catches — was labelled "low risk". The band contradicted the model.
+#
+# The upper boundary is the operating threshold, which is a real decision point learned by
+# Youden's J on training out-of-fold predictions. The lower boundary is half of it: an
+# admittedly arbitrary split of the below-threshold range, kept only so the bucket labels
+# have three levels. Only the upper boundary means anything.
+RISK_BAND_NOTE: str = (
+    "Presentation buckets, not clinical categories. The boundary between 'moderate' and "
+    "'high' is this model's own operating threshold (Youden's J on training out-of-fold "
+    "predictions), so 'high' means only 'this model would flag this case at its selected "
+    "operating point'. The low/moderate boundary is half the threshold — an arbitrary "
+    "split of the remaining range with no medical meaning. Neither boundary is a clinical "
+    "decision threshold, and the bands say nothing about diagnosis or severity."
+)
 
 
-def risk_band(probability: float) -> str:
-    """Map a model-estimated probability to an illustrative risk band label."""
-    for name, lo, hi in RISK_BANDS:
+def risk_bands(threshold: float) -> list[tuple[str, float, float]]:
+    """Presentation bands for one model, anchored on its operating ``threshold``."""
+    if not 0.0 < threshold <= 1.0:
+        raise ValueError(f"operating threshold must be in (0, 1], got {threshold}")
+    return [
+        ("low", 0.0, threshold / 2.0),
+        ("moderate", threshold / 2.0, threshold),
+        ("high", threshold, 1.01),
+    ]
+
+
+def risk_band(probability: float, threshold: float) -> str:
+    """Map a model-estimated probability to a presentation band label.
+
+    ``threshold`` is the model's operating threshold; there is deliberately no default,
+    because a band computed without it is meaningless (see :data:`RISK_BAND_NOTE`).
+    """
+    for name, lo, hi in risk_bands(threshold):
         if lo <= probability < hi:
             return name
     return "unknown"

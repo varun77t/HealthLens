@@ -71,8 +71,34 @@ def test_predict_proba_is_a_valid_probability(trained):
 
 @_param
 def test_risk_band_covers_every_prediction(trained):
+    threshold = trained["metrics"]["test_set_alternative_threshold"]["threshold"]
     p = trained["pipeline"].predict_proba(trained["X_test"])[:, 1]
-    assert all(risk_band(float(v)) in {"low", "moderate", "high"} for v in p)
+    assert all(risk_band(float(v), threshold) in {"low", "moderate", "high"} for v in p)
+
+
+@_param
+def test_risk_band_agrees_with_the_models_own_decision(trained):
+    """A case the model flags must never be labelled anything but 'high'.
+
+    Under the fixed 0.33/0.66 bands this failed badly for diabetes: the operating
+    threshold is 0.1388, so all 50,961 test rows — including every true positive the model
+    caught — were labelled 'low' or 'moderate'. Anchoring the top band on the operating
+    threshold makes the label and the decision the same boundary.
+    """
+    threshold = trained["metrics"]["test_set_alternative_threshold"]["threshold"]
+    p = trained["pipeline"].predict_proba(trained["X_test"])[:, 1]
+    for v in p:
+        flagged = float(v) >= threshold
+        assert (risk_band(float(v), threshold) == "high") == flagged
+
+
+@_param
+def test_risk_bands_in_the_model_card_use_this_models_threshold(trained):
+    card_bands = trained["metadata"]["risk_bands"]
+    threshold = trained["metrics"]["test_set_alternative_threshold"]["threshold"]
+    assert card_bands["operating_threshold"] == pytest.approx(threshold)
+    high = next(b for b in card_bands["bands"] if b["label"] == "high")
+    assert high["min"] == pytest.approx(threshold)
 
 
 @_param

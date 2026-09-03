@@ -1,0 +1,301 @@
+{
+  "disease": "diabetes",
+  "module": "Diabetes Health-Indicator Risk Prediction",
+  "positive_class_meaning": "prediabetes or diabetes reported (BRFSS self-report)",
+  "generated": "2026-09-03",
+  "generated_by": "scripts/export_serving_assets.py",
+  "model": "xgboost",
+  "calibration": "isotonic",
+  "operating_threshold": 0.13882786532243094,
+  "threshold_rule": "Youden's J (max sensitivity + specificity - 1) maximised on out-of-fold predictions over the TRAINING set, then applied unchanged to the test set. The test set played no part in choosing it.",
+  "threshold_test_recall": 0.7983539094650206,
+  "threshold_test_specificity": 0.7089538643712712,
+  "threshold_test_precision": 0.3056445917314065,
+  "metrics_at_0.5": {
+    "recall_sensitivity": 0.14644529587058322,
+    "specificity": 0.9829211640934554,
+    "precision": 0.5791245791245792,
+    "accuracy": 0.8672514275622535
+  },
+  "risk_bands": {
+    "note": "Presentation buckets, not clinical categories. The boundary between 'moderate' and 'high' is this model's own operating threshold (Youden's J on training out-of-fold predictions), so 'high' means only 'this model would flag this case at its selected operating point'. The low/moderate boundary is half the threshold \u2014 an arbitrary split of the remaining range with no medical meaning. Neither boundary is a clinical decision threshold, and the bands say nothing about diagnosis or severity.",
+    "operating_threshold": 0.13882786532243094,
+    "bands": [
+      {
+        "label": "low",
+        "min": 0.0,
+        "max": 0.06941393266121547
+      },
+      {
+        "label": "moderate",
+        "min": 0.06941393266121547,
+        "max": 0.13882786532243094
+      },
+      {
+        "label": "high",
+        "min": 0.13882786532243094,
+        "max": 1.01
+      }
+    ]
+  },
+  "training_positive_rate": 0.1395971763870185,
+  "n_train": 202719,
+  "n_test": 50961,
+  "roc_auc_test": 0.8316939783596924,
+  "external_validation": {
+    "status": "never_attempted",
+    "summary": "No external validation was attempted. Every performance figure comes from a single held-out split of one dataset."
+  },
+  "explainer": {
+    "kind": "tree",
+    "init_seconds": 0.484,
+    "explain_one_median_ms": 48.0,
+    "explain_one_max_ms": 62.5,
+    "n_timed_calls": 5,
+    "background_rows": 200
+  },
+  "range_note": "`observed_min`/`observed_max` are the minimum and maximum seen in the 202,719 TRAINING rows. `hard_min`/`hard_max` widen that by one observed range either side (clipped at zero for quantities never observed negative). This envelope is mechanical, not clinical: it encodes no medical knowledge about which values are physiologically possible. Values outside the observed range but inside the envelope are accepted and flagged as extrapolation, because the model has no training support there.",
+  "features": [
+    {
+      "name": "BMI",
+      "kind": "numeric",
+      "description": "Body Mass Index",
+      "observed_min": 12.0,
+      "observed_max": 98.0,
+      "observed_median": 27.0,
+      "hard_min": 0.0,
+      "hard_max": 184.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "MentHlth",
+      "kind": "numeric",
+      "description": "Days of poor mental health in past 30 days (0-30)",
+      "observed_min": 0.0,
+      "observed_max": 30.0,
+      "observed_median": 0.0,
+      "hard_min": 0.0,
+      "hard_max": 60.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "PhysHlth",
+      "kind": "numeric",
+      "description": "Days of poor physical health in past 30 days (0-30)",
+      "observed_min": 0.0,
+      "observed_max": 30.0,
+      "observed_median": 0.0,
+      "hard_min": 0.0,
+      "hard_max": 60.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "GenHlth",
+      "kind": "numeric",
+      "description": "Self-rated general health (1 excellent - 5 poor)",
+      "observed_min": 1.0,
+      "observed_max": 5.0,
+      "observed_median": 2.0,
+      "hard_min": 0.0,
+      "hard_max": 9.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "Age",
+      "kind": "numeric",
+      "description": "13-level age category (1 = 18-24 ... 13 = 80+)",
+      "observed_min": 1.0,
+      "observed_max": 13.0,
+      "observed_median": 8.0,
+      "hard_min": 0.0,
+      "hard_max": 25.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "Education",
+      "kind": "numeric",
+      "description": "Education level (1 - 6 ordinal)",
+      "observed_min": 1.0,
+      "observed_max": 6.0,
+      "observed_median": 5.0,
+      "hard_min": 0.0,
+      "hard_max": 11.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "Income",
+      "kind": "numeric",
+      "description": "Income category (1 - 8 ordinal)",
+      "observed_min": 1.0,
+      "observed_max": 8.0,
+      "observed_median": 7.0,
+      "hard_min": 0.0,
+      "hard_max": 15.0,
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "HighBP",
+      "kind": "binary",
+      "description": "Ever told by a health professional you have high blood pressure (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "HighChol",
+      "kind": "binary",
+      "description": "Ever told you have high cholesterol (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "CholCheck",
+      "kind": "binary",
+      "description": "Cholesterol check within the past 5 years (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "Smoker",
+      "kind": "binary",
+      "description": "Smoked at least 100 cigarettes in lifetime (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "Stroke",
+      "kind": "binary",
+      "description": "Ever told you had a stroke (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "HeartDiseaseorAttack",
+      "kind": "binary",
+      "description": "Coronary heart disease or myocardial infarction (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "PhysActivity",
+      "kind": "binary",
+      "description": "Physical activity in past 30 days, not job-related (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "Fruits",
+      "kind": "binary",
+      "description": "Consumes fruit 1+ times per day (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "Veggies",
+      "kind": "binary",
+      "description": "Consumes vegetables 1+ times per day (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "HvyAlcoholConsump",
+      "kind": "binary",
+      "description": "Heavy alcohol consumption (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "AnyHealthcare",
+      "kind": "binary",
+      "description": "Has any health-care coverage (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "NoDocbcCost",
+      "kind": "binary",
+      "description": "Could not see a doctor in past 12 months because of cost (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "DiffWalk",
+      "kind": "binary",
+      "description": "Serious difficulty walking or climbing stairs (0/1)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    },
+    {
+      "name": "Sex",
+      "kind": "binary",
+      "description": "Sex (0 = female, 1 = male)",
+      "categories": [
+        0.0,
+        1.0
+      ],
+      "n_missing_in_training": 0
+    }
+  ],
+  "feature_order": [
+    "BMI",
+    "MentHlth",
+    "PhysHlth",
+    "GenHlth",
+    "Age",
+    "Education",
+    "Income",
+    "HighBP",
+    "HighChol",
+    "CholCheck",
+    "Smoker",
+    "Stroke",
+    "HeartDiseaseorAttack",
+    "PhysActivity",
+    "Fruits",
+    "Veggies",
+    "HvyAlcoholConsump",
+    "AnyHealthcare",
+    "NoDocbcCost",
+    "DiffWalk",
+    "Sex"
+  ],
+  "spec_notes": "Target: 'Diabetes_binary' where 1 = prediabetes OR diabetes, 0 = neither. Derived from the CDC BRFSS survey (self-reported). Features are health indicators, not laboratory measurements: this module estimates a RISK ASSOCIATION, not a diagnosis. Full imbalanced release (~14% positive), n=253,680. Ordinal survey codes (GenHlth, Age, Education, Income) are modelled as numeric."
+}

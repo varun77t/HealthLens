@@ -20,6 +20,10 @@ Artifacts
     ``base_pipeline.joblib``     the uncalibrated pipeline the SHAP explainer is built on
     ``metadata.json`` / ``MODEL_CARD.md``
 
+After a retrain, run ``python -m scripts.export_serving_assets`` to refresh what the API
+loads (``serving.json``, ``shap_background.joblib``): the operating threshold, the risk
+bands and the feature ranges all move with the model.
+
 Why two pipelines: ``CalibratedClassifierCV`` wraps and refits the base estimator, which
 hides the tree/linear structure SHAP needs. The calibrated wrapper is what produces
 probabilities; the base pipeline is what explains them. Platt/isotonic calibration is a
@@ -302,6 +306,13 @@ def train_disease(
     card_json, card_md = write_model_card(disease, card)
 
     print(f"[{disease}] wrote {pipeline_path} and {card_json}")
+    # The API serves models/<disease>/serving.json, which pins the operating threshold, the
+    # risk bands and the feature ranges. A retrain moves all three, so the export has to be
+    # re-run or the API will serve this model behind the previous one's threshold.
+    # `tests/test_api.py::test_serving_assets_are_in_step_with_the_model_card` fails if it is
+    # forgotten, but the reminder is cheaper than the test failure.
+    print(f"[{disease}] now run `python -m scripts.export_serving_assets` to refresh the "
+          f"API's serving assets")
     return {
         "disease": disease,
         "selected_model": selected,
