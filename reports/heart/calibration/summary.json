@@ -1,0 +1,20 @@
+{
+  "method_applied": "sigmoid",
+  "wrapper_applied": true,
+  "n": 61,
+  "n_bins": 10,
+  "before": {
+    "brier": 0.1003,
+    "ece": 0.12358,
+    "roc_auc": 0.950216
+  },
+  "after": {
+    "brier": 0.089331,
+    "ece": 0.07652,
+    "roc_auc": 0.953463
+  },
+  "delta_brier": -0.010969,
+  "delta_ece": -0.047059,
+  "delta_roc_auc": 0.003247,
+  "note": "Brier and ECE are computed on the held-out test set for reporting. The calibration method itself was chosen on training out-of-fold Brier alone; these figures played no part in that choice."
+}

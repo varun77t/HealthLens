@@ -1,0 +1,437 @@
+{
+  "disease": "diabetes",
+  "test_n": 50961,
+  "attributes_analysed": [
+    "age_band",
+    "sex"
+  ],
+  "attributes_unavailable": [],
+  "reliability_thresholds": {
+    "min_subgroup_n": 20,
+    "min_class_n": 10
+  },
+  "decision_thresholds": {
+    "0.5": 0.5,
+    "operating": 0.1388
+  },
+  "n_subgroups": 6,
+  "n_reliable_subgroups": 6,
+  "disparities": {
+    "sex": {
+      "0.5": {
+        "recall": {
+          "metric": "recall",
+          "n_subgroups": 2,
+          "best_subgroup": "female",
+          "best_value": 0.1471,
+          "best_ci": [
+            0.1361,
+            0.1589
+          ],
+          "worst_subgroup": "male",
+          "worst_value": 0.1457,
+          "worst_ci": [
+            0.1341,
+            0.1581
+          ],
+          "gap": 0.0014,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": true,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "recall: female 0.1471 [0.1361, 0.1589] vs male 0.1457 [0.1341, 0.1581], gap 0.0014. The confidence intervals overlap, so the data is consistent with no difference between these groups. Do not report this as a disparity. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "specificity": {
+          "metric": "specificity",
+          "n_subgroups": 2,
+          "best_subgroup": "female",
+          "best_value": 0.9841,
+          "best_ci": [
+            0.9825,
+            0.9856
+          ],
+          "worst_subgroup": "male",
+          "worst_value": 0.9814,
+          "worst_ci": [
+            0.9793,
+            0.9832
+          ],
+          "gap": 0.0027,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": true,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "specificity: female 0.9841 [0.9825, 0.9856] vs male 0.9814 [0.9793, 0.9832], gap 0.0027. The confidence intervals overlap, so the data is consistent with no difference between these groups. Do not report this as a disparity. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "precision": {
+          "metric": "precision",
+          "n_subgroups": 2,
+          "best_subgroup": "female",
+          "best_value": 0.5791,
+          "best_ci": [
+            0.5474,
+            0.6102
+          ],
+          "worst_subgroup": "female",
+          "worst_value": 0.5791,
+          "worst_ci": [
+            0.5474,
+            0.6102
+          ],
+          "gap": 0.0,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": true,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "precision: female 0.5791 [0.5474, 0.6102] vs female 0.5791 [0.5474, 0.6102], gap 0.0000. The confidence intervals overlap, so the data is consistent with no difference between these groups. Do not report this as a disparity. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "roc_auc": {
+          "metric": "roc_auc",
+          "n_subgroups": 2,
+          "best_subgroup": "female",
+          "best_value": 0.8419,
+          "best_ci": [
+            0.8338,
+            0.8499
+          ],
+          "worst_subgroup": "male",
+          "worst_value": 0.8179,
+          "worst_ci": [
+            0.8088,
+            0.827
+          ],
+          "gap": 0.024,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": false,
+          "threshold_dependent": false,
+          "conclusive": false,
+          "verdict": "roc_auc: female 0.8419 [0.8338, 0.8499] vs male 0.8179 [0.8088, 0.8270], gap 0.0240. The intervals are disjoint, so the difference is statistically clear \u2014 but it is smaller than 0.05, and at this sample size confidence intervals are narrow enough that almost any difference separates. Report it as a measured but small difference, not as a disparity worth acting on."
+        }
+      },
+      "operating": {
+        "recall": {
+          "metric": "recall",
+          "n_subgroups": 2,
+          "best_subgroup": "male",
+          "best_value": 0.8079,
+          "best_ci": [
+            0.7941,
+            0.821
+          ],
+          "worst_subgroup": "female",
+          "worst_value": 0.7899,
+          "worst_ci": [
+            0.7765,
+            0.8026
+          ],
+          "gap": 0.018,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": true,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "recall: male 0.8079 [0.7941, 0.8210] vs female 0.7899 [0.7765, 0.8026], gap 0.0180. The confidence intervals overlap, so the data is consistent with no difference between these groups. Do not report this as a disparity. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "specificity": {
+          "metric": "specificity",
+          "n_subgroups": 2,
+          "best_subgroup": "female",
+          "best_value": 0.7384,
+          "best_ci": [
+            0.7329,
+            0.7438
+          ],
+          "worst_subgroup": "male",
+          "worst_value": 0.6697,
+          "worst_ci": [
+            0.663,
+            0.6764
+          ],
+          "gap": 0.0687,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": true,
+          "verdict": "specificity: female 0.7384 [0.7329, 0.7438] vs male 0.6697 [0.6630, 0.6764], gap 0.0687. The intervals are disjoint and the gap exceeds the practical threshold of 0.05, so this is a real and material difference in how the model performs across these groups. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "precision": {
+          "metric": "precision",
+          "n_subgroups": 2,
+          "best_subgroup": "female",
+          "best_value": 0.3099,
+          "best_ci": [
+            0.3007,
+            0.3193
+          ],
+          "worst_subgroup": "male",
+          "worst_value": 0.3011,
+          "worst_ci": [
+            0.2917,
+            0.3107
+          ],
+          "gap": 0.0088,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": true,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "precision: female 0.3099 [0.3007, 0.3193] vs male 0.3011 [0.2917, 0.3107], gap 0.0088. The confidence intervals overlap, so the data is consistent with no difference between these groups. Do not report this as a disparity. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "roc_auc": {
+          "metric": "roc_auc",
+          "n_subgroups": 2,
+          "best_subgroup": "female",
+          "best_value": 0.8419,
+          "best_ci": [
+            0.8338,
+            0.8499
+          ],
+          "worst_subgroup": "male",
+          "worst_value": 0.8179,
+          "worst_ci": [
+            0.8088,
+            0.827
+          ],
+          "gap": 0.024,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": false,
+          "threshold_dependent": false,
+          "conclusive": false,
+          "verdict": "roc_auc: female 0.8419 [0.8338, 0.8499] vs male 0.8179 [0.8088, 0.8270], gap 0.0240. The intervals are disjoint, so the difference is statistically clear \u2014 but it is smaller than 0.05, and at this sample size confidence intervals are narrow enough that almost any difference separates. Report it as a measured but small difference, not as a disparity worth acting on."
+        }
+      }
+    },
+    "age_band": {
+      "0.5": {
+        "recall": {
+          "metric": "recall",
+          "n_subgroups": 4,
+          "best_subgroup": "50-64",
+          "best_value": 0.1669,
+          "best_ci": [
+            0.1531,
+            0.1817
+          ],
+          "worst_subgroup": "18-34",
+          "worst_value": 0.0084,
+          "worst_ci": [
+            0.0015,
+            0.0461
+          ],
+          "gap": 0.1585,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": true,
+          "verdict": "recall: 50-64 0.1669 [0.1531, 0.1817] vs 18-34 0.0084 [0.0015, 0.0461], gap 0.1585. The intervals are disjoint and the gap exceeds the practical threshold of 0.05, so this is a real and material difference in how the model performs across these groups. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "specificity": {
+          "metric": "specificity",
+          "n_subgroups": 4,
+          "best_subgroup": "18-34",
+          "best_value": 0.9998,
+          "best_ci": [
+            0.9988,
+            1.0
+          ],
+          "worst_subgroup": "65+",
+          "worst_value": 0.972,
+          "worst_ci": [
+            0.9692,
+            0.9746
+          ],
+          "gap": 0.0278,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": false,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "specificity: 18-34 0.9998 [0.9988, 1.0000] vs 65+ 0.9720 [0.9692, 0.9746], gap 0.0278. The intervals are disjoint, so the difference is statistically clear \u2014 but it is smaller than 0.05, and at this sample size confidence intervals are narrow enough that almost any difference separates. Report it as a measured but small difference, not as a disparity worth acting on. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "precision": {
+          "metric": "precision",
+          "n_subgroups": 4,
+          "best_subgroup": "50-64",
+          "best_value": 0.5959,
+          "best_ci": [
+            0.56,
+            0.6308
+          ],
+          "worst_subgroup": "35-49",
+          "worst_value": 0.4857,
+          "worst_ci": [
+            0.3923,
+            0.5801
+          ],
+          "gap": 0.1102,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": true,
+          "statistically_clear": false,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "precision: 50-64 0.5959 [0.5600, 0.6308] vs 35-49 0.4857 [0.3923, 0.5801], gap 0.1102. The confidence intervals overlap, so the data is consistent with no difference between these groups. Do not report this as a disparity. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "roc_auc": {
+          "metric": "roc_auc",
+          "n_subgroups": 4,
+          "best_subgroup": "18-34",
+          "best_value": 0.8583,
+          "best_ci": [
+            0.8156,
+            0.901
+          ],
+          "worst_subgroup": "65+",
+          "worst_value": 0.7683,
+          "worst_ci": [
+            0.7588,
+            0.7778
+          ],
+          "gap": 0.09,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": true,
+          "threshold_dependent": false,
+          "conclusive": true,
+          "verdict": "roc_auc: 18-34 0.8583 [0.8156, 0.9010] vs 65+ 0.7683 [0.7588, 0.7778], gap 0.0900. The intervals are disjoint and the gap exceeds the practical threshold of 0.05, so this is a real and material difference in how the model performs across these groups."
+        }
+      },
+      "operating": {
+        "recall": {
+          "metric": "recall",
+          "n_subgroups": 4,
+          "best_subgroup": "65+",
+          "best_value": 0.8603,
+          "best_ci": [
+            0.8487,
+            0.8712
+          ],
+          "worst_subgroup": "18-34",
+          "worst_value": 0.2689,
+          "worst_ci": [
+            0.1974,
+            0.3549
+          ],
+          "gap": 0.5914,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": true,
+          "verdict": "recall: 65+ 0.8603 [0.8487, 0.8712] vs 18-34 0.2689 [0.1974, 0.3549], gap 0.5914. The intervals are disjoint and the gap exceeds the practical threshold of 0.05, so this is a real and material difference in how the model performs across these groups. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "specificity": {
+          "metric": "specificity",
+          "n_subgroups": 4,
+          "best_subgroup": "18-34",
+          "best_value": 0.9852,
+          "best_ci": [
+            0.9813,
+            0.9883
+          ],
+          "worst_subgroup": "65+",
+          "worst_value": 0.5019,
+          "worst_ci": [
+            0.4937,
+            0.5101
+          ],
+          "gap": 0.4833,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": true,
+          "verdict": "specificity: 18-34 0.9852 [0.9813, 0.9883] vs 65+ 0.5019 [0.4937, 0.5101], gap 0.4833. The intervals are disjoint and the gap exceeds the practical threshold of 0.05, so this is a real and material difference in how the model performs across these groups. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "precision": {
+          "metric": "precision",
+          "n_subgroups": 4,
+          "best_subgroup": "18-34",
+          "best_value": 0.3137,
+          "best_ci": [
+            0.2318,
+            0.4091
+          ],
+          "worst_subgroup": "35-49",
+          "worst_value": 0.2585,
+          "worst_ci": [
+            0.2372,
+            0.2811
+          ],
+          "gap": 0.0552,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": true,
+          "statistically_clear": false,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "precision: 18-34 0.3137 [0.2318, 0.4091] vs 35-49 0.2585 [0.2372, 0.2811], gap 0.0552. The confidence intervals overlap, so the data is consistent with no difference between these groups. Do not report this as a disparity. Note that this metric is computed at a fixed decision threshold, so part of the gap reflects where that cut-off sits relative to each subgroup's score distribution rather than how well the model ranks people within the group; the threshold-free ROC-AUC comparison is the better guide to ranking quality."
+        },
+        "roc_auc": {
+          "metric": "roc_auc",
+          "n_subgroups": 4,
+          "best_subgroup": "18-34",
+          "best_value": 0.8583,
+          "best_ci": [
+            0.8156,
+            0.901
+          ],
+          "worst_subgroup": "65+",
+          "worst_value": 0.7683,
+          "worst_ci": [
+            0.7588,
+            0.7778
+          ],
+          "gap": 0.09,
+          "intervals_disjoint": true,
+          "all_subgroups_reliable": true,
+          "statistically_clear": true,
+          "practically_large": true,
+          "threshold_dependent": false,
+          "conclusive": true,
+          "verdict": "roc_auc: 18-34 0.8583 [0.8156, 0.9010] vs 65+ 0.7683 [0.7588, 0.7778], gap 0.0900. The intervals are disjoint and the gap exceeds the practical threshold of 0.05, so this is a real and material difference in how the model performs across these groups."
+        }
+      }
+    }
+  },
+  "calibration": {
+    "method_applied": "isotonic",
+    "wrapper_applied": true,
+    "n": 50961,
+    "n_bins": 10,
+    "before": {
+      "brier": 0.17358,
+      "ece": 0.235611,
+      "roc_auc": 0.831909
+    },
+    "after": {
+      "brier": 0.095927,
+      "ece": 0.002,
+      "roc_auc": 0.831694
+    },
+    "delta_brier": -0.077652,
+    "delta_ece": -0.233611,
+    "delta_roc_auc": -0.000215,
+    "note": "Brier and ECE are computed on the held-out test set for reporting. The calibration method itself was chosen on training out-of-fold Brier alone; these figures played no part in that choice."
+  }
+}

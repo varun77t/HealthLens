@@ -1,0 +1,20 @@
+{
+  "method_applied": "raw",
+  "wrapper_applied": false,
+  "n": 80,
+  "n_bins": 10,
+  "before": {
+    "brier": 0.012681,
+    "ece": 0.036171,
+    "roc_auc": 0.998667
+  },
+  "after": {
+    "brier": 0.012681,
+    "ece": 0.036171,
+    "roc_auc": 0.998667
+  },
+  "delta_brier": 0.0,
+  "delta_ece": 0.0,
+  "delta_roc_auc": 0.0,
+  "note": "Brier and ECE are computed on the held-out test set for reporting. The calibration method itself was chosen on training out-of-fold Brier alone; these figures played no part in that choice."
+}

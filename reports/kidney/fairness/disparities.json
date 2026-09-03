@@ -1,0 +1,243 @@
+{
+  "disease": "kidney",
+  "test_n": 80,
+  "attributes_analysed": [
+    "age_band"
+  ],
+  "attributes_unavailable": [
+    {
+      "attribute": "sex",
+      "reason": "not recorded in this dataset \u2014 no sex breakdown is possible, and its absence cannot be worked around without inventing data"
+    }
+  ],
+  "reliability_thresholds": {
+    "min_subgroup_n": 20,
+    "min_class_n": 10
+  },
+  "decision_thresholds": {
+    "0.5": 0.5,
+    "operating": 0.5792
+  },
+  "n_subgroups": 4,
+  "n_reliable_subgroups": 0,
+  "disparities": {
+    "age_band": {
+      "0.5": {
+        "recall": {
+          "metric": "recall",
+          "n_subgroups": 4,
+          "best_subgroup": "45-54",
+          "best_value": 1.0,
+          "best_ci": [
+            0.6756,
+            1.0
+          ],
+          "worst_subgroup": "<45",
+          "worst_value": 0.7143,
+          "worst_ci": [
+            0.3589,
+            0.9178
+          ],
+          "gap": 0.2857,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": false,
+          "statistically_clear": false,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "recall: 45-54 1.0000 [0.6756, 1.0000] vs <45 0.7143 [0.3589, 0.9178], gap 0.2857. At least one of these subgroups is below the minimum class counts, so this gap is NOT evidence of a disparity \u2014 and the absence of a gap would not be evidence of equity either. The test set is too small to support any claim about these groups."
+        },
+        "specificity": {
+          "metric": "specificity",
+          "n_subgroups": 4,
+          "best_subgroup": "45-54",
+          "best_value": 1.0,
+          "best_ci": [
+            0.5101,
+            1.0
+          ],
+          "worst_subgroup": "<45",
+          "worst_value": 0.9412,
+          "worst_ci": [
+            0.7302,
+            0.9895
+          ],
+          "gap": 0.0588,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": false,
+          "statistically_clear": false,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "specificity: 45-54 1.0000 [0.5101, 1.0000] vs <45 0.9412 [0.7302, 0.9895], gap 0.0588. At least one of these subgroups is below the minimum class counts, so this gap is NOT evidence of a disparity \u2014 and the absence of a gap would not be evidence of equity either. The test set is too small to support any claim about these groups."
+        },
+        "precision": {
+          "metric": "precision",
+          "n_subgroups": 4,
+          "best_subgroup": "45-54",
+          "best_value": 1.0,
+          "best_ci": [
+            0.6756,
+            1.0
+          ],
+          "worst_subgroup": "<45",
+          "worst_value": 0.8333,
+          "worst_ci": [
+            0.4365,
+            0.9699
+          ],
+          "gap": 0.1667,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": false,
+          "statistically_clear": false,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "precision: 45-54 1.0000 [0.6756, 1.0000] vs <45 0.8333 [0.4365, 0.9699], gap 0.1667. At least one of these subgroups is below the minimum class counts, so this gap is NOT evidence of a disparity \u2014 and the absence of a gap would not be evidence of equity either. The test set is too small to support any claim about these groups."
+        },
+        "roc_auc": {
+          "metric": "roc_auc",
+          "n_subgroups": 4,
+          "best_subgroup": "45-54",
+          "best_value": 1.0,
+          "best_ci": [
+            1.0,
+            1.0
+          ],
+          "worst_subgroup": "<45",
+          "worst_value": 0.9832,
+          "worst_ci": [
+            0.9138,
+            1.0
+          ],
+          "gap": 0.0168,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": false,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": false,
+          "conclusive": false,
+          "verdict": "roc_auc: 45-54 1.0000 [1.0000, 1.0000] vs <45 0.9832 [0.9138, 1.0000], gap 0.0168. At least one of these subgroups is below the minimum class counts, so this gap is NOT evidence of a disparity \u2014 and the absence of a gap would not be evidence of equity either. The test set is too small to support any claim about these groups."
+        }
+      },
+      "operating": {
+        "recall": {
+          "metric": "recall",
+          "n_subgroups": 4,
+          "best_subgroup": "45-54",
+          "best_value": 1.0,
+          "best_ci": [
+            0.6756,
+            1.0
+          ],
+          "worst_subgroup": "<45",
+          "worst_value": 0.7143,
+          "worst_ci": [
+            0.3589,
+            0.9178
+          ],
+          "gap": 0.2857,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": false,
+          "statistically_clear": false,
+          "practically_large": true,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "recall: 45-54 1.0000 [0.6756, 1.0000] vs <45 0.7143 [0.3589, 0.9178], gap 0.2857. At least one of these subgroups is below the minimum class counts, so this gap is NOT evidence of a disparity \u2014 and the absence of a gap would not be evidence of equity either. The test set is too small to support any claim about these groups."
+        },
+        "specificity": {
+          "metric": "specificity",
+          "n_subgroups": 4,
+          "best_subgroup": "45-54",
+          "best_value": 1.0,
+          "best_ci": [
+            0.5101,
+            1.0
+          ],
+          "worst_subgroup": "45-54",
+          "worst_value": 1.0,
+          "worst_ci": [
+            0.5101,
+            1.0
+          ],
+          "gap": 0.0,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": false,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "specificity: 45-54 1.0000 [0.5101, 1.0000] vs 45-54 1.0000 [0.5101, 1.0000], gap 0.0000. At least one of these subgroups is below the minimum class counts, so this gap is NOT evidence of a disparity \u2014 and the absence of a gap would not be evidence of equity either. The test set is too small to support any claim about these groups."
+        },
+        "precision": {
+          "metric": "precision",
+          "n_subgroups": 4,
+          "best_subgroup": "45-54",
+          "best_value": 1.0,
+          "best_ci": [
+            0.6756,
+            1.0
+          ],
+          "worst_subgroup": "45-54",
+          "worst_value": 1.0,
+          "worst_ci": [
+            0.6756,
+            1.0
+          ],
+          "gap": 0.0,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": false,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": true,
+          "conclusive": false,
+          "verdict": "precision: 45-54 1.0000 [0.6756, 1.0000] vs 45-54 1.0000 [0.6756, 1.0000], gap 0.0000. At least one of these subgroups is below the minimum class counts, so this gap is NOT evidence of a disparity \u2014 and the absence of a gap would not be evidence of equity either. The test set is too small to support any claim about these groups."
+        },
+        "roc_auc": {
+          "metric": "roc_auc",
+          "n_subgroups": 4,
+          "best_subgroup": "45-54",
+          "best_value": 1.0,
+          "best_ci": [
+            1.0,
+            1.0
+          ],
+          "worst_subgroup": "<45",
+          "worst_value": 0.9832,
+          "worst_ci": [
+            0.9138,
+            1.0
+          ],
+          "gap": 0.0168,
+          "intervals_disjoint": false,
+          "all_subgroups_reliable": false,
+          "statistically_clear": false,
+          "practically_large": false,
+          "threshold_dependent": false,
+          "conclusive": false,
+          "verdict": "roc_auc: 45-54 1.0000 [1.0000, 1.0000] vs <45 0.9832 [0.9138, 1.0000], gap 0.0168. At least one of these subgroups is below the minimum class counts, so this gap is NOT evidence of a disparity \u2014 and the absence of a gap would not be evidence of equity either. The test set is too small to support any claim about these groups."
+        }
+      }
+    }
+  },
+  "calibration": {
+    "method_applied": "raw",
+    "wrapper_applied": false,
+    "n": 80,
+    "n_bins": 10,
+    "before": {
+      "brier": 0.012681,
+      "ece": 0.036171,
+      "roc_auc": 0.998667
+    },
+    "after": {
+      "brier": 0.012681,
+      "ece": 0.036171,
+      "roc_auc": 0.998667
+    },
+    "delta_brier": 0.0,
+    "delta_ece": 0.0,
+    "delta_roc_auc": 0.0,
+    "note": "Brier and ECE are computed on the held-out test set for reporting. The calibration method itself was chosen on training out-of-fold Brier alone; these figures played no part in that choice."
+  }
+}

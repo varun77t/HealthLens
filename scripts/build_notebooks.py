@@ -373,6 +373,151 @@ candidates, and each would have to pass this same independence check first.
     ("code", """display(Markdown(Path("reports/heart/EXTERNAL_VALIDATION.md").read_text(encoding="utf-8")))"""),
 ]
 
+FAIRNESS_CELLS = [
+    ("markdown", """# Calibration & Subgroup Performance
+
+> **For research and educational purposes only.** This notebook describes how three models
+> behaved on their held-out test sets. It is not an audit, and nothing here establishes
+> that any model is fair or safe to use.
+
+Reads the artifacts written by
+
+```
+python -m scripts.fairness_report
+```
+
+Two questions:
+
+1. **Calibration** — when the model says 0.30, do 30% of such people actually have the
+   outcome? Measured before and after the calibration wrapper.
+2. **Subgroups** — does performance differ by sex or age band, and is any observed gap
+   larger than sampling noise *and* large enough to matter?
+
+**The honest answer differs sharply by dataset.** Diabetes has 50,961 test rows and
+supports real conclusions. Heart has 61 and kidney 80 — there, the correct output is
+"not estimable", and this notebook shows what that looks like rather than hiding it.
+"""),
+    ("code", """import sys, os
+_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
+if _root not in sys.path:
+    sys.path.insert(0, _root)
+os.chdir(_root)
+
+import json
+from pathlib import Path
+
+import pandas as pd
+from IPython.display import Image, Markdown, display
+
+pd.set_option("display.max_columns", 60)
+pd.set_option("display.width", 200)
+
+DISEASES = ["heart", "kidney", "diabetes"]
+reports = {d: json.loads(Path(f"reports/{d}/fairness/disparities.json").read_text(encoding="utf-8"))
+           for d in DISEASES}
+subgroups = {d: pd.read_csv(f"reports/{d}/fairness/subgroups.csv") for d in DISEASES}
+
+pd.DataFrame([{
+    "disease": d,
+    "test_n": r["test_n"],
+    "attributes": ", ".join(r["attributes_analysed"]),
+    "reliable_subgroups": f"{r['n_reliable_subgroups']}/{r['n_subgroups']}",
+} for d, r in reports.items()])
+"""),
+    ("markdown", """## 1. Calibration — before and after
+
+Brier mixes calibration with discrimination. **ECE** (expected calibration error) isolates
+the calibration part: within each bin of predicted probability, how far is the average
+prediction from the observed frequency.
+
+Read them together — ECE alone is blind to ranking, so a model predicting the base rate for
+everybody would score a near-perfect ECE while being useless.
+"""),
+    ("code", """rows = []
+for d in DISEASES:
+    c = json.loads(Path(f"reports/{d}/calibration/summary.json").read_text(encoding="utf-8"))
+    rows.append({
+        "disease": d, "method": c["method_applied"],
+        "brier_before": c["before"]["brier"], "brier_after": c["after"]["brier"],
+        "ece_before": c["before"]["ece"], "ece_after": c["after"]["ece"],
+        "delta_roc_auc": c["delta_roc_auc"],
+    })
+display(pd.DataFrame(rows).set_index("disease"))
+print("kidney shows no change because 'raw' was selected - the base model was already the")
+print("best-calibrated option on training out-of-fold Brier. That is a result, not a bug.")
+"""),
+    ("code", """for d in DISEASES:
+    png = Path(f"reports/{d}/figures/calibration_before_after.png")
+    if png.exists():
+        display(Image(filename=str(png)))
+"""),
+    ("markdown", """## 2. Where subgroup analysis is possible — and where it is not
+
+A subgroup is **reliable** only with at least 20 rows, 10 positives and 10 negatives.
+Rates carry Wilson 95% intervals; ROC-AUC carries a Hanley-McNeil interval.
+"""),
+    ("code", """cols = ["attribute", "subgroup", "n", "n_positive", "n_negative",
+        "recall", "recall_lo", "recall_hi", "roc_auc", "reliable"]
+for d in DISEASES:
+    t = subgroups[d]
+    t = t[t.threshold_name == "0.5"]
+    display(Markdown(f"**{d}** (test n={reports[d]['test_n']})"))
+    display(t[cols])
+"""),
+    ("markdown", """### What the heart table shows
+
+Three of heart's age bands report a recall of **1.0000** — with Wilson intervals like
+[0.44, 1.00]. Those are not estimates; they are one, three or four patients. The `reliable`
+column is what stops them being read as a finding.
+
+Note the trap in both directions: a *small* gap on this table would be equally worthless as
+evidence of equity. Too little data to show a disparity is not the same as evidence there
+isn't one.
+"""),
+    ("markdown", """## 3. Disparity verdicts
+
+A gap is a **material difference** only if it clears two bars: the intervals are disjoint
+(not noise) *and* the gap is at least 0.05 (large enough to matter). The second bar exists
+because with 50,961 rows almost any difference becomes statistically detectable.
+"""),
+    ("code", """rows = []
+for d in DISEASES:
+    for attr, per_threshold in reports[d]["disparities"].items():
+        for tname, per_metric in per_threshold.items():
+            for metric, x in per_metric.items():
+                if x.get("n_subgroups", 0) < 2:
+                    continue
+                rows.append({
+                    "disease": d, "attribute": attr, "threshold": tname, "metric": metric,
+                    "gap": x.get("gap"),
+                    "disjoint": x.get("intervals_disjoint"),
+                    "reliable": x.get("all_subgroups_reliable"),
+                    "material": x.get("conclusive"),
+                })
+verdicts = pd.DataFrame(rows)
+display(verdicts)
+print("material differences found:", int(verdicts["material"].sum()))
+"""),
+    ("markdown", """## 4. The threshold artifact
+
+Rate metrics are shown at two cut-offs: 0.5 and each model's sensitivity-oriented
+threshold. Compare how much the subgroup gaps move.
+
+ROC-AUC is threshold-free and does **not** move. The gap between how far the rate metrics
+shift and how far ROC-AUC shifts (zero) measures how much a threshold-based subgroup
+comparison is telling you about the cut-off rather than the model.
+"""),
+    ("code", """t = subgroups["diabetes"]
+t = t[t.attribute == "age_band"]
+display(t.pivot(index="subgroup", columns="threshold_name",
+                values=["recall", "specificity", "roc_auc"]).round(4))
+"""),
+    ("markdown", """## 5. Full write-ups"""),
+    ("code", """for d in DISEASES:
+    display(Markdown(Path(f"reports/{d}/fairness/FAIRNESS.md").read_text(encoding="utf-8")))
+"""),
+]
+
 DISEASE_LABELS = {
     "heart": "Heart Disease Presence Prediction",
     "kidney": "Chronic Kidney Disease Presence Prediction",
@@ -404,16 +549,24 @@ def build_training_notebook(disease: str, label: str) -> None:
     _build(TRAINING_CELLS, disease, label, "training")
 
 
-def build_external_validation_notebook() -> None:
+def _build_standalone(cells, filename: str) -> None:
     nb = nbf.v4.new_notebook()
     nb.metadata["kernelspec"] = {"name": "medicl", "display_name": "Python (medicl)", "language": "python"}
     nb["cells"] = [
         nbf.v4.new_markdown_cell(src) if kind == "markdown" else nbf.v4.new_code_cell(src)
-        for kind, src in EXTERNAL_CELLS
+        for kind, src in cells
     ]
-    path = NOTEBOOKS_DIR / "external_validation.ipynb"
+    path = NOTEBOOKS_DIR / filename
     nbf.write(nb, path)
     print(f"wrote {path}")
+
+
+def build_external_validation_notebook() -> None:
+    _build_standalone(EXTERNAL_CELLS, "external_validation.ipynb")
+
+
+def build_fairness_notebook() -> None:
+    _build_standalone(FAIRNESS_CELLS, "calibration_fairness.ipynb")
 
 
 def main() -> None:
@@ -429,6 +582,11 @@ def main() -> None:
         build_external_validation_notebook()
     else:
         print("skipping external_validation.ipynb (not run yet)")
+
+    if all((REPORTS_DIR / d / "fairness" / "disparities.json").exists() for d in DISEASE_LABELS):
+        build_fairness_notebook()
+    else:
+        print("skipping calibration_fairness.ipynb (run scripts.fairness_report first)")
 
 
 if __name__ == "__main__":

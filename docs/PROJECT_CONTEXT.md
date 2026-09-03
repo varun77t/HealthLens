@@ -1,6 +1,6 @@
 # Project Context — Multi-Disease AI
 
-_State as of Phase 6 complete. Last updated 2026-09-02._
+_State as of Phase 7 complete. Last updated 2026-09-03._
 
 Orientation document: what this project is, what has been built, what every number in it
 actually means, and what happens next. For the full phase-by-phase build log see
@@ -53,16 +53,18 @@ recommendation, or that someone will develop a disease.
 | 4 | **Kidney** model end-to-end | ✅ trained |
 | 5 | **Diabetes** model end-to-end | ✅ trained |
 | 6 | External validation (Heart → Statlog) | ✅ complete — **attempted and rejected**, see §7a |
-| 7 | Calibration + fairness subgroup analysis | ⬜ **next** |
-| 8 | FastAPI backend | ⬜ |
+| 7 | Calibration + fairness subgroup analysis | ✅ complete — see §7b |
+| 8 | FastAPI backend | ⬜ **next** |
 | — | React frontend, CNN/Grad-CAM imaging | deferred (planned, not built) |
 
-**Verification:** `python -m pytest -q` → **145 passed, 0 skipped** (66 s). All three
-training notebooks execute 18/18 cells and `external_validation.ipynb` 7/7, with no errors.
+**Verification:** `python -m pytest -q` → **170 passed, 0 skipped** (73 s). All notebooks
+execute end-to-end with no errors: three training notebooks 18/18 cells each,
+`external_validation.ipynb` 7/7, `calibration_fairness.ipynb` 7/7.
 
 **Commit lineage:** `e3a06b4` (venv isolation) → `f2a68a4` (docs) → `3b0ffde` (Phase 2) →
 `dd02dd8` (Phase 3, heart) → `8f1a968` (Phase 4, kidney) → `056ea2d` (Phase 5, diabetes) →
-`77c5d45` (docs) → **Phase 6 (external validation rejected)**.
+`77c5d45` (docs) → `4751953` (Phase 6, external validation rejected) →
+**Phase 7 (calibration + subgroup performance)**.
 
 ---
 
@@ -374,6 +376,92 @@ correct one.
 
 ---
 
+## 7b. Phase 7 — calibration and subgroup performance
+
+`python -m scripts.fairness_report`. Reads the shipped pipelines; trains nothing.
+
+### Calibration: before → after, on the test set
+
+| disease | wrapper | Brier | ECE | Δ ROC-AUC |
+|---|---|---|---|---|
+| heart | sigmoid | 0.1003 → 0.0893 (−0.0110) | 0.1236 → 0.0765 (−0.0471) | +0.0032 |
+| kidney | raw | 0.0127 → 0.0127 (0.0000) | 0.0362 → 0.0362 (0.0000) | 0.0000 |
+| diabetes | isotonic | 0.1736 → **0.0959** (−0.0777) | 0.2356 → **0.0020** (−0.2336) | −0.0002 |
+
+**ECE** (expected calibration error, 10 bins) isolates calibration where Brier mixes it
+with discrimination. It is reported *next to* Brier, never instead: ECE is blind to
+ranking, so a model predicting the base rate for everyone scores near-perfectly.
+
+The diabetes row explains the Phase 5 threshold finding directly. The raw class-weighted
+XGBoost had **ECE 0.2356** — `scale_pos_weight` inflates scores, so the probabilities were
+badly overconfident. Isotonic cut that by ~117×, which is *why* calibrated probabilities
+stopped crossing 0.5 at 13.8% prevalence. Kidney shows exactly zero change because `raw`
+was selected; the columns are identical by construction, which is a result, not a bug.
+
+### Subgroups: what each dataset can actually support
+
+| disease | test n | attributes | reliable subgroups |
+|---|---|---|---|
+| heart | 61 | sex, age_band | **1 / 6** |
+| kidney | 80 | age_band only (**no sex variable recorded**) | **0 / 4** |
+| diabetes | 50,961 | sex, age_band | 6 / 6 |
+
+A subgroup is *reliable* only with ≥20 rows, ≥10 positives and ≥10 negatives. Rates carry
+**Wilson 95% intervals**, ROC-AUC a **Hanley–McNeil** interval.
+
+**Heart and kidney support no subgroup claims at all.** Three of heart's four age bands
+report recall of exactly **1.0000** — with intervals like [0.4385, 1.0000], because they
+rest on three or four patients. Heart's female subgroup is 20 people, 7 positive. Every
+comparison there returns *inconclusive*, and a regression test asserts none is ever
+reported otherwise.
+
+The symmetric trap is stated explicitly in every write-up: **too little data to show a
+disparity is not evidence there isn't one.** A small gap on these tables is as worthless
+as a large one.
+
+### Two bars, because there are two ways to over-read a gap
+
+A gap is a **material difference** only if the intervals are disjoint *and* the gap is
+≥ `PRACTICAL_GAP = 0.05`. The second bar exists because at n=50,961 the intervals get
+narrow enough that almost anything separates — the large-sample mirror of the small-sample
+problem. The diabetes sex ROC-AUC gap (0.8419 female vs 0.8179 male, **0.0240**) is
+statistically clear and correctly reported as *small, not material*.
+
+### Diabetes findings that do hold
+
+Reported at **both** threshold 0.5 and the operating threshold 0.1388, because rate metrics
+at a fixed cut-off partly measure where that cut-off sits, not ranking quality:
+
+| age band | n | ROC-AUC | recall @0.5 | recall @0.1388 | specificity @0.1388 |
+|---|---|---|---|---|---|
+| 18-34 | 4,848 | **0.8583** | 0.0084 | 0.2689 | 0.9852 |
+| 35-49 | 10,111 | 0.8535 | 0.0791 | 0.6109 | 0.8806 |
+| 50-64 | 18,110 | 0.8241 | 0.1669 | 0.7820 | 0.7099 |
+| 65+ | 17,892 | **0.7683** | 0.1481 | 0.8603 | 0.5019 |
+
+1. **Discrimination declines monotonically with age** — 0.8583 → 0.7683, gap **0.0900**,
+   intervals disjoint. This is threshold-free and identical at both cut-offs, so it is the
+   robust finding: the model ranks older respondents less well.
+2. **A single global threshold produces completely different error profiles by age.** At
+   0.1388 the 65+ band gets recall 0.860 / specificity 0.502 while 18-34 gets recall 0.269
+   / specificity 0.985. Age is a strong predictor, so one cut-off is effectively a
+   different operating point for each group. This is the practically important result.
+3. The recall gap swings from 0.1585 at threshold 0.5 to **0.5914** at 0.1388 — reporting
+   only one threshold would have badly misrepresented it.
+
+**Caveat recorded on the age analysis:** age is itself one of the model's strongest
+features, so within-band ROC-AUC removes most of that feature's variance and is not
+directly comparable to the overall 0.8317. Band-to-band comparison stays meaningful, but
+the bands span different widths of the underlying range.
+
+### Nothing here says any model is fair
+
+Only sex and age are available, the labels carry their own measurement bias (diabetes
+records who has *been told* they have diabetes), and parity on two attributes says nothing
+about who a model harms. The word "fair" appears nowhere in the generated reports.
+
+---
+
 ## 8. Known limitations (per module)
 
 ### Heart (n = 303, test n = 61)
@@ -450,29 +538,34 @@ correct one.
 
 ---
 
-## 10. Next step — Phase 7: Calibration + fairness subgroup analysis
+## 10. Next step — Phase 8: FastAPI backend
 
-1. **Calibration** — the per-disease wrapper is already selected and shipped (§5). Phase 7
-   finalises the reporting: store calibration curves and pre/post Brier in
-   `reports/<disease>/calibration/`, which already holds the selection and test tables.
-2. **Fairness** — build `ml/fairness/subgroup_metrics.py`: recall, specificity, precision
-   and ROC-AUC broken down by **sex** (heart, diabetes) and **age bands** (all three).
-   Output `reports/<disease>/fairness/subgroups.csv` plus notes.
+Serve the three models. No model training in the request path, ever.
 
-Constraints to hold to:
+**Endpoints:** `POST /predict/{heart,kidney,diabetes}`, `GET /models` (the three cards),
+`GET /analytics/{disease}` (saved metrics + comparison + figure URLs),
+`POST /scenario/{disease}`, `GET /health`.
 
-- **Never label a model "fair".** Report disparities and their uncertainty.
-- Subgroup sample sizes are brutal: heart's test set is 61 patients total, kidney's is 80.
-  A per-sex or per-age-band estimate there rests on single-digit counts and must carry that
-  caveat prominently — or be reported as not estimable. Diabetes (50,961 test rows) is the
-  only module where subgroup metrics will be stable.
-- Kidney has no sex variable → age bands only.
-- The same discipline as every prior phase: if a subgroup result is too noisy to mean
-  anything, say so rather than publishing a number that looks like a finding.
+**Structure:** `backend/schemas/` one pydantic model per disease mirroring that disease's
+own feature form, with `Field(ge=, le=)` ranges from its feature dictionary;
+`backend/services/prediction_service.py` loading all pipelines **once at startup**;
+`backend/routes/`; `backend/main.py` with CORS for local dev and the disclaimer in the
+OpenAPI description.
 
-Do **not** force external validation for kidney or diabetes — no compatible dataset exists,
-and inventing one would violate §1. Any future candidate must first pass
-`ml.external.dataset_overlap.dataset_overlap()`.
+Carry these findings into the API rather than rediscovering them:
+
+1. **Risk bands are broken for diabetes** (§9.1). Decide before shipping: per-disease
+   quantile bands, prevalence-relative bands, or a percentile instead of a band.
+2. **Do not default to threshold 0.5 for diabetes.** It recovers 14.6% of positives. Serve
+   the probability plus the recorded operating threshold, and label which is which.
+3. **Kidney SHAP is `KernelExplainer`** — slow per call. Precompute, cache, or accept it.
+4. **No module has external validation** (§7a). The API must not imply otherwise.
+5. **Age-dependent error profiles** (§7b) mean a single global threshold behaves very
+   differently across age bands. If the API exposes a threshold, this belongs next to it.
+6. Every response carries `DISCLAIMER`, and `/scenario` results must be labelled
+   *illustrative model behaviour*, never a prediction of real medical risk.
+
+**Deferred beyond this pass:** React frontend, CNN/Grad-CAM imaging module.
 
 ---
 
@@ -494,8 +587,10 @@ ml/evaluation/diagnostics.py  missingness probe, duplicate-label ceiling, operat
 ml/explainability/            DiseaseExplainer (tree/linear/kernel dispatch), plots
 ml/external/dataset_overlap.py  independence + schema checks   (Phase 6, reusable)
 ml/external/heart_statlog.py    the rejected validation attempt (Phase 6)
+ml/fairness/subgroup_metrics.py Wilson/Hanley-McNeil intervals, disparity verdicts (Phase 7)
 ml/model_card.py              metadata.json + MODEL_CARD.md
 scripts/train_{heart,kidney,diabetes}.py    entry points
+scripts/fairness_report.py    Phase 7 subgroup + calibration reporting
 models/<disease>/             pipeline.joblib, base_pipeline.joblib, metadata.json, MODEL_CARD.md
 reports/<disease>/            metrics.json, model_comparison.csv, SELECTION.md, figures/, ...
 ```
