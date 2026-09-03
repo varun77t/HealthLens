@@ -48,9 +48,9 @@
   },
   "explainer": {
     "kind": "tree",
-    "init_seconds": 0.484,
-    "explain_one_median_ms": 48.0,
-    "explain_one_max_ms": 62.5,
+    "init_seconds": 0.298,
+    "explain_one_median_ms": 35.0,
+    "explain_one_max_ms": 37.4,
     "n_timed_calls": 5,
     "background_rows": 200
   },
@@ -65,7 +65,14 @@
       "observed_median": 27.0,
       "hard_min": 0.0,
       "hard_max": 184.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Body Mass Index",
+      "group": "vitals",
+      "options": null,
+      "shap_rank": 3,
+      "shap_mean_abs": 0.4146813452243805,
+      "shap_mass_share": 0.13931508100547932,
+      "tier": "core"
     },
     {
       "name": "MentHlth",
@@ -76,7 +83,14 @@
       "observed_median": 0.0,
       "hard_min": 0.0,
       "hard_max": 60.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Days of poor mental health in the last 30",
+      "group": "wellbeing",
+      "options": null,
+      "shap_rank": 11,
+      "shap_mean_abs": 0.05724096670746803,
+      "shap_mass_share": 0.019230500733925963,
+      "tier": "optional"
     },
     {
       "name": "PhysHlth",
@@ -87,7 +101,14 @@
       "observed_median": 0.0,
       "hard_min": 0.0,
       "hard_max": 60.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Days of poor physical health in the last 30",
+      "group": "wellbeing",
+      "options": null,
+      "shap_rank": 15,
+      "shap_mean_abs": 0.026236023753881454,
+      "shap_mass_share": 0.008814174586406692,
+      "tier": "optional"
     },
     {
       "name": "GenHlth",
@@ -98,7 +119,35 @@
       "observed_median": 2.0,
       "hard_min": 0.0,
       "hard_max": 9.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "In general, your health is",
+      "group": "wellbeing",
+      "options": [
+        {
+          "value": 1.0,
+          "label": "Excellent"
+        },
+        {
+          "value": 2.0,
+          "label": "Very good"
+        },
+        {
+          "value": 3.0,
+          "label": "Good"
+        },
+        {
+          "value": 4.0,
+          "label": "Fair"
+        },
+        {
+          "value": 5.0,
+          "label": "Poor"
+        }
+      ],
+      "shap_rank": 1,
+      "shap_mean_abs": 0.6533771753311157,
+      "shap_mass_share": 0.2195066046656443,
+      "tier": "core"
     },
     {
       "name": "Age",
@@ -109,7 +158,67 @@
       "observed_median": 8.0,
       "hard_min": 0.0,
       "hard_max": 25.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Age group",
+      "group": "about_you",
+      "options": [
+        {
+          "value": 1.0,
+          "label": "18-24"
+        },
+        {
+          "value": 2.0,
+          "label": "25-29"
+        },
+        {
+          "value": 3.0,
+          "label": "30-34"
+        },
+        {
+          "value": 4.0,
+          "label": "35-39"
+        },
+        {
+          "value": 5.0,
+          "label": "40-44"
+        },
+        {
+          "value": 6.0,
+          "label": "45-49"
+        },
+        {
+          "value": 7.0,
+          "label": "50-54"
+        },
+        {
+          "value": 8.0,
+          "label": "55-59"
+        },
+        {
+          "value": 9.0,
+          "label": "60-64"
+        },
+        {
+          "value": 10.0,
+          "label": "65-69"
+        },
+        {
+          "value": 11.0,
+          "label": "70-74"
+        },
+        {
+          "value": 12.0,
+          "label": "75-79"
+        },
+        {
+          "value": 13.0,
+          "label": "80 or older"
+        }
+      ],
+      "shap_rank": 4,
+      "shap_mean_abs": 0.4042159914970398,
+      "shap_mass_share": 0.13579917266027378,
+      "tier": "core"
     },
     {
       "name": "Education",
@@ -120,7 +229,39 @@
       "observed_median": 5.0,
       "hard_min": 0.0,
       "hard_max": 11.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Highest level of education",
+      "group": "about_you",
+      "options": [
+        {
+          "value": 1.0,
+          "label": "Never attended school or only kindergarten"
+        },
+        {
+          "value": 2.0,
+          "label": "Grades 1-8 (elementary)"
+        },
+        {
+          "value": 3.0,
+          "label": "Grades 9-11 (some high school)"
+        },
+        {
+          "value": 4.0,
+          "label": "Grade 12 or GED (high school graduate)"
+        },
+        {
+          "value": 5.0,
+          "label": "College 1-3 years (some college or technical school)"
+        },
+        {
+          "value": 6.0,
+          "label": "College 4 years or more (college graduate)"
+        }
+      ],
+      "shap_rank": 13,
+      "shap_mean_abs": 0.048714324831962585,
+      "shap_mass_share": 0.01636591611426337,
+      "tier": "optional"
     },
     {
       "name": "Income",
@@ -131,7 +272,47 @@
       "observed_median": 7.0,
       "hard_min": 0.0,
       "hard_max": 15.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Annual household income",
+      "group": "about_you",
+      "options": [
+        {
+          "value": 1.0,
+          "label": "Less than $10,000"
+        },
+        {
+          "value": 2.0,
+          "label": "Less than $15,000"
+        },
+        {
+          "value": 3.0,
+          "label": "Less than $20,000"
+        },
+        {
+          "value": 4.0,
+          "label": "Less than $25,000"
+        },
+        {
+          "value": 5.0,
+          "label": "Less than $35,000"
+        },
+        {
+          "value": 6.0,
+          "label": "Less than $50,000"
+        },
+        {
+          "value": 7.0,
+          "label": "Less than $75,000"
+        },
+        {
+          "value": 8.0,
+          "label": "$75,000 or more"
+        }
+      ],
+      "shap_rank": 6,
+      "shap_mean_abs": 0.13972127437591553,
+      "shap_mass_share": 0.04694033354053334,
+      "tier": "core"
     },
     {
       "name": "HighBP",
@@ -141,7 +322,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Ever told you have high blood pressure",
+      "group": "history",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 2,
+      "shap_mean_abs": 0.44366586208343506,
+      "shap_mass_share": 0.14905263095950233,
+      "tier": "core"
     },
     {
       "name": "HighChol",
@@ -151,7 +348,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Ever told you have high cholesterol",
+      "group": "history",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 5,
+      "shap_mean_abs": 0.2980566918849945,
+      "shap_mass_share": 0.1001342178817208,
+      "tier": "core"
     },
     {
       "name": "CholCheck",
@@ -161,7 +374,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Cholesterol checked in the last 5 years",
+      "group": "history",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 8,
+      "shap_mean_abs": 0.0715220719575882,
+      "shap_mass_share": 0.02402833733227047,
+      "tier": "optional"
     },
     {
       "name": "Smoker",
@@ -171,7 +400,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Smoked at least 100 cigarettes in your life",
+      "group": "lifestyle",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 17,
+      "shap_mean_abs": 0.016155922785401344,
+      "shap_mass_share": 0.00542769458401508,
+      "tier": "optional"
     },
     {
       "name": "Stroke",
@@ -181,7 +426,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Ever told you had a stroke",
+      "group": "history",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 16,
+      "shap_mean_abs": 0.018984835594892502,
+      "shap_mass_share": 0.006378087510416071,
+      "tier": "optional"
     },
     {
       "name": "HeartDiseaseorAttack",
@@ -191,7 +452,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Ever told you had coronary heart disease or a heart attack",
+      "group": "history",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 9,
+      "shap_mean_abs": 0.06736679375171661,
+      "shap_mass_share": 0.022632342729383116,
+      "tier": "optional"
     },
     {
       "name": "PhysActivity",
@@ -201,7 +478,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Physical activity in the last 30 days, not job-related",
+      "group": "lifestyle",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 19,
+      "shap_mean_abs": 0.01274309866130352,
+      "shap_mass_share": 0.004281132591821106,
+      "tier": "optional"
     },
     {
       "name": "Fruits",
@@ -211,7 +504,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Eat fruit at least once a day",
+      "group": "lifestyle",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 14,
+      "shap_mean_abs": 0.026786673814058304,
+      "shap_mass_share": 0.00899916930252468,
+      "tier": "optional"
     },
     {
       "name": "Veggies",
@@ -221,7 +530,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Eat vegetables at least once a day",
+      "group": "lifestyle",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 18,
+      "shap_mean_abs": 0.012950182892382145,
+      "shap_mass_share": 0.004350703979007732,
+      "tier": "optional"
     },
     {
       "name": "HvyAlcoholConsump",
@@ -231,7 +556,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Heavy alcohol consumption",
+      "group": "lifestyle",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 10,
+      "shap_mean_abs": 0.06520513445138931,
+      "shap_mass_share": 0.02190611825847427,
+      "tier": "optional"
     },
     {
       "name": "AnyHealthcare",
@@ -241,7 +582,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Have any health-care coverage",
+      "group": "healthcare_access",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 20,
+      "shap_mean_abs": 0.0073413182981312275,
+      "shap_mass_share": 0.002466366922866412,
+      "tier": "optional"
     },
     {
       "name": "NoDocbcCost",
@@ -251,7 +608,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Could not see a doctor in the last year because of cost",
+      "group": "healthcare_access",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 21,
+      "shap_mean_abs": 0.0071578375063836575,
+      "shap_mass_share": 0.002404725275226268,
+      "tier": "optional"
     },
     {
       "name": "DiffWalk",
@@ -261,7 +634,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Serious difficulty walking or climbing stairs",
+      "group": "symptoms",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 12,
+      "shap_mean_abs": 0.049688950181007385,
+      "shap_mass_share": 0.016693348276370156,
+      "tier": "optional"
     },
     {
       "name": "Sex",
@@ -271,7 +660,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Sex",
+      "group": "about_you",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "Female"
+        },
+        {
+          "value": 1.0,
+          "label": "Male"
+        }
+      ],
+      "shap_rank": 7,
+      "shap_mean_abs": 0.1347593516111374,
+      "shap_mass_share": 0.045273341089874734,
+      "tier": "core"
     }
   ],
   "feature_order": [
@@ -297,5 +702,51 @@
     "DiffWalk",
     "Sex"
   ],
+  "groups": [
+    {
+      "id": "about_you",
+      "label": "About you",
+      "help": "Basic details. No report needed.",
+      "order": 1
+    },
+    {
+      "id": "vitals",
+      "label": "Vitals and measurements",
+      "help": "Blood pressure, height and weight \u2014 from a clinic visit or measured at home.",
+      "order": 2
+    },
+    {
+      "id": "symptoms",
+      "label": "Symptoms and clinical signs",
+      "help": "What you or a clinician have observed. No report needed.",
+      "order": 3
+    },
+    {
+      "id": "history",
+      "label": "Your medical history",
+      "help": "Conditions you have previously been told you have.",
+      "order": 4
+    },
+    {
+      "id": "wellbeing",
+      "label": "General wellbeing",
+      "help": "How you would describe your own health recently.",
+      "order": 10
+    },
+    {
+      "id": "lifestyle",
+      "label": "Lifestyle",
+      "help": "Everyday habits.",
+      "order": 11
+    },
+    {
+      "id": "healthcare_access",
+      "label": "Healthcare access",
+      "help": "Your access to care. Asked because the training survey asked it.",
+      "order": 12
+    }
+  ],
+  "value_label_source": "Cached UCI variable metadata (data/raw/diabetes/diabetes_variables.csv) states the GenHlth and Education codings in full, and gives anchor levels for Age (1 = 18-24, 9 = 60-64, 13 = 80 or older) and Income (1 = <$10,000, 5 = <$35,000, 8 = $75,000+). The Age labels follow from those anchors, which fix the five-year banding. The intermediate Income levels (2, 3, 4, 6, 7) are NOT stated in that metadata; they follow the BRFSS INCOME2 codebook and are consistent with all three anchors, but are not independently verified here.",
+  "tier_note": "`tier` splits the fields by measured importance: 'core' is the smallest set of features covering the first 80% of this model's total mean |SHAP|, ranked by `shap_rank`. It is a presentation aid for shortening a long form, not a claim that the optional fields are unused \u2014 the model consumes every field it is given. `shap_mass_share` is each field's share of that total and is what a coverage meter should sum.",
   "spec_notes": "Target: 'Diabetes_binary' where 1 = prediabetes OR diabetes, 0 = neither. Derived from the CDC BRFSS survey (self-reported). Features are health indicators, not laboratory measurements: this module estimates a RISK ASSOCIATION, not a diagnosis. Full imbalanced release (~14% positive), n=253,680. Ordinal survey codes (GenHlth, Age, Education, Income) are modelled as numeric."
 }

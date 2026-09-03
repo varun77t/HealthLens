@@ -48,9 +48,9 @@
   },
   "explainer": {
     "kind": "kernel",
-    "init_seconds": 2.935,
-    "explain_one_median_ms": 809.1,
-    "explain_one_max_ms": 843.6,
+    "init_seconds": 2.357,
+    "explain_one_median_ms": 615.6,
+    "explain_one_max_ms": 667.0,
     "n_timed_calls": 5,
     "background_rows": 200
   },
@@ -65,7 +65,14 @@
       "observed_median": 54.0,
       "hard_min": 0.0,
       "hard_max": 178.0,
-      "n_missing_in_training": 8
+      "n_missing_in_training": 8,
+      "label": "Age",
+      "group": "about_you",
+      "options": null,
+      "shap_rank": 16,
+      "shap_mean_abs": 0.002540067883369693,
+      "shap_mass_share": 0.005456397396281102,
+      "tier": "optional"
     },
     {
       "name": "bp",
@@ -76,7 +83,14 @@
       "observed_median": 80.0,
       "hard_min": 0.0,
       "hard_max": 310.0,
-      "n_missing_in_training": 11
+      "n_missing_in_training": 11,
+      "label": "Blood pressure (diastolic)",
+      "group": "vitals",
+      "options": null,
+      "shap_rank": 12,
+      "shap_mean_abs": 0.01259816217598202,
+      "shap_mass_share": 0.027062496929713173,
+      "tier": "optional"
     },
     {
       "name": "sg",
@@ -87,7 +101,14 @@
       "observed_median": 1.02,
       "hard_min": 0.9849999999999999,
       "hard_max": 1.045,
-      "n_missing_in_training": 41
+      "n_missing_in_training": 41,
+      "label": "Urine specific gravity",
+      "group": "urine_test",
+      "options": null,
+      "shap_rank": 1,
+      "shap_mean_abs": 0.07625109842309814,
+      "shap_mass_share": 0.16379731330149336,
+      "tier": "core"
     },
     {
       "name": "al",
@@ -98,7 +119,14 @@
       "observed_median": 0.0,
       "hard_min": 0.0,
       "hard_max": 10.0,
-      "n_missing_in_training": 40
+      "n_missing_in_training": 40,
+      "label": "Albumin in urine",
+      "group": "urine_test",
+      "options": null,
+      "shap_rank": 4,
+      "shap_mean_abs": 0.048071111433558966,
+      "shap_mass_share": 0.1032630226064845,
+      "tier": "core"
     },
     {
       "name": "su",
@@ -109,7 +137,14 @@
       "observed_median": 0.0,
       "hard_min": 0.0,
       "hard_max": 10.0,
-      "n_missing_in_training": 42
+      "n_missing_in_training": 42,
+      "label": "Sugar in urine",
+      "group": "urine_test",
+      "options": null,
+      "shap_rank": 11,
+      "shap_mean_abs": 0.013991736400222382,
+      "shap_mass_share": 0.03005607628184534,
+      "tier": "optional"
     },
     {
       "name": "bgr",
@@ -120,7 +155,14 @@
       "observed_median": 120.5,
       "hard_min": 0.0,
       "hard_max": 958.0,
-      "n_missing_in_training": 38
+      "n_missing_in_training": 38,
+      "label": "Random blood glucose",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 7,
+      "shap_mean_abs": 0.02840417288755931,
+      "shap_mass_share": 0.061015871269389906,
+      "tier": "core"
     },
     {
       "name": "bu",
@@ -131,7 +173,14 @@
       "observed_median": 42.0,
       "hard_min": 0.0,
       "hard_max": 642.5,
-      "n_missing_in_training": 19
+      "n_missing_in_training": 19,
+      "label": "Blood urea",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 10,
+      "shap_mean_abs": 0.016132641448820612,
+      "shap_mass_share": 0.03465501980195292,
+      "tier": "optional"
     },
     {
       "name": "sc",
@@ -142,7 +191,14 @@
       "observed_median": 1.2,
       "hard_min": 0.0,
       "hard_max": 151.6,
-      "n_missing_in_training": 16
+      "n_missing_in_training": 16,
+      "label": "Serum creatinine",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 9,
+      "shap_mean_abs": 0.017355359797280645,
+      "shap_mass_share": 0.03728157842922542,
+      "tier": "optional"
     },
     {
       "name": "sod",
@@ -153,7 +209,14 @@
       "observed_median": 138.0,
       "hard_min": 0.0,
       "hard_max": 295.5,
-      "n_missing_in_training": 75
+      "n_missing_in_training": 75,
+      "label": "Sodium",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 18,
+      "shap_mean_abs": 0.0009651015064845375,
+      "shap_mass_share": 0.0020731640211691005,
+      "tier": "optional"
     },
     {
       "name": "pot",
@@ -164,7 +227,14 @@
       "observed_median": 4.3,
       "hard_min": 0.0,
       "hard_max": 12.7,
-      "n_missing_in_training": 76
+      "n_missing_in_training": 76,
+      "label": "Potassium",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 14,
+      "shap_mean_abs": 0.004965361603804343,
+      "shap_mass_share": 0.0106662449078527,
+      "tier": "optional"
     },
     {
       "name": "hemo",
@@ -175,7 +245,14 @@
       "observed_median": 12.6,
       "hard_min": 0.0,
       "hard_max": 32.5,
-      "n_missing_in_training": 43
+      "n_missing_in_training": 43,
+      "label": "Haemoglobin",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 3,
+      "shap_mean_abs": 0.0653178585100355,
+      "shap_mass_share": 0.14031128673301801,
+      "tier": "core"
     },
     {
       "name": "pcv",
@@ -186,7 +263,14 @@
       "observed_median": 40.0,
       "hard_min": 0.0,
       "hard_max": 99.0,
-      "n_missing_in_training": 58
+      "n_missing_in_training": 58,
+      "label": "Packed cell volume",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 2,
+      "shap_mean_abs": 0.0701330117714963,
+      "shap_mass_share": 0.1506548645131813,
+      "tier": "core"
     },
     {
       "name": "wbcc",
@@ -197,7 +281,14 @@
       "observed_median": 8100.0,
       "hard_min": 0.0,
       "hard_max": 50600.0,
-      "n_missing_in_training": 84
+      "n_missing_in_training": 84,
+      "label": "White blood cell count",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 20,
+      "shap_mean_abs": 0.00048732109752204516,
+      "shap_mass_share": 0.0010468293328226499,
+      "tier": "optional"
     },
     {
       "name": "rbcc",
@@ -208,7 +299,14 @@
       "observed_median": 4.8,
       "hard_min": 0.0,
       "hard_max": 10.9,
-      "n_missing_in_training": 105
+      "n_missing_in_training": 105,
+      "label": "Red blood cell count",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 6,
+      "shap_mean_abs": 0.03171405375908716,
+      "shap_mass_share": 0.06812592745633184,
+      "tier": "core"
     },
     {
       "name": "rbc",
@@ -218,7 +316,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 126
+      "n_missing_in_training": 126,
+      "label": "Red blood cells in urine",
+      "group": "urine_test",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "Normal"
+        },
+        {
+          "value": 1.0,
+          "label": "Abnormal"
+        }
+      ],
+      "shap_rank": 17,
+      "shap_mean_abs": 0.0016086708455224097,
+      "shap_mass_share": 0.0034556349735572283,
+      "tier": "optional"
     },
     {
       "name": "pc",
@@ -228,7 +342,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 54
+      "n_missing_in_training": 54,
+      "label": "Pus cells",
+      "group": "urine_test",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "Normal"
+        },
+        {
+          "value": 1.0,
+          "label": "Abnormal"
+        }
+      ],
+      "shap_rank": 21,
+      "shap_mean_abs": 0.0004657307626560579,
+      "shap_mass_share": 0.0010004504751082932,
+      "tier": "optional"
     },
     {
       "name": "pcc",
@@ -238,7 +368,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 4
+      "n_missing_in_training": 4,
+      "label": "Pus cell clumps",
+      "group": "urine_test",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "Not present"
+        },
+        {
+          "value": 1.0,
+          "label": "Present"
+        }
+      ],
+      "shap_rank": 23,
+      "shap_mean_abs": 0.00011160790608779169,
+      "shap_mass_share": 0.00023974835167552054,
+      "tier": "optional"
     },
     {
       "name": "ba",
@@ -248,7 +394,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 4
+      "n_missing_in_training": 4,
+      "label": "Bacteria",
+      "group": "urine_test",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "Not present"
+        },
+        {
+          "value": 1.0,
+          "label": "Present"
+        }
+      ],
+      "shap_rank": 22,
+      "shap_mean_abs": 0.00014265276670367917,
+      "shap_mass_share": 0.0003064367649031697,
+      "tier": "optional"
     },
     {
       "name": "htn",
@@ -258,7 +420,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 2
+      "n_missing_in_training": 2,
+      "label": "Diagnosed with high blood pressure",
+      "group": "history",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 5,
+      "shap_mean_abs": 0.03338713843497447,
+      "shap_mass_share": 0.07171993174615367,
+      "tier": "core"
     },
     {
       "name": "dm",
@@ -268,7 +446,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 2
+      "n_missing_in_training": 2,
+      "label": "Diagnosed with diabetes",
+      "group": "history",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 8,
+      "shap_mean_abs": 0.027805610716319006,
+      "shap_mass_share": 0.05973008158870813,
+      "tier": "core"
     },
     {
       "name": "cad",
@@ -278,7 +472,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 2
+      "n_missing_in_training": 2,
+      "label": "Diagnosed with coronary artery disease",
+      "group": "history",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 24,
+      "shap_mean_abs": 9.480168204198786e-05,
+      "shap_mass_share": 0.00020364638852515452,
+      "tier": "optional"
     },
     {
       "name": "appet",
@@ -288,7 +498,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 1
+      "n_missing_in_training": 1,
+      "label": "Appetite",
+      "group": "symptoms",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "Good"
+        },
+        {
+          "value": 1.0,
+          "label": "Poor"
+        }
+      ],
+      "shap_rank": 13,
+      "shap_mean_abs": 0.009325772747377383,
+      "shap_mass_share": 0.020032977256337823,
+      "tier": "optional"
     },
     {
       "name": "pe",
@@ -298,7 +524,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 1
+      "n_missing_in_training": 1,
+      "label": "Swelling in feet or ankles",
+      "group": "symptoms",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 15,
+      "shap_mean_abs": 0.0029843741277833444,
+      "shap_mass_share": 0.006410825209428345,
+      "tier": "optional"
     },
     {
       "name": "ane",
@@ -308,7 +550,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 1
+      "n_missing_in_training": 1,
+      "label": "Diagnosed with anaemia",
+      "group": "symptoms",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 19,
+      "shap_mean_abs": 0.0006676383197019131,
+      "shap_mass_share": 0.0014341742648414108,
+      "tier": "optional"
     }
   ],
   "feature_order": [
@@ -337,5 +595,45 @@
     "pe",
     "ane"
   ],
+  "groups": [
+    {
+      "id": "about_you",
+      "label": "About you",
+      "help": "Basic details. No report needed.",
+      "order": 1
+    },
+    {
+      "id": "vitals",
+      "label": "Vitals and measurements",
+      "help": "Blood pressure, height and weight \u2014 from a clinic visit or measured at home.",
+      "order": 2
+    },
+    {
+      "id": "symptoms",
+      "label": "Symptoms and clinical signs",
+      "help": "What you or a clinician have observed. No report needed.",
+      "order": 3
+    },
+    {
+      "id": "history",
+      "label": "Your medical history",
+      "help": "Conditions you have previously been told you have.",
+      "order": 4
+    },
+    {
+      "id": "blood_test",
+      "label": "From your blood test",
+      "help": "A routine blood panel \u2014 full blood count, metabolic panel, or lipid profile.",
+      "order": 5
+    },
+    {
+      "id": "urine_test",
+      "label": "From your urine test",
+      "help": "A standard urinalysis report.",
+      "order": 6
+    }
+  ],
+  "value_label_source": "UCI Chronic Kidney Disease (id 336) attribute documentation. The loader maps each nominal text value to 0/1; these labels restate that mapping.",
+  "tier_note": "`tier` splits the fields by measured importance: 'core' is the smallest set of features covering the first 80% of this model's total mean |SHAP|, ranked by `shap_rank`. It is a presentation aid for shortening a long form, not a claim that the optional fields are unused \u2014 the model consumes every field it is given. `shap_mass_share` is each field's share of that total and is what a coverage meter should sum.",
   "spec_notes": "Target: 'class' text {'ckd','notckd'} mapped to {1,0}. Extensive missing values across most columns; imputed inside the model pipeline. Numeric columns pcv/wbcc/rbcc were stored as text (stray tab characters) and coerced to numbers. Nominal yes/no and normal/abnormal columns mapped to 0/1. 'sg','al','su' are ordinal clinical scales kept as numeric. n=400."
 }

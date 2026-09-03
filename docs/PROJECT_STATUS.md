@@ -1,6 +1,6 @@
 # Project Status — Multi-Disease AI
 
-_Last updated: 2026-09-03 (Phase 7)_
+_Last updated: 2026-09-03 (Phase 9 v1 — frontend)_
 
 > **Looking for the current state rather than the build history?** See
 > [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — condensed orientation: the three models,
@@ -8,9 +8,9 @@ _Last updated: 2026-09-03 (Phase 7)_
 > This file is the phase-by-phase log.
 
 Research/education platform. **Not** a clinical diagnostic tool. Three independent
-disease pipelines (heart, kidney, diabetes). Scope of current build effort: through the
-FastAPI backend (Phases 0–8 of the implementation plan); React frontend and CNN/Grad-CAM
-module deferred.
+disease pipelines (heart, kidney, diabetes), a FastAPI backend serving them, and a React
+frontend over that (v1: guided form + worked examples). Document upload with OCR and the
+CNN/Grad-CAM module remain deferred.
 
 Plan file: `C:\Users\Admin\.claude\plans\you-are-working-on-zippy-hammock.md`
 
@@ -26,8 +26,11 @@ Plan file: `C:\Users\Admin\.claude\plans\you-are-working-on-zippy-hammock.md`
 | 5 | **Diabetes** model end-to-end | ✅ trained |
 | 6 | External validation (Heart → Statlog) | ✅ attempted, REJECTED |
 | 7 | Calibration + fairness subgroup analysis | ✅ complete |
-| 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ⬜ |
-| — | React frontend, CNN/Grad-CAM imaging | deferred |
+| 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ✅ complete (`739eeac`) |
+| 9 (v1) | Frontend: guided form, review step, worked examples | ✅ complete |
+| 9 (v2) | Paste report text → pre-fills the same form | ⬜ |
+| 9 (v3) | Drag & drop PDF/image → OCR → same pre-fill path | ⬜ |
+| — | CNN/Grad-CAM imaging module | deferred |
 
 **All three models trained (heart, kidney, diabetes). Every metric in this repo comes from an actual run — none are fabricated.**
 
@@ -729,6 +732,84 @@ measured.
 | full suite | `python -m pytest -q` | **224 passed, 0 skipped in 61 s** |
 
 170 → 224: 48 new API tests plus 6 new risk-band tests.
+
+## Phase 9 (v1) — Frontend: guided form + worked examples — COMPLETE
+
+Vite + React 18 + TypeScript + Tailwind, no component or charting library. 191 KB bundle
+(61 KB gzipped). Full write-up: [`docs/FRONTEND.md`](FRONTEND.md).
+
+```bash
+uvicorn backend.main:app --port 8000     # terminal 1
+npm --prefix frontend run dev            # terminal 2  ->  http://localhost:5173
+```
+
+### Why a form before the document upload
+
+The requested headline was drag-and-drop upload with OCR. It could not be v1, because **no
+document-based entry mode can complete any of the three models**: kidney gets ~20 of 24 from
+a perfect urinalysis + CBC, heart gets 5 of 13 and none of its top three (`thal`, `ca`, `cp`
+need a nuclear scan, a catheter angiogram and a clinician's history), and diabetes gets ~5 of
+21 because it is a survey model whose strongest feature is self-rated health. Every path ends
+at a form for the remainder, and the review screen *is* that form pre-filled — so paste-text
+and OCR upload are pre-fills for what this phase built, not alternatives to it.
+
+### Making 58 fields feel like 8
+
+| lever | effect |
+|---|---|
+| pick one module first | kidney never shows a diabetes survey question |
+| `tier` from the model's own SHAP | core = smallest set covering 80% of mean \|SHAP\| — **7 / 8 / 7** fields, not 13 / 24 / 21 |
+| groups by source document | *From your urine test*, *From an exercise stress test*, … — how the paper is actually held |
+| coverage weighted by attribution mass | kidney `sg` (16.4%) moves the bar 80x further than `su` (0.2%) |
+
+The form is **generated** from `GET /models/{disease}/schema` — no input, label, option list
+or bound is hand-written, so a retrain cannot leave the UI describing a model that no longer
+exists.
+
+### Safety carried into the UI
+
+* **"I don't have this" is a first-class answer**, distinct from an empty box. Both reach the
+  model as missing, but only one is a decision — and the review step refuses to run while
+  anything is merely untouched. This matters most for kidney, where missingness is confounded
+  with the outcome (a missingness-indicators-only model reaches ROC-AUC 0.8023).
+* **The decision is the headline, not the probability.** A bare probability invites a mental
+  50% cut-off; for diabetes that turns recall 0.7984 into 0.1464.
+* Imputed fields are named, extrapolated values flagged, every API warning shown, and the
+  model's full limitations list rendered on the result page.
+* Session state is in memory only — nothing entered is persisted, and any edit invalidates a
+  prediction made from the previous values.
+
+### New serving assets
+
+`export_serving_assets` now also writes per-feature `label`, `group`, `tier`, `shap_rank` and
+`shap_mass_share`, plus `models/<disease>/samples.json` — real rows from the **held-out test
+split** with their recorded outcome, two per class. `ml/serving/field_groups.py` holds the
+hand-authored presentation metadata (groups, labels, coded value labels), kept separate from
+everything measured, with `LABEL_SOURCES` recording provenance — including an explicit note
+that only three of the eight BRFSS Income levels are pinned by the cached UCI metadata and
+the rest follow the codebook unverified.
+
+### Three defects found by running it
+
+1. **Ordinal survey codes rendered as number boxes.** `Age`, `GenHlth`, `Education`, `Income`
+   are modelled as numeric, so they had no options — the form asked people to type `8` for
+   their age band. Now labelled dropdowns that still send the number; `options_for` raises if
+   any level in the observed range is unlabelled.
+2. **Scroll position carried across routes**, landing users below the decision headline.
+3. **The auto-opened group could be one filtered out** by "key fields only" — for kidney,
+   every visible section rendered collapsed.
+
+### Phase 9 (v1) verification
+
+| step | command | result |
+|---|---|---|
+| typecheck | `npx tsc --noEmit` | clean |
+| build | `npm run build` | 190.78 KB JS / 61.36 KB gzip, 0 errors |
+| kidney end-to-end | browser, sample case | flagged, p=1.0000 at t=0.5792, 21/24 fields, SHAP rendered |
+| diabetes end-to-end | browser, sample case | **p=14.5% vs t=13.9% -> flagged, band High** — the case the old fixed bands would have called "low risk" |
+| full suite | `python -m pytest -q` | **260 passed, 0 skipped in 62 s** |
+
+224 -> 260: 36 new tests over the intake metadata and sample cases.
 
 ## Next step — deferred work
 

@@ -7,13 +7,15 @@ nobody opens.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+import json
+
+from fastapi import APIRouter, Depends, HTTPException
 
 from backend.routes.deps import get_bundle, get_registry
 from backend.schemas.responses import ModelSummary
 from backend.services import prediction_service as svc
 from backend.services.registry import Registry
-from config import DISCLAIMER
+from config import DISCLAIMER, MODELS_DIR
 
 router = APIRouter(tags=["models"])
 
@@ -44,9 +46,34 @@ def get_schema(disease: str, registry: Registry = Depends(get_registry)):
     return {
         "disease": disease,
         "module": s["module"],
+        "positive_class_meaning": s["positive_class_meaning"],
         "feature_order": s["feature_order"],
+        "groups": s.get("groups", []),
         "range_note": s["range_note"],
+        "tier_note": s.get("tier_note", ""),
+        "value_label_source": s.get("value_label_source", ""),
         "dataset_notes": s["spec_notes"],
         "features": s["features"],
         "disclaimer": DISCLAIMER,
     }
+
+
+@router.get("/samples/{disease}", tags=["samples"],
+            summary="Worked example cases drawn from the held-out test split")
+def get_samples(disease: str, registry: Registry = Depends(get_registry)):
+    """Real rows from the public dataset, so the app can demonstrate itself with no input.
+
+    These come from the **test** split — records the model was never fitted on — and each
+    carries the outcome recorded in the source dataset. That makes a sample a genuine check
+    rather than a rehearsal, but it is still one row: the payload's `note` says so, and the
+    UI is expected to show it.
+    """
+    get_bundle(registry, disease)  # 404s on an unknown disease before touching the disk
+    path = MODELS_DIR / disease / "samples.json"
+    if not path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"No sample cases exported for '{disease}'. Run "
+                   f"`python -m scripts.export_serving_assets`.",
+        )
+    return {**json.loads(path.read_text(encoding="utf-8")), "disclaimer": DISCLAIMER}

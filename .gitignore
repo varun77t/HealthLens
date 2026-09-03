@@ -33,3 +33,9 @@ Thumbs.db
 
 # Notebook execution outputs (keep source notebooks, ignore nbconvert copies)
 notebooks/**/*.nbconvert.ipynb
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.tsbuildinfo

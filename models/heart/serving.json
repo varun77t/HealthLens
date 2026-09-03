@@ -49,9 +49,9 @@
   },
   "explainer": {
     "kind": "tree",
-    "init_seconds": 2.044,
-    "explain_one_median_ms": 43.6,
-    "explain_one_max_ms": 45.4,
+    "init_seconds": 1.267,
+    "explain_one_median_ms": 38.5,
+    "explain_one_max_ms": 40.6,
     "n_timed_calls": 5,
     "background_rows": 200
   },
@@ -66,7 +66,14 @@
       "observed_median": 56.0,
       "hard_min": 0.0,
       "hard_max": 125.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Age",
+      "group": "about_you",
+      "options": null,
+      "shap_rank": 10,
+      "shap_mean_abs": 0.0906979888677597,
+      "shap_mass_share": 0.032716066767062624,
+      "tier": "optional"
     },
     {
       "name": "trestbps",
@@ -77,7 +84,14 @@
       "observed_median": 130.0,
       "hard_min": 0.0,
       "hard_max": 306.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Resting blood pressure (systolic)",
+      "group": "vitals",
+      "options": null,
+      "shap_rank": 12,
+      "shap_mean_abs": 0.031039617955684662,
+      "shap_mass_share": 0.011196435843168644,
+      "tier": "optional"
     },
     {
       "name": "chol",
@@ -88,7 +102,14 @@
       "observed_median": 244.5,
       "hard_min": 0.0,
       "hard_max": 1002.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Serum cholesterol",
+      "group": "blood_test",
+      "options": null,
+      "shap_rank": 9,
+      "shap_mean_abs": 0.09351875633001328,
+      "shap_mass_share": 0.03373355808943361,
+      "tier": "optional"
     },
     {
       "name": "thalach",
@@ -99,7 +120,14 @@
       "observed_median": 153.5,
       "hard_min": 0.0,
       "hard_max": 333.0,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Maximum heart rate achieved",
+      "group": "exercise_test",
+      "options": null,
+      "shap_rank": 7,
+      "shap_mean_abs": 0.17030327022075653,
+      "shap_mass_share": 0.06143083467170381,
+      "tier": "core"
     },
     {
       "name": "oldpeak",
@@ -110,7 +138,14 @@
       "observed_median": 0.8,
       "hard_min": 0.0,
       "hard_max": 12.4,
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "ST depression, exercise vs rest",
+      "group": "exercise_test",
+      "options": null,
+      "shap_rank": 6,
+      "shap_mean_abs": 0.1893196702003479,
+      "shap_mass_share": 0.06829032316938792,
+      "tier": "core"
     },
     {
       "name": "cp",
@@ -122,7 +157,31 @@
         3.0,
         4.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Chest pain type",
+      "group": "symptoms",
+      "options": [
+        {
+          "value": 1.0,
+          "label": "Typical angina"
+        },
+        {
+          "value": 2.0,
+          "label": "Atypical angina"
+        },
+        {
+          "value": 3.0,
+          "label": "Non-anginal pain"
+        },
+        {
+          "value": 4.0,
+          "label": "No chest pain (asymptomatic)"
+        }
+      ],
+      "shap_rank": 3,
+      "shap_mean_abs": 0.5088160634040833,
+      "shap_mass_share": 0.18353725931842854,
+      "tier": "core"
     },
     {
       "name": "restecg",
@@ -133,7 +192,27 @@
         1.0,
         2.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Resting ECG result",
+      "group": "resting_ecg",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "Normal"
+        },
+        {
+          "value": 1.0,
+          "label": "ST-T wave abnormality"
+        },
+        {
+          "value": 2.0,
+          "label": "Probable or definite left ventricular hypertrophy"
+        }
+      ],
+      "shap_rank": 11,
+      "shap_mean_abs": 0.06831991672515869,
+      "shap_mass_share": 0.024643974855488547,
+      "tier": "optional"
     },
     {
       "name": "slope",
@@ -144,7 +223,27 @@
         2.0,
         3.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Slope of the peak exercise ST segment",
+      "group": "exercise_test",
+      "options": [
+        {
+          "value": 1.0,
+          "label": "Upsloping"
+        },
+        {
+          "value": 2.0,
+          "label": "Flat"
+        },
+        {
+          "value": 3.0,
+          "label": "Downsloping"
+        }
+      ],
+      "shap_rank": 5,
+      "shap_mean_abs": 0.1932048201560974,
+      "shap_mass_share": 0.06969175253887126,
+      "tier": "core"
     },
     {
       "name": "ca",
@@ -156,7 +255,31 @@
         2.0,
         3.0
       ],
-      "n_missing_in_training": 1
+      "n_missing_in_training": 1,
+      "label": "Major vessels seen on fluoroscopy",
+      "group": "cardiac_imaging",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "0 vessels"
+        },
+        {
+          "value": 1.0,
+          "label": "1 vessel"
+        },
+        {
+          "value": 2.0,
+          "label": "2 vessels"
+        },
+        {
+          "value": 3.0,
+          "label": "3 vessels"
+        }
+      ],
+      "shap_rank": 2,
+      "shap_mean_abs": 0.5522756576538086,
+      "shap_mass_share": 0.19921375892876203,
+      "tier": "core"
     },
     {
       "name": "thal",
@@ -167,7 +290,27 @@
         6.0,
         7.0
       ],
-      "n_missing_in_training": 1
+      "n_missing_in_training": 1,
+      "label": "Thallium scan result",
+      "group": "cardiac_imaging",
+      "options": [
+        {
+          "value": 3.0,
+          "label": "Normal"
+        },
+        {
+          "value": 6.0,
+          "label": "Fixed defect"
+        },
+        {
+          "value": 7.0,
+          "label": "Reversible defect"
+        }
+      ],
+      "shap_rank": 1,
+      "shap_mean_abs": 0.5693418383598328,
+      "shap_mass_share": 0.2053697753344964,
+      "tier": "core"
     },
     {
       "name": "sex",
@@ -177,7 +320,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Sex",
+      "group": "about_you",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "Female"
+        },
+        {
+          "value": 1.0,
+          "label": "Male"
+        }
+      ],
+      "shap_rank": 4,
+      "shap_mean_abs": 0.19374872744083405,
+      "shap_mass_share": 0.06988794770554117,
+      "tier": "core"
     },
     {
       "name": "fbs",
@@ -187,7 +346,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Fasting blood sugar above 120 mg/dl",
+      "group": "blood_test",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No \u2014 120 mg/dl or below"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes \u2014 above 120 mg/dl"
+        }
+      ],
+      "shap_rank": 13,
+      "shap_mean_abs": 0.0,
+      "shap_mass_share": 0.0,
+      "tier": "optional"
     },
     {
       "name": "exang",
@@ -197,7 +372,23 @@
         0.0,
         1.0
       ],
-      "n_missing_in_training": 0
+      "n_missing_in_training": 0,
+      "label": "Angina brought on by exercise",
+      "group": "exercise_test",
+      "options": [
+        {
+          "value": 0.0,
+          "label": "No"
+        },
+        {
+          "value": 1.0,
+          "label": "Yes"
+        }
+      ],
+      "shap_rank": 8,
+      "shap_mean_abs": 0.11169034987688065,
+      "shap_mass_share": 0.04028831277765542,
+      "tier": "optional"
     }
   ],
   "feature_order": [
@@ -215,5 +406,51 @@
     "fbs",
     "exang"
   ],
+  "groups": [
+    {
+      "id": "about_you",
+      "label": "About you",
+      "help": "Basic details. No report needed.",
+      "order": 1
+    },
+    {
+      "id": "vitals",
+      "label": "Vitals and measurements",
+      "help": "Blood pressure, height and weight \u2014 from a clinic visit or measured at home.",
+      "order": 2
+    },
+    {
+      "id": "symptoms",
+      "label": "Symptoms and clinical signs",
+      "help": "What you or a clinician have observed. No report needed.",
+      "order": 3
+    },
+    {
+      "id": "blood_test",
+      "label": "From your blood test",
+      "help": "A routine blood panel \u2014 full blood count, metabolic panel, or lipid profile.",
+      "order": 5
+    },
+    {
+      "id": "resting_ecg",
+      "label": "From a resting ECG",
+      "help": "A standard 12-lead electrocardiogram taken at rest.",
+      "order": 7
+    },
+    {
+      "id": "exercise_test",
+      "label": "From an exercise stress test",
+      "help": "A treadmill or bicycle ECG stress test report.",
+      "order": 8
+    },
+    {
+      "id": "cardiac_imaging",
+      "label": "From cardiac imaging",
+      "help": "A coronary angiogram (fluoroscopy) and a thallium perfusion scan. These are specialist investigations \u2014 if you have not had them, say so, and the estimate will be reported as reduced-coverage rather than quietly guessed.",
+      "order": 9
+    }
+  ],
+  "value_label_source": "Cleveland processed release (UCI id 45) attribute documentation.",
+  "tier_note": "`tier` splits the fields by measured importance: 'core' is the smallest set of features covering the first 80% of this model's total mean |SHAP|, ranked by `shap_rank`. It is a presentation aid for shortening a long form, not a claim that the optional fields are unused \u2014 the model consumes every field it is given. `shap_mass_share` is each field's share of that total and is what a coverage meter should sum.",
   "spec_notes": "Target: raw 'num' in {0..4} mapped to binary (num > 0 => 1). 'ca' and 'thal' contain missing values (originally '?'), imputed inside the model pipeline. 'ca' (vessel count) and 'slope' are ordinal but modelled as categorical. Cleveland single-site cohort, n=303."
 }

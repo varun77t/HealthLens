@@ -32,7 +32,9 @@ The three predictions are **never** combined into a single "overall health score
 | 6 | External validation (Heart → Statlog) | ✅ done — **attempted and rejected** |
 | 7 | Calibration + fairness analysis | ✅ done |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ✅ done |
-| — | React frontend, CNN/Grad-CAM imaging module | deferred |
+| 9 (v1) | Frontend: guided form, review step, worked examples | ✅ done |
+| 9 (v2/v3) | Paste report text, then document upload + OCR | ⏳ planned |
+| — | CNN/Grad-CAM imaging module | deferred |
 
 **All three models are trained and served.** Every performance number in this repo is
 produced by an actual run and is reproducible with `RANDOM_STATE = 42`. No metric anywhere
@@ -50,6 +52,7 @@ dataset.
 ```
 config.py            global seed, paths, disease registry, risk bands, disclaimer
 docs/API.md          how to run and read the API (Phase 8)
+docs/FRONTEND.md     the web app: flow, form generation, defects found (Phase 9 v1)
 ml/
   data/              ucimlrepo acquisition + caching, disease loaders, validation, TARGET.md generator
   eda/               profiling + plotting utilities, EDA runner
@@ -61,6 +64,7 @@ ml/
   reporting.py       markdown/JSON report helpers
   fairness/          (Phase 7) subgroup analysis
   external/          (Phase 6) Heart -> Statlog no-retrain validation
+  serving/           field groups, labels and coded value labels for the form (Phase 9)
 data/raw/            cached CSVs (git-ignored; re-downloadable)
 reports/<disease>/   eda_profile.json, EDA.md, TARGET.md, figures/, *.csv
 models/<disease>/    pipeline.joblib (serving) + base_pipeline.joblib (SHAP) + model card
@@ -68,6 +72,7 @@ models/<disease>/    pipeline.joblib (serving) + base_pipeline.joblib (SHAP) + m
 notebooks/           thin notebooks over the ml package (training notebooks never retrain)
 scripts/             train_<disease>.py entrypoints, notebook builder, serving-asset export
 backend/             FastAPI service: schemas (generated), services, routes
+frontend/            React + Vite web app (form generated from the model's own schema)
 tests/               structure, leakage, and shipped-artifact tests
 ```
 
@@ -150,6 +155,20 @@ instead drops test recall from 0.7984 to 0.1464. `risk_band` is a presentation l
 anchored on the same threshold, not a clinical category. Every response carries the
 disclaimer, what was imputed, what was extrapolated, and the fact that the model has no
 external validation.
+
+## Run the web app
+
+```bash
+npm --prefix frontend install
+npm --prefix frontend run dev
+```
+
+Needs the API running on port 8000; the dev server proxies `/api` to it. Pick one module,
+fill in what you have, review every value, then run. See `docs/FRONTEND.md` — in short: the
+form is generated from the model's own feature dictionary, "I don't have this" is a
+first-class answer distinct from an empty box, nothing is predicted until you confirm, and
+the result leads with the model's decision at its own threshold rather than a bare
+probability.
 
 ## Methodology guardrails
 

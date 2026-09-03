@@ -42,7 +42,8 @@ the API advertises was derived from held-out data.
 | `GET` | `/health` | service and per-module status |
 | `GET` | `/models` | model-card summary for all three modules |
 | `GET` | `/models/{disease}` | the full `metadata.json`, verbatim |
-| `GET` | `/models/{disease}/schema` | input feature dictionary with measured bounds |
+| `GET` | `/models/{disease}/schema` | input feature dictionary: bounds, groups, tiers, option labels |
+| `GET` | `/samples/{disease}` | worked example cases from the held-out test split |
 | `POST` | `/predict/{heart\|kidney\|diabetes}` | score one case |
 | `POST` | `/scenario/{disease}` | score the same case again with changed inputs |
 | `GET` | `/analytics/{disease}` | saved metrics, model comparison, SHAP, calibration, fairness |
@@ -114,10 +115,15 @@ transform of the base score, so signs and ranking carry over; magnitudes do not.
 |---|---|---|
 | heart | `TreeExplainer` | ~44 ms |
 | diabetes | `TreeExplainer` | ~48 ms |
-| kidney | `KernelExplainer` (the selected model is an SVC) | **~809 ms** |
+| kidney | `KernelExplainer` (the selected model is an SVC) | **~0.4-0.8 s** |
 
 Pass `?include_explanation=false` to skip it. `/scenario` defaults to `false` because it
 scores twice.
+
+Those figures are re-measured on every `export_serving_assets` run and recorded in each
+`serving.json`; the kidney number in particular moves by a factor of two between runs on the
+same machine, so treat it as an order of magnitude rather than a benchmark. `GET /models`
+always reports the value from the last export.
 
 ### Every response states the external-validation position
 
