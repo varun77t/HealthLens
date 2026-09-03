@@ -426,3 +426,82 @@ def test_report_endpoint_refuses_a_body_that_is_not_a_prediction(client):
     r = client.post("/report/kidney", json={"hello": "world"})
     assert r.status_code == 422
     assert "missing" in str(r.json()["detail"]).lower()
+
+
+@pytest.mark.parametrize("disease", DISEASES)
+def test_the_whole_demo_path_runs_for_every_module(client, disease):
+    """upload -> extract -> review payload -> predict -> report PDF, end to end.
+
+    This is the path a demonstration actually walks, pinned per module so a change to any
+    one stage cannot quietly break the other two. It also asserts the two things that make
+    the demo honest rather than staged: extraction reports what it could not find instead
+    of filling it in, and the analysis reaches the model as the same request manual entry
+    would have produced.
+    """
+    from config import ROOT_DIR
+
+    path = ROOT_DIR / "demo_reports" / f"{disease}-positive-1.pdf"
+    if not path.exists():
+        pytest.skip("demo reports not generated; run python -m ml.reports.demo_report")
+
+    extracted = client.post(
+        f"/extract/{disease}",
+        files={"file": (path.name, path.read_bytes(), "application/pdf")},
+    ).json()
+    assert extracted["n_found"] > 0
+    # Whatever was not found stays null; nothing is completed on the user's behalf.
+    for f in extracted["fields"]:
+        if f["status"] == "missing":
+            assert f["value"] is None
+
+    values = {f["name"]: f["value"] for f in extracted["fields"]}
+    prediction = client.post(f"/predict/{disease}", json=values)
+    assert prediction.status_code == 200, prediction.text
+    body = prediction.json()
+    assert body["flagged"] == (body["risk_band"]["label"] == "high")
+
+    report = client.post(f"/report/{disease}", json=body)
+    assert report.status_code == 200
+    assert report.content.startswith(b"%PDF-")
+
+
+@pytest.mark.parametrize("disease", DISEASES)
+def test_the_wrong_report_never_produces_a_unit_incompatible_value(client, disease):
+    """Upload a report for one module to another and nothing may be silently mis-read.
+
+    Age and sex are genuinely shared concepts, and sex uses the same 0/1 encoding in both
+    models that have it, so those may legitimately carry across. Everything else must come
+    back either absent or flagged — never a confident value in the wrong units. The case
+    that matters most: heart records age in years while diabetes records a 1-13 band code,
+    so "Age 62 years" must not become diabetes age band 62.
+    """
+    from config import ROOT_DIR
+
+    other = next(d for d in DISEASES if d != disease)
+    path = ROOT_DIR / "demo_reports" / f"{other}-positive-1.pdf"
+    if not path.exists():
+        pytest.skip("demo reports not generated")
+
+    body = client.post(
+        f"/extract/{disease}",
+        files={"file": (path.name, path.read_bytes(), "application/pdf")},
+    ).json()
+    assert {f["name"] for f in body["fields"]} == {
+        f["name"] for f in serving_spec(disease)["features"]
+    }
+    confident = [
+        f["name"] for f in body["fields"]
+        if f["value"] is not None and f["status"] == "found"
+    ]
+    # `age` (years) and `sex` (0/1, same convention in both models that have it) are the
+    # same measurement wherever they appear, so carrying across is correct. Diabetes's
+    # `Age` is deliberately NOT in this set: it is a 1-13 band code, so a years-based
+    # reading must never land in it confidently.
+    assert set(confident) <= {"age", "sex", "Sex"}, (
+        f"a {other} report confidently populated {disease} fields: {confident}"
+    )
+    if disease == "diabetes":
+        age = next(f for f in body["fields"] if f["name"] == "Age")
+        assert age["status"] != "found", (
+            "an age in years was accepted into the 1-13 BRFSS age band"
+        )

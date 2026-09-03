@@ -174,7 +174,7 @@ pass/fail palette would assert far more than the number supports.
 
 ## Defects found by running it
 
-Five, across both passes — all found in a browser, not by reading the code.
+Seven, across all three passes — every one found by running the thing, not by reading it.
 
 1. **Ordinal survey codes rendered as number boxes.** `Age`, `GenHlth`, `Education` and
    `Income` are 1-13 / 1-5 / 1-6 / 1-8 scales the pipeline treats as numeric, so they had no
@@ -190,15 +190,39 @@ Five, across both passes — all found in a browser, not by reading the code.
 5. **`N/A` did not register as "not measured".** Normalisation strips punctuation to
    whitespace, so `n/a` became `n a` and missed the literal set. Both sides now normalise
    through the same function.
+6. **A number was harvested from anywhere in the remainder.** "Cholesterol checked in the
+   last 5 years — Yes" prefix-matches the `chol` alias, and the parser then took the `5`
+   out of "5 years" as a cholesterol reading. The number must now follow its label
+   directly; found by cross-uploading a diabetes report to the heart module.
+7. **A range was halved.** "Age group 75-79" yielded a heart age of `75` marked *found*,
+   claiming a precision the document does not have. A bare range where a single value is
+   expected is now refused.
 
 ---
 
-## Verified in-browser, kidney end to end
+## Verified in-browser, all three modules
 
-Uploaded `kidney-positive-1.pdf` through the real dropzone: *"Read 21 of 24 pieces of
-information … 3 not found in the document. Anything not found is left blank rather than
-guessed."* Three items held the gate; settling them enabled **"Everything looks correct —
-Analyze →"**; the result read **High · 100.0% · above the threshold this model uses
-(57.9%)** with six plain-language factors and `POST /report/kidney → 200`. No console errors.
+Each uploaded through the real dropzone, reviewed, analysed, and the report downloaded.
 
-`npx tsc --noEmit` clean · `npm run build` clean · `python -m pytest -q` 301 passed.
+| module | read | gate | result | report |
+|---|---|---|---|---|
+| kidney | 21/24, 3 not found | held on 3 | **High** · 100.0% · above 57.9% | 200 |
+| heart | 13/13 | none needed | **High** · 69.0% · above 64.4% | 200 |
+| diabetes | 21/21 | none needed | **High** · 14.5% · above 13.9% | 200 |
+
+No console errors on any run. Heart is the best explanation demo of the three: its factors
+split both ways — *Thallium scan result: Normal* and *Sex: Female* push the estimate **down**
+while vessels, chest pain type and ST depression push it up. Diabetes is the best argument
+for the design: 14.5% against a 13.9% threshold reads as reassuring to anyone applying a
+mental 50% cut-off, and means the opposite.
+
+### Cross-module safety
+
+Uploading a report to the wrong module is refused field by field rather than partly accepted.
+Only genuinely shared measurements carry across — `age` in years, and `sex`, which uses the
+same 0/1 convention in both models that record it. Everything else comes back flagged with a
+reason. The case that matters: heart records age in years while diabetes uses a 1-13 band
+code, so *"Age 62 years"* into the diabetes module yields **no value** and lists the bands it
+would accept.
+
+`npx tsc --noEmit` clean · `npm run build` clean · `python -m pytest -q` **311 passed**.

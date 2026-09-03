@@ -243,3 +243,53 @@ def test_committed_demo_reports_exist_and_still_round_trip():
             result = extract(disease, path.read_bytes())
             for f in result.fields:
                 assert case["features"][f.name] == f.value, f"{case['id']}.{f.name}"
+
+
+def test_a_number_must_follow_the_label_directly(tmp_path):
+    """Regression: "Cholesterol checked in the last 5 years  Yes" yielded chol = 5.
+
+    "Cholesterol" is a legitimate alias for `chol` and prefix-matches that line, so the
+    parser went on to harvest the 5 out of "5 years". A value follows its label
+    immediately; searching the whole remainder invents readings out of other questions.
+    """
+    data = _pdf_with_lines(["Cholesterol checked in the last 5 years Yes"], tmp_path)
+    field = next(f for f in extract("heart", data).fields if f.name == "chol")
+    assert field.value is None
+    assert field.status == "needs_review"
+    assert "must follow the label" in field.note
+
+
+def test_a_range_is_flagged_not_halved(tmp_path):
+    """Regression: "Age group 75-79" yielded a heart age of 75 marked `found`.
+
+    Taking either end of a band claims a precision the document does not have.
+    """
+    data = _pdf_with_lines(["Age group 75-79"], tmp_path)
+    field = next(f for f in extract("heart", data).fields if f.name == "age")
+    assert field.value is None
+    assert field.status == "needs_review"
+
+
+def test_a_bare_range_where_a_number_is_expected_is_refused(tmp_path):
+    data = _pdf_with_lines(["Haemoglobin 9.5-10.5 g/dL"], tmp_path)
+    field = next(f for f in extract("kidney", data).fields if f.name == "hemo")
+    assert field.value is None
+    assert field.status == "needs_review"
+    assert "range" in field.note
+
+
+def test_a_label_seen_but_unreadable_is_not_reported_as_absent(tmp_path):
+    """"We saw this and couldn't read it" and "it wasn't there" are different statements."""
+    seen = next(
+        f for f in extract("kidney", _pdf_with_lines(["Appetite Ravenous"], tmp_path)).fields
+        if f.name == "appet"
+    )
+    assert seen.status == "needs_review"
+    assert "Good" in seen.note and "Poor" in seen.note
+
+    absent = next(
+        f for f in extract("kidney", _pdf_with_lines(["Haemoglobin 12"], tmp_path)).fields
+        if f.name == "appet"
+    )
+    assert absent.status == "missing"
+    assert "not found" in absent.note.lower()

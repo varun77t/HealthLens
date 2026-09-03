@@ -873,14 +873,27 @@ coverage helpers went for good.
 | extraction round-trip | `pytest tests/test_extraction.py` | 24 passed, **0 mismatches / 12 reports** |
 | typecheck + build | `npx tsc --noEmit`, `npm run build` | clean, 201 KB (64 KB gzip) |
 | kidney end to end | browser, real dropzone | 21/24 read, gate held on 3, **High · 100.0% · above 57.9%**, report 200 |
-| full suite | `python -m pytest -q` | **301 passed, 0 skipped in 62 s** |
+| heart end to end | browser, real dropzone | 13/13 read, **High · 69.0% · above 64.4%**, report 200 |
+| diabetes end to end | browser, real dropzone | 21/21 read, **High · 14.5% · above 13.9%**, report 200 |
+| full suite | `python -m pytest -q` | **311 passed, 0 skipped in 63 s** |
 
-260 -> 301: 24 extraction tests, 17 document-endpoint tests.
+260 -> 311: 28 extraction tests, 23 document-endpoint tests.
+
+Two further extraction defects surfaced by cross-uploading a report to the wrong module, and
+both were root-caused rather than patched at the symptom. "Cholesterol checked in the last 5
+years - Yes" prefix-matches the `chol` alias and the parser harvested the `5` out of "5
+years"; a value must now follow its label directly. And "Age group 75-79" yielded a heart age
+of 75 marked *found*; a bare range where a single value is expected is now refused. Neither
+affected the demo path -- all 12 reports still round-trip with 0 mismatches -- but both would
+have produced a confident wrong number on a real document.
+
+Uploading to the wrong module is now safe field by field: only `age` (years) and `sex` (same
+0/1 convention in both models that have it) carry across, since those are the same
+measurement wherever they appear. Diabetes's 1-13 `Age` band deliberately does not, so an age
+in years cannot land in it.
 
 ## Next step — remaining work
 
-* **Heart and diabetes upload flows.** The architecture is disease-agnostic and their demo
-  reports already generate and round-trip; what is unverified is the end-to-end browser run.
 * **Paste report text** — the same extractor minus the PDF step.
 * **Image/OCR extraction** — needs Tesseract, and the PHI questions answered if any cloud
   service is involved.

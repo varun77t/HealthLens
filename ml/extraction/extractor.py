@@ -38,8 +38,12 @@ from ml.extraction.aliases import ALIASES, BP_COMPONENT, NOT_MEASURED_TEXTS
 LINE_TOLERANCE = 2.5
 
 _PUNCT = re.compile(r"[^a-z0-9 ]+")
-_NUMBER = re.compile(r"-?\d+(?:\.\d+)?")
+# Anchored: the value follows the label immediately. An unanchored search would
+# pull a number out of the middle of a different question that merely starts with
+# this field's name.
+_NUMBER = re.compile(r"^[-+]?\d+(?:\.\d+)?")
 _BP_PAIR = re.compile(r"^\s*(\d{2,3})\s*/\s*(\d{2,3})\s*$")
+_RANGE = re.compile(r"^\s*\d+(?:\.\d+)?\s*[-–—]\s*\d+(?:\.\d+)?\s*$")
 
 
 def _norm(text: str) -> str:
@@ -160,18 +164,26 @@ def page_count(data: bytes) -> int:
 
 
 def _match_label(disease: str, line: str) -> tuple[str, str] | None:
-    """Find the longest known label that this line *starts with*. Returns (field, rest)."""
+    """Find the longest known label this line starts with. Returns ``(field, remainder)``.
+
+    Candidates are tried longest-first, so "Red blood cell count" is not captured by the
+    shorter "Red blood cells" — a different field on the same report.
+    """
     norm_line = _norm(line)
     for norm_label, name in _label_index(disease):
+        rest: str | None = None
         if norm_line == norm_label:
-            return name, ""
-        if norm_line.startswith(norm_label + " "):
-            # Map back to the original line so the value keeps its original casing/format.
+            rest = ""
+        elif norm_line.startswith(norm_label + " "):
+            # Map back to the original line so the value keeps its casing and formatting.
             words = line.split()
+            rest = norm_line[len(norm_label):].strip()
             for take in range(len(words), 0, -1):
                 if _norm(" ".join(words[:take])) == norm_label:
-                    return name, " ".join(words[take:])
-            return name, norm_line[len(norm_label):].strip()
+                    rest = " ".join(words[take:])
+                    break
+        if rest is not None:
+            return name, rest
     return None
 
 
@@ -197,7 +209,7 @@ def _parse_value(disease: str, feature: dict, raw: str) -> tuple[float | None, s
         for o in options:
             if _norm(str(o["label"])) == _norm(text):
                 return float(o["value"]), "found", ""
-        number = _NUMBER.search(text)
+        number = _NUMBER.match(text.strip())
         if number:
             v = float(number.group())
             if any(o["value"] == v for o in options):
@@ -220,9 +232,19 @@ def _parse_value(disease: str, feature: dict, raw: str) -> tuple[float | None, s
             f"'{stripped}' is a blood-pressure pair and this field expects a single number."
         )
 
-    number = _NUMBER.search(stripped)
+    if _RANGE.match(stripped):
+        # "75-79" is a band, not a reading. Taking either end would invent a precision the
+        # document does not have.
+        return None, "needs_review", (
+            f"'{stripped}' is a range, and this field expects a single value."
+        )
+
+    number = _NUMBER.match(stripped)
     if not number:
-        return None, "needs_review", f"Could not read a number from '{text}'."
+        return None, "needs_review", (
+            f"Could not read a value from '{text}'. The number must follow the label "
+            f"directly."
+        )
     v = float(number.group())
 
     lo, hi = feature.get("observed_min"), feature.get("observed_max")
