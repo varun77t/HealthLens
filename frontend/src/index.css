@@ -2,7 +2,122 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * The palette, twice.
+ *
+ * Channels only (`26 24 21`, not `#1a1815`) so Tailwind's `/opacity` modifiers keep
+ * working — see the note in tailwind.config.js.
+ *
+ * Dark is not the light theme with the lightness flipped. It is the same idea read the
+ * other way round: in light, near-black ink sits on beige paper; in dark, that beige
+ * becomes the ink and sits on warm near-black. Every neutral keeps its warmth in both, so
+ * the dark theme reads as dimmed paper rather than a cold grey app.
+ *
+ * `[data-theme]` wins over the media query, so an explicit choice beats the system
+ * setting in both directions — a person who prefers light on a dark-set machine gets
+ * light, which a `prefers-color-scheme`-only implementation cannot do.
+ */
 @layer base {
+  :root {
+    --accent: 26 24 21;
+    --accent-hover: 0 0 0;
+    --accent-fg: 253 251 246;
+    --accent-soft: 239 234 222;
+    --accent-line: 213 205 188;
+
+    --ink: 23 21 18;
+    --body: 74 68 60;
+    --muted: 121 114 106;
+    --faint: 164 156 144;
+    --line: 226 219 205;
+    --hairline: 239 233 221;
+    --surface: 253 251 246;
+    --canvas: 244 240 231;
+
+    --attention: 138 87 18;
+    --attention-soft: 247 238 218;
+    --attention-line: 230 212 175;
+    --steady: 63 107 92;
+    --steady-soft: 233 239 232;
+    --steady-line: 208 223 211;
+    --caution: 138 64 56;
+    --caution-soft: 248 231 226;
+    --caution-line: 236 209 201;
+
+    --shadow-card: 0 1px 2px rgba(48, 38, 22, 0.05), 0 8px 24px -12px rgba(48, 38, 22, 0.1);
+    --shadow-lift: 0 2px 4px rgba(48, 38, 22, 0.06), 0 18px 40px -18px rgba(48, 38, 22, 0.16);
+
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --accent: 242 237 225;
+      --accent-hover: 255 255 255;
+      --accent-fg: 23 21 15;
+      --accent-soft: 42 38 32;
+      --accent-line: 82 75 65;
+
+      --ink: 245 241 232;
+      --body: 208 200 188;
+      --muted: 154 146 135;
+      --faint: 112 105 96;
+      --line: 54 49 42;
+      --hairline: 40 36 31;
+      --surface: 32 29 25;
+      --canvas: 22 20 17;
+
+      --attention: 224 184 119;
+      --attention-soft: 46 37 23;
+      --attention-line: 74 61 35;
+      --steady: 143 186 168;
+      --steady-soft: 26 36 31;
+      --steady-line: 49 70 60;
+      --caution: 224 162 151;
+      --caution-soft: 44 28 24;
+      --caution-line: 74 47 40;
+
+      /* On a dark ground a drop shadow does nothing; separation comes from `surface`
+         being lighter than `canvas`. A faint ring keeps the card edge crisp. */
+      --shadow-card: 0 0 0 1px rgba(255, 250, 240, 0.02);
+      --shadow-lift: 0 0 0 1px rgba(255, 250, 240, 0.05), 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --accent: 242 237 225;
+    --accent-hover: 255 255 255;
+    --accent-fg: 23 21 15;
+    --accent-soft: 42 38 32;
+    --accent-line: 82 75 65;
+
+    --ink: 245 241 232;
+    --body: 208 200 188;
+    --muted: 154 146 135;
+    --faint: 112 105 96;
+    --line: 54 49 42;
+    --hairline: 40 36 31;
+    --surface: 32 29 25;
+    --canvas: 22 20 17;
+
+    --attention: 224 184 119;
+    --attention-soft: 46 37 23;
+    --attention-line: 74 61 35;
+    --steady: 143 186 168;
+    --steady-soft: 26 36 31;
+    --steady-line: 49 70 60;
+    --caution: 224 162 151;
+    --caution-soft: 44 28 24;
+    --caution-line: 74 47 40;
+
+    --shadow-card: 0 0 0 1px rgba(255, 250, 240, 0.02);
+    --shadow-lift: 0 0 0 1px rgba(255, 250, 240, 0.05), 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+
+    color-scheme: dark;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
@@ -35,8 +150,9 @@
     @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium
            transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-45;
   }
+  /* `text-accent-fg`, not `text-white`: in dark mode the accent is nearly white itself. */
   .btn-primary {
-    @apply btn bg-accent px-5 py-2.5 text-white shadow-sm hover:bg-accent-hover
+    @apply btn bg-accent px-5 py-2.5 text-accent-fg shadow-sm hover:bg-accent-hover
            active:translate-y-px;
   }
   .btn-secondary {
@@ -46,7 +162,7 @@
   .btn-quiet {
     @apply btn px-3 py-1.5 text-muted hover:text-accent;
   }
-  /* Underlined always, not just on hover: with a black accent, colour no longer marks a
+  /* Underlined always, not just on hover: with a hueless accent, colour no longer marks a
      link, and "bold dark text" is not an affordance. */
   .btn-link {
     @apply inline-flex items-center gap-1.5 text-sm font-medium text-accent

@@ -1,35 +1,59 @@
 /** @type {import('tailwindcss').Config} */
+
+/**
+ * Every colour is a CSS variable, so one set of class names serves both themes and no
+ * component has to know which one is active. There is deliberately no `dark:` variant
+ * anywhere in the app.
+ *
+ * The variables hold space-separated RGB channels rather than hex, because that is what
+ * lets Tailwind's opacity modifiers keep working — `bg-accent/10`, `ring-accent/45`,
+ * `border-line/70` and `bg-canvas/85` are all in use, and they would silently break under
+ * a plain `var(--x)`.
+ */
+const rgb = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        // Ink on paper. The accent carries no hue at all, so the only thing competing for
-        // attention on a screen is contrast — which the thing you are meant to press has
-        // more of than anything else.
-        //
-        // Every neutral is warm (a touch of yellow-red), so they sit on the beige ground
-        // instead of looking like a cool-grey UI pasted onto it.
+        // One accent with no hue at all: in light it is near-black on beige, in dark it is
+        // the beige on near-black. The only thing competing for attention on a screen is
+        // contrast, which the thing you are meant to press has more of than anything else.
         accent: {
-          DEFAULT: "#1a1815",
-          hover: "#000000",
-          soft: "#efeade",
-          line: "#d5cdbc",
+          DEFAULT: rgb("accent"),
+          hover: rgb("accent-hover"),
+          soft: rgb("accent-soft"),
+          line: rgb("accent-line"),
+          // What sits ON the accent. It inverts with the theme, so a primary button is
+          // never white-on-white.
+          fg: rgb("accent-fg"),
         },
-        ink: "#171512",
-        body: "#4a443c",
-        muted: "#79726a",
-        faint: "#a49c90",
-        line: "#e2dbcd",
-        hairline: "#efe9dd",
-        surface: "#fdfbf6",
-        canvas: "#f4f0e7",
+        ink: rgb("ink"),
+        body: rgb("body"),
+        muted: rgb("muted"),
+        faint: rgb("faint"),
+        line: rgb("line"),
+        hairline: rgb("hairline"),
+        surface: rgb("surface"),
+        canvas: rgb("canvas"),
         // Result states are deliberately NOT red/green. A model flag is not a diagnosis,
-        // and a pass/fail palette would assert far more than the number supports. Their
-        // soft tints are warmed to match the beige ground.
-        attention: { DEFAULT: "#8a5712", soft: "#f7eeda", line: "#e6d4af" },
-        steady: { DEFAULT: "#3f6b5c", soft: "#e9efe8", line: "#d0dfd3" },
-        caution: { DEFAULT: "#8a4038", soft: "#f8e7e2", line: "#ecd1c9" },
+        // and a pass/fail palette would assert far more than the number supports.
+        attention: {
+          DEFAULT: rgb("attention"),
+          soft: rgb("attention-soft"),
+          line: rgb("attention-line"),
+        },
+        steady: {
+          DEFAULT: rgb("steady"),
+          soft: rgb("steady-soft"),
+          line: rgb("steady-line"),
+        },
+        caution: {
+          DEFAULT: rgb("caution"),
+          soft: rgb("caution-soft"),
+          line: rgb("caution-line"),
+        },
       },
       fontFamily: {
         sans: [
@@ -51,9 +75,11 @@ export default {
         "5xl": ["3.25rem", { lineHeight: "1.05" }],
       },
       borderRadius: { xl: "0.875rem", "2xl": "1.25rem" },
+      // Also variables: a shadow tuned for dark ink on beige is a grey smear on a dark
+      // ground, where separation has to come from the surface being lighter than the page.
       boxShadow: {
-        card: "0 1px 2px rgba(48,38,22,0.05), 0 8px 24px -12px rgba(48,38,22,0.10)",
-        lift: "0 2px 4px rgba(48,38,22,0.06), 0 18px 40px -18px rgba(48,38,22,0.16)",
+        card: "var(--shadow-card)",
+        lift: "var(--shadow-lift)",
       },
       maxWidth: { prose: "62ch" },
     },

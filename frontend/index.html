@@ -8,6 +8,18 @@
       name="description"
       content="A research and education platform. Three independent machine-learning models, each explained. Not a medical diagnostic system."
     />
+    <script>
+      // Applied before first paint. Without it, someone who chose dark gets a full beige
+      // flash on every page load while React boots — the choice is only in localStorage,
+      // which the stylesheet cannot read.
+      (function () {
+        try {
+          var t = localStorage.getItem("mda-theme");
+          if (t === "light" || t === "dark")
+            document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

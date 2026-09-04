@@ -164,6 +164,38 @@ analysis" describes the project to someone who already knows what it is) and a n
 password-reset screen telling the reader to check the terminal running `uvicorn` — a build
 detail on a page a stranger reads.
 
+### Light and dark
+
+One button in the header, on every frame. The icon shows what pressing it *gives* you — a
+sun while you are in the dark — because a button's face is read as its outcome.
+
+The palette is a single set of CSS variables in `index.css`, declared twice; every Tailwind
+colour resolves to one of them, so there is no `dark:` variant anywhere in the app and no
+component knows which theme is active. The variables hold RGB channels rather than hex,
+which is what keeps `bg-accent/10`, `ring-accent/45` and `bg-canvas/85` working.
+
+Dark is not the light theme inverted. It is the same idea read the other way round: in
+light, near-black ink on beige paper; in dark, that beige becomes the ink and sits on warm
+near-black. Every neutral keeps its warmth, so it reads as dimmed paper rather than a cold
+grey app. Two things that had to change with it: `.btn-primary` uses `text-accent-fg`
+rather than `text-white`, since in dark the accent *is* nearly white; and drop shadows
+become a faint ring, because a shadow on a dark ground is a smear — separation comes from
+`surface` being lighter than `canvas`.
+
+Three states, not two:
+
+| | |
+|---|---|
+| no choice yet | follows the system, live, with no attribute set |
+| pressed once | `[data-theme]` on `<html>`, stored, and it beats the media query **in both directions** |
+| storage blocked | the choice lasts for the tab; nothing throws |
+
+Nothing is written to storage until the button is actually pressed — persisting the
+resolved theme on first render would freeze a preference the person never expressed and
+silently stop them following their own system setting. An inline script in `index.html`
+applies a stored choice before first paint; without it, someone who chose dark gets a full
+beige flash on every load while React boots.
+
 ### Saving and history
 
 Saving is opt-in, at the end, and says what it keeps before it is pressed — the values, the

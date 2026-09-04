@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../auth";
+import { useTheme } from "../theme";
 import * as routes from "../lib/routes";
 
 const DISCLAIMER_LINE = "Research & education only · Not a medical diagnosis";
@@ -46,6 +47,41 @@ function Wordmark({ to, tagline = false }: { to: string; tagline?: boolean }) {
   );
 }
 
+/**
+ * The dark-mode button.
+ *
+ * The icon shows what pressing it gives you, not what you are currently in — a sun while
+ * you are in the dark. Showing the current state is the commoner choice and the one people
+ * misread, because a button is a thing you press, so its face is read as its outcome.
+ */
+export function ThemeToggle({ className = "" }: { className?: string }) {
+  const { theme, toggle } = useTheme();
+  const goingTo = theme === "dark" ? "light" : "dark";
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      className={`btn rounded-md p-2 text-muted hover:bg-accent-soft hover:text-ink ${className}`}
+      aria-label={`Switch to ${goingTo} mode`}
+      title={`Switch to ${goingTo} mode`}
+    >
+      {theme === "dark" ? (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+          <circle cx="12" cy="12" r="4.2" />
+          <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6L17 17M7 7L5.4 5.4" />
+        </svg>
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a6.9 6.9 0 0 0 11.1 11.1Z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 /** The frame for everything under `/app` — signed in, with the account controls. */
 export function Layout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -66,6 +102,7 @@ export function Layout({ children }: { children: ReactNode }) {
             >
               Assessments
             </NavLink>
+            <ThemeToggle />
             {user && (
               <>
                 <NavLink
@@ -115,6 +152,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         <>
           <Wordmark to="/" />
           <div className="ml-auto flex items-center gap-2 text-sm">
+            <ThemeToggle />
             <Link to={routes.SIGN_IN} className="btn-quiet px-3 py-1.5 text-sm">
               Sign in
             </Link>
@@ -152,6 +190,7 @@ export function AuthShell({
       <header className="border-b border-line/70">
         <div className="mx-auto flex h-16 max-w-5xl items-center px-6">
           <Wordmark to="/" />
+          <ThemeToggle className="ml-auto" />
         </div>
       </header>
 
