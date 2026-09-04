@@ -207,3 +207,27 @@ export interface FieldState {
 }
 
 export type IntakeValues = Record<string, FieldState>;
+
+// --- accounts ----------------------------------------------------------------------------
+
+export interface User {
+  id: string;
+  email: string;
+  display_name: string | null;
+  /** What the greeting shows. The local part of the address when no name was given. */
+  greeting_name: string;
+  created_at: string;
+}
+
+export interface SignInResponse {
+  user: User;
+  expires_at: string;
+}
+
+export interface SessionSummary {
+  id: string;
+  created_at: string;
+  last_seen_at: string;
+  user_agent: string | null;
+  current: boolean;
+}

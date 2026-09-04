@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
+import { useAuth } from "../auth";
 import { Disclosure, ErrorBox, Spinner } from "../components/Chrome";
 import type { Disease, ModelSummary } from "../types";
 
@@ -35,6 +36,7 @@ const MODULES: { disease: Disease; icon: string; name: string; blurb: string }[]
 ];
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [models, setModels] = useState<ModelSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,9 +55,11 @@ export default function Dashboard() {
   return (
     <div>
       <div className="mb-12 max-w-prose">
-        <h1 className="text-3xl font-semibold">Understand your health</h1>
+        <p className="eyebrow mb-2">Welcome back{user ? `, ${user.greeting_name}` : ""}</p>
+        <h1 className="text-3xl font-semibold">What would you like to check?</h1>
         <p className="mt-3 text-lg text-body">
-          Choose an assessment to get an AI-based analysis of the information you provide.
+          Each assessment is a separate model with its own dataset and its own limits. They
+          are never combined, and there is no overall score.
         </p>
       </div>
 
@@ -63,7 +67,7 @@ export default function Dashboard() {
         {MODULES.filter((m) => available.has(m.disease)).map((m) => (
           <Link
             key={m.disease}
-            to={`/${m.disease}`}
+            to={`/app/${m.disease}`}
             className="surface group flex flex-col p-7 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-line hover:shadow-lift"
           >
             <span aria-hidden className="text-2xl">
@@ -140,7 +144,7 @@ export default function Dashboard() {
 
             <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-4 text-xs">
               {models.map((m) => (
-                <Link key={m.disease} to={`/${m.disease}/about`} className="btn-link text-xs">
+                <Link key={m.disease} to={`/app/${m.disease}/about`} className="btn-link text-xs">
                   {m.module} — full model card
                 </Link>
               ))}

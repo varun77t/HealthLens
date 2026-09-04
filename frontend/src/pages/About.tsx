@@ -43,7 +43,7 @@ export default function About() {
         eyebrow="Research details"
         title={`How the ${summary.module.replace(/ Prediction$/, "")} estimate is produced`}
         lead={card.intended_use}
-        back={{ to: `/${disease}`, label: "Back to assessment" }}
+        back={{ to: `/app/${disease}`, label: "Back to assessment" }}
       />
 
       <div className="space-y-4">

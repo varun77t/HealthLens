@@ -37,7 +37,7 @@ export default function Review() {
   );
 
   if (!schema || !disease || session.disease !== disease) {
-    nav(`/${disease ?? ""}`, { replace: true });
+    nav(`/app/${disease ?? ""}`, { replace: true });
     return null;
   }
 
@@ -62,7 +62,7 @@ export default function Review() {
       const prediction = await api.predict(disease, toPayload(values));
       session.setPrediction(prediction);
       session.setConfirmed(true);
-      nav(`/${disease}/result`);
+      nav(`/app/${disease}/result`);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
     } finally {
@@ -76,7 +76,7 @@ export default function Review() {
         title={fromDocument ? "We found your information" : "Review your information"}
         lead="Please review the details before we run the analysis."
         back={{
-          to: fromDocument ? `/${disease}` : `/${disease}/enter`,
+          to: fromDocument ? `/app/${disease}` : `/app/${disease}/enter`,
           label: fromDocument ? "Upload a different report" : "Back to the form",
         }}
       />

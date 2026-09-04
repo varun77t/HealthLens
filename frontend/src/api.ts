@@ -7,25 +7,66 @@ import type {
   SamplesResponse,
   SchemaResponse,
   ScenarioResponse,
+  SessionSummary,
+  SignInResponse,
+  User,
 } from "./types";
 
 const BASE = import.meta.env.VITE_API_BASE ?? "/api";
 
+/**
+ * Every request carries the session cookie.
+ *
+ * The cookie is httpOnly, so nothing here can read it — the browser attaches it. That is
+ * the point: there is no token in JavaScript for an XSS to steal, and no header for us to
+ * forget on one call. It also means a plain `<a href>` download (the demo reports) is
+ * authenticated for free, which a bearer token would have made impossible.
+ */
+const CREDENTIALS: RequestCredentials = "include";
+
+/**
+ * Called when a request is refused for want of a session.
+ *
+ * Registered by `AuthProvider`. Without it, an expired session leaves the app rendering a
+ * signed-in shell whose every request fails — the user sees errors instead of a sign-in
+ * screen, which reads as the application being broken.
+ */
+let unauthorizedHandler: (() => void) | null = null;
+
+export function onUnauthorized(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
+}
+
+function noteUnauthorized(path: string, status: number) {
+  // A rejected sign-in is a normal answer on the auth routes, not an expired session.
+  if (status === 401 && !path.startsWith("/auth/")) unauthorizedHandler?.();
+}
+
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`);
-  if (!res.ok) throw new ApiError(res.status, await readError(res));
+  const res = await fetch(`${BASE}${path}`, { credentials: CREDENTIALS });
+  if (!res.ok) {
+    noteUnauthorized(path, res.status);
+    throw new ApiError(res.status, await readError(res));
+  }
   return res.json() as Promise<T>;
 }
 
-async function post<T>(path: string, body: unknown): Promise<T> {
+async function send<T>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    method,
+    credentials: CREDENTIALS,
+    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok) throw new ApiError(res.status, await readError(res));
+  if (!res.ok) {
+    noteUnauthorized(path, res.status);
+    throw new ApiError(res.status, await readError(res));
+  }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
+
+const post = <T,>(path: string, body?: unknown) => send<T>("POST", path, body);
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -68,8 +109,15 @@ export const api = {
   extract: async (d: Disease, file: File): Promise<ExtractionResult> => {
     const form = new FormData();
     form.append("file", file);
-    const res = await fetch(`${BASE}/extract/${d}`, { method: "POST", body: form });
-    if (!res.ok) throw new ApiError(res.status, await readError(res));
+    const res = await fetch(`${BASE}/extract/${d}`, {
+      method: "POST",
+      credentials: CREDENTIALS,
+      body: form,
+    });
+    if (!res.ok) {
+      noteUnauthorized(`/extract/${d}`, res.status);
+      throw new ApiError(res.status, await readError(res));
+    }
     return res.json() as Promise<ExtractionResult>;
   },
 
@@ -80,10 +128,46 @@ export const api = {
   reportPdf: async (d: Disease, prediction: PredictionResponse): Promise<Blob> => {
     const res = await fetch(`${BASE}/report/${d}`, {
       method: "POST",
+      credentials: CREDENTIALS,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(prediction),
     });
-    if (!res.ok) throw new ApiError(res.status, await readError(res));
+    if (!res.ok) {
+      noteUnauthorized(`/report/${d}`, res.status);
+      throw new ApiError(res.status, await readError(res));
+    }
     return res.blob();
+  },
+
+  auth: {
+    /** `null` when not signed in — the endpoint answers 204, which is not an error. */
+    me: async (): Promise<User | null> => {
+      const res = await fetch(`${BASE}/auth/me`, { credentials: CREDENTIALS });
+      if (res.status === 204) return null;
+      if (!res.ok) throw new ApiError(res.status, await readError(res));
+      return res.json() as Promise<User>;
+    },
+    signUp: (email: string, password: string, displayName?: string) =>
+      post<SignInResponse>("/auth/signup", {
+        email,
+        password,
+        display_name: displayName?.trim() || null,
+      }),
+    signIn: (email: string, password: string) =>
+      post<SignInResponse>("/auth/login", { email, password }),
+    signOut: () => post<void>("/auth/logout"),
+    signOutEverywhereElse: () => post<{ message: string }>("/auth/logout-all"),
+    sessions: () => get<SessionSummary[]>("/auth/sessions"),
+    changePassword: (currentPassword: string, newPassword: string) =>
+      post<{ message: string }>("/auth/password", {
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    requestReset: (email: string) =>
+      post<{ message: string }>("/auth/forgot", { email }),
+    resetPassword: (token: string, newPassword: string) =>
+      post<{ message: string }>("/auth/reset", { token, new_password: newPassword }),
+    deleteAccount: (password: string) =>
+      send<void>("DELETE", "/auth/account", { password, confirm: "DELETE" }),
   },
 };

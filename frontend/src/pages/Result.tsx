@@ -43,7 +43,7 @@ export default function Result() {
   }, [disease]);
 
   if (!p || !schema || !session.confirmed) {
-    nav(`/${disease ?? ""}`, { replace: true });
+    nav(`/app/${disease ?? ""}`, { replace: true });
     return null;
   }
 
@@ -79,7 +79,7 @@ export default function Result() {
     <div>
       <PageHead
         title={TITLES[disease!] ?? p.module}
-        back={{ to: `/${disease}/review`, label: "Change an answer" }}
+        back={{ to: `/app/${disease}/review`, label: "Change an answer" }}
       />
 
       {/* Category first, percentage second. See the note at the top of this file. */}
@@ -154,14 +154,14 @@ export default function Result() {
         <button className="btn-primary" onClick={download} disabled={downloading}>
           {downloading ? "Preparing…" : "↓ Download report"}
         </button>
-        <button className="btn-secondary" onClick={() => nav(`/${disease}/review`)}>
+        <button className="btn-secondary" onClick={() => nav(`/app/${disease}/review`)}>
           Change an answer
         </button>
         <button
           className="btn-quiet"
           onClick={() => {
             session.reset();
-            nav("/");
+            nav("/app");
           }}
         >
           Start over
@@ -210,7 +210,7 @@ export default function Result() {
               </>
             )}
             <p>
-              <Link to={`/${disease}/about`} className="btn-link">
+              <Link to={`/app/${disease}/about`} className="btn-link">
                 Full model card, dataset and validation details →
               </Link>
             </p>

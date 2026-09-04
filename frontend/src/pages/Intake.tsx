@@ -56,7 +56,7 @@ export default function Intake() {
       <PageHead
         title="Enter your information"
         lead="Fill in what you have. Anything you leave out will be noted in the analysis rather than guessed."
-        back={{ to: `/${disease}`, label: "Back" }}
+        back={{ to: `/app/${disease}`, label: "Back" }}
       />
 
       <div className="space-y-3">
@@ -108,7 +108,7 @@ export default function Intake() {
         <button
           className="btn-primary"
           disabled={!anyValue}
-          onClick={() => nav(`/${disease}/review`)}
+          onClick={() => nav(`/app/${disease}/review`)}
         >
           Review your information
         </button>

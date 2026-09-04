@@ -53,7 +53,7 @@ export default function Start() {
       const result = await api.extract(disease, file);
       session.start(disease, schema, fromExtraction(schema, result));
       session.setExtraction(result, file.name);
-      nav(`/${disease}/review`);
+      nav(`/app/${disease}/review`);
     } catch (e) {
       setUploadError(e instanceof ApiError ? e.message : String(e));
     } finally {
@@ -63,7 +63,7 @@ export default function Start() {
 
   const manual = () => {
     session.start(disease, schema, emptyIntake(schema));
-    nav(`/${disease}/enter`);
+    nav(`/app/${disease}/enter`);
   };
 
   return (
@@ -72,7 +72,7 @@ export default function Start() {
         eyebrow={HEADINGS[disease] ?? schema.module}
         title="Let's get your information"
         lead="Upload a medical report and we'll extract the information we can use."
-        back={{ to: "/", label: "All assessments" }}
+        back={{ to: "/app", label: "All assessments" }}
       />
 
       <UploadDropzone onFile={upload} busy={busy} />
@@ -131,7 +131,7 @@ export default function Start() {
       )}
 
       <div className="mt-12">
-        <Link to={`/${disease}/about`} className="btn-link text-xs">
+        <Link to={`/app/${disease}/about`} className="btn-link text-xs">
           How is this estimated? Model, data and limitations →
         </Link>
       </div>
