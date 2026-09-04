@@ -62,6 +62,14 @@ export function Layout({ children }: { children: ReactNode }) {
             {user && (
               <>
                 <NavLink
+                  to={routes.history}
+                  className={({ isActive }) =>
+                    `rounded-md px-3 py-1.5 ${isActive ? "text-ink" : "text-muted hover:text-ink"}`
+                  }
+                >
+                  History
+                </NavLink>
+                <NavLink
                   to={routes.account}
                   className={({ isActive }) =>
                     `max-w-[10rem] truncate rounded-md px-3 py-1.5 ${

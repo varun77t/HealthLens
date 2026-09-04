@@ -232,6 +232,22 @@ def _explanation(bundle: ModelBundle, row: pd.DataFrame) -> dict | None:
     }
 
 
+# Every field is optional and missing values are imputed, so an empty body would be scored
+# entirely from training medians and returned as a prediction. A partially specified case is
+# a legitimate question; a wholly unspecified one is not. Shared by /predict and /analyses so
+# both refuse it identically — a save path that accepted what the predict path rejects would
+# put the imputed training median profile in someone's history as their own result.
+EMPTY_CASE_DETAIL = (
+    "No features supplied. Every field is optional and missing values are imputed, but a "
+    "request with no values at all describes no case: the result would be the imputed "
+    "training median profile, not a prediction. Supply at least one feature."
+)
+
+
+def is_empty_case(values: dict) -> bool:
+    return all(v is None for v in values.values())
+
+
 def predict(bundle: ModelBundle, payload: dict, *, include_explanation: bool = True) -> dict:
     """Score one case. Never fits anything; the pipeline was fitted at training time."""
     row, imputed, extrapolated = build_row(bundle, payload)

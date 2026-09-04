@@ -1,4 +1,6 @@
 import type {
+  AnalysisDetail,
+  AnalysisPage,
   DemoReportsResponse,
   Disease,
   ExtractionResult,
@@ -9,6 +11,7 @@ import type {
   ScenarioResponse,
   SessionSummary,
   SignInResponse,
+  SourceKind,
   User,
 } from "./types";
 
@@ -137,6 +140,34 @@ export const api = {
       throw new ApiError(res.status, await readError(res));
     }
     return res.blob();
+  },
+
+  /**
+   * Saved analyses.
+   *
+   * `save` sends the inputs, never a result. The server re-runs the model and stores what
+   * it produced, so nothing in a history entry is a number this page asserted.
+   */
+  analyses: {
+    save: (body: {
+      disease: Disease;
+      features: Record<string, number | null>;
+      source_kind: SourceKind;
+      source_document?: string | null;
+      label?: string | null;
+    }) => post<AnalysisDetail>("/analyses", body),
+    list: (params: { disease?: Disease; limit?: number; offset?: number } = {}) => {
+      const q = new URLSearchParams();
+      if (params.disease) q.set("disease", params.disease);
+      if (params.limit !== undefined) q.set("limit", String(params.limit));
+      if (params.offset !== undefined) q.set("offset", String(params.offset));
+      const query = q.toString();
+      return get<AnalysisPage>(`/analyses${query ? `?${query}` : ""}`);
+    },
+    get: (id: string) => get<AnalysisDetail>(`/analyses/${id}`),
+    rename: (id: string, label: string | null) =>
+      send<AnalysisDetail>("PATCH", `/analyses/${id}`, { label }),
+    remove: (id: string) => send<void>("DELETE", `/analyses/${id}`),
   },
 
   auth: {

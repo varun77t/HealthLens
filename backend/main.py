@@ -34,7 +34,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect
 
 from backend.db import engine, session_factory
-from backend.routes import analytics, auth, documents, health, models, predict, scenario
+from backend.routes import (
+    analyses, analytics, auth, documents, health, models, predict, scenario,
+)
 from backend.routes.deps import require_user
 from backend.services import auth_service
 from backend.services.registry import load_registry
@@ -144,7 +146,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Content-Type"],
 )
 
@@ -157,7 +159,7 @@ app.include_router(health.router)
 app.include_router(auth.router)
 
 for _router in (models.router, predict.router, analytics.router, scenario.router,
-                documents.router):
+                documents.router, analyses.router):
     app.include_router(_router, dependencies=[Depends(require_user)])
 
 

@@ -8,6 +8,8 @@ import About from "./pages/About";
 import Account from "./pages/Account";
 import Dashboard from "./pages/Dashboard";
 import Forgot from "./pages/Forgot";
+import History from "./pages/History";
+import HistoryDetail from "./pages/HistoryDetail";
 import Intake from "./pages/Intake";
 import Landing from "./pages/Landing";
 import Reset from "./pages/Reset";
@@ -46,6 +48,8 @@ function ProtectedArea() {
         <Routes>
           <Route index element={<Dashboard />} />
           <Route path="account" element={<Account />} />
+          <Route path="history" element={<History />} />
+          <Route path="history/:id" element={<HistoryDetail />} />
           {/* Upload is the primary path; the guided form is reached from it. */}
           <Route path=":disease" element={<Start />} />
           <Route path=":disease/enter" element={<Intake />} />

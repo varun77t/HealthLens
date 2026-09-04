@@ -21,7 +21,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db import Base
@@ -59,6 +59,9 @@ class User(Base):
         back_populates="user", cascade="all, delete-orphan", passive_deletes=True
     )
     password_resets: Mapped[list["PasswordReset"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan", passive_deletes=True
+    )
+    analyses: Mapped[list["Analysis"]] = relationship(
         back_populates="user", cascade="all, delete-orphan", passive_deletes=True
     )
 
@@ -132,5 +135,61 @@ class LoginAttempt(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)
 
 
+class Analysis(Base):
+    """One saved assessment.
+
+    Written only by the explicit save action. Running an assessment does not create a row —
+    ``/predict`` writes nothing, and ``tests/test_access_control.py`` holds that line.
+
+    **The model's answer is pinned, not recomputed.** ``threshold``, ``band_lower/upper``
+    and ``model_version`` are stored with the row because a retrain moves the operating
+    threshold. Diabetes's is 0.1388; rendering a saved 14.5% against a later threshold
+    would silently reverse whether the model flagged that case. The history view compares
+    the stored ``model_version`` against the live one and says so when they differ, rather
+    than quietly re-scoring an old record.
+
+    ``explanation`` is stored rather than re-derived. Kidney's SHAP is a KernelExplainer at
+    roughly 0.8 s per call; opening a saved result should not cost that, and re-deriving it
+    from a newer model would attribute the old probability to the new model's reasoning.
+
+    ``features`` holds the health values. It is the reason this table exists and the reason
+    the account page says plainly what is kept. The uploaded document is not here: only its
+    filename, and only because the generated report names its source.
+    """
+
+    __tablename__ = "analyses"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    user_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    disease: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)
+
+    # What was submitted.
+    features: Mapped[dict] = mapped_column(JSON, nullable=False)
+    source_kind: Mapped[str] = mapped_column(String(16), nullable=False)  # upload|manual|sample
+    source_document: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    label: Mapped[str | None] = mapped_column(String(120), nullable=True)
+
+    # What the model answered, as it answered it.
+    probability: Mapped[float] = mapped_column(Float, nullable=False)
+    flagged: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    threshold: Mapped[float] = mapped_column(Float, nullable=False)
+    band_label: Mapped[str] = mapped_column(String(16), nullable=False)
+    band_lower: Mapped[float] = mapped_column(Float, nullable=False)
+    band_upper: Mapped[float] = mapped_column(Float, nullable=False)
+    model_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    model_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    calibration: Mapped[str] = mapped_column(String(32), nullable=False)
+    imputed_features: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    explanation: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    warnings: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    user: Mapped[User] = relationship(back_populates="analyses")
+
+
+Index("ix_analyses_user_created", Analysis.user_id, Analysis.created_at)
 Index("ix_login_attempts_email_created", LoginAttempt.email, LoginAttempt.created_at)
 Index("ix_login_attempts_ip_created", LoginAttempt.ip, LoginAttempt.created_at)

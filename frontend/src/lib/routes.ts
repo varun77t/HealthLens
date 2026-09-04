@@ -16,6 +16,8 @@ export const review = (d: Disease | string) => `${APP}/${d}/review`;
 export const result = (d: Disease | string) => `${APP}/${d}/result`;
 export const about = (d: Disease | string) => `${APP}/${d}/about`;
 export const account = `${APP}/account`;
+export const history = `${APP}/history`;
+export const historyItem = (id: string) => `${APP}/history/${id}`;
 
 export const SIGN_IN = "/signin";
 export const SIGN_UP = "/signup";

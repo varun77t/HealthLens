@@ -231,3 +231,46 @@ export interface SessionSummary {
   user_agent: string | null;
   current: boolean;
 }
+
+// --- saved analyses ------------------------------------------------------------------
+
+export type SourceKind = "upload" | "manual" | "sample";
+
+export interface AnalysisSummary {
+  id: string;
+  disease: Disease;
+  module: string;
+  created_at: string;
+  label: string | null;
+  source_kind: SourceKind;
+  source_document: string | null;
+  probability: number;
+  flagged: boolean;
+  /** Stored with the row: the band means nothing without the threshold that defined it. */
+  threshold: number;
+  band_label: string;
+  model_name: string;
+  model_version: string;
+  /** False once the live model is no longer the one that produced this result. */
+  model_is_current: boolean;
+}
+
+export interface AnalysisDetail extends AnalysisSummary {
+  features: Record<string, number | null>;
+  band_lower: number;
+  band_upper: number;
+  calibration: string;
+  imputed_features: string[];
+  explanation: Explanation | null;
+  warnings: string[];
+  current_model_version: string | null;
+  disclaimer: string;
+}
+
+export interface AnalysisPage {
+  total: number;
+  limit: number;
+  offset: number;
+  items: AnalysisSummary[];
+  note: string;
+}

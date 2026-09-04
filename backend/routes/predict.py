@@ -30,20 +30,8 @@ _EXPLAIN_QUERY = Query(
 def _run(registry: Registry, disease: str, features, include_explanation: bool) -> dict:
     bundle = registry.get(disease)
     values = features.model_dump()
-    if all(v is None for v in values.values()):
-        # Every field is optional, so an empty body would otherwise be scored entirely from
-        # imputed training medians and returned as a prediction. There is no case here to
-        # predict about. A partially specified case is a legitimate question and is answered
-        # (with the imputation reported); a wholly unspecified one is not.
-        raise HTTPException(
-            status_code=422,
-            detail=(
-                "No features supplied. Every field is optional and missing values are "
-                "imputed, but a request with no values at all describes no case: the "
-                "result would be the imputed training median profile, not a prediction. "
-                "Supply at least one feature."
-            ),
-        )
+    if svc.is_empty_case(values):
+        raise HTTPException(status_code=422, detail=svc.EMPTY_CASE_DETAIL)
     return svc.predict(bundle, values, include_explanation=include_explanation)
 
 

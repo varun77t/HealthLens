@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Disclosure, Note, PageHead } from "../components/Chrome";
+import { SaveAnalysis } from "../components/SaveAnalysis";
+import { toPayload } from "../lib/intake";
 import { formatValue } from "../lib/intake";
 import { useSession } from "../state";
-import type { Contribution, Disease, FeatureSpec, ModelSummary } from "../types";
+import type { Contribution, Disease, FeatureSpec, ModelSummary, SourceKind } from "../types";
 
 const TITLES: Record<string, string> = {
   heart: "Your heart health analysis",
@@ -49,6 +51,12 @@ export default function Result() {
 
   const featureOf = (name: string): FeatureSpec | undefined =>
     schema.features.find((f) => f.name === name);
+
+  const sourceKind: SourceKind = session.extraction
+    ? "upload"
+    : session.sampleId
+      ? "sample"
+      : "manual";
 
   const download = async () => {
     setDownloading(true);
@@ -166,6 +174,16 @@ export default function Result() {
         >
           Start over
         </button>
+      </div>
+
+      {/* Saving is opt-in and separate: running the analysis stored nothing. */}
+      <div className="mt-6">
+        <SaveAnalysis
+          disease={disease!}
+          features={toPayload(session.values)}
+          sourceKind={sourceKind}
+          sourceDocument={session.sourceDocument}
+        />
       </div>
 
       {/* --- the research layer, one click away ------------------------------------ */}
