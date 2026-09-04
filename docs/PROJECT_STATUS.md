@@ -1,6 +1,6 @@
 # Project Status — Multi-Disease AI
 
-_Last updated: 2026-09-03 (Phase 10 — upload-first flow)_
+_Last updated: 2026-09-04 (Phase 11 — accounts and saved history)_
 
 > **Looking for the current state rather than the build history?** See
 > [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — condensed orientation: the three models,
@@ -9,8 +9,9 @@ _Last updated: 2026-09-03 (Phase 10 — upload-first flow)_
 
 Research/education platform. **Not** a clinical diagnostic tool. Three independent
 disease pipelines (heart, kidney, diabetes), a FastAPI backend serving them, and a React
-frontend over that (v1: guided form + worked examples). Document upload with OCR and the
-CNN/Grad-CAM module remain deferred.
+frontend over that. Authentication is mandatory: nothing but the landing and account
+screens is reachable without a session. Image/OCR extraction and the CNN/Grad-CAM module
+remain deferred.
 
 Plan file: `C:\Users\Admin\.claude\plans\you-are-working-on-zippy-hammock.md`
 
@@ -28,18 +29,30 @@ Plan file: `C:\Users\Admin\.claude\plans\you-are-working-on-zippy-hammock.md`
 | 7 | Calibration + fairness subgroup analysis | ✅ complete |
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ✅ complete (`739eeac`) |
 | 9 (v1) | Frontend: guided form, review step, worked examples | ✅ complete |
-| 10 | Upload-first flow: PDF extraction, synthetic reports, report PDF, redesign | ✅ complete |
+| 10 | Upload-first flow: PDF extraction, synthetic reports, report PDF, redesign | ✅ complete (`805bbfd`) |
+| 11a | Auth backend: argon2id, opaque server-side sessions, reset, rate limits | ✅ complete (`ea2de55`) |
+| 11b | Lock the API down; retrofit the existing suite to a signed-in client | ✅ complete (`4558efe`) |
+| 11c | Landing → sign in → `/app`; every route re-parented behind one gate | ✅ complete (`b3cd96e`) |
+| 11d | Saved analyses and history, pinned to the model that produced them | ✅ complete (`82eb39e`) |
+| 11e | Hardening, `docs/AUTH.md`, README/API/FRONTEND updates | ✅ complete |
 | — | Paste report text; image/OCR extraction | ⬜ |
 | — | CNN/Grad-CAM imaging module | deferred |
 
 **All three models trained (heart, kidney, diabetes). Every metric in this repo comes from an actual run — none are fabricated.**
+
+**Authentication is mandatory; storage is not.** Signing in unlocks the assessment flow. It
+does not start a record: `/predict/*` writes nothing, an uploaded document is never stored,
+and health values reach the database only through the explicit save on the result screen.
+`tests/test_access_control.py` runs a full assessment and asserts every table's row count is
+unchanged. See [`AUTH.md`](AUTH.md).
 
 ## Environment
 
 - Python 3.12.6. Project runs in its own venv: `.venv/` (git-ignored).
 - venv key versions: numpy 2.5.2, pandas 2.3.0, scikit-learn 1.7.2, xgboost 3.0.5,
   lightgbm 4.6.0, imbalanced-learn 0.14.0, shap 0.52.0, numba 0.67.0, ucimlrepo 0.0.7,
-  matplotlib 3.10.3, seaborn 0.13.2, fastapi 0.115.0, uvicorn 0.30.6, pydantic 2.9.1.
+  matplotlib 3.10.3, seaborn 0.13.2, fastapi 0.115.0, uvicorn 0.30.6, pydantic 2.9.1,
+  sqlalchemy 2.0.44, alembic 1.17.1, argon2-cffi 25.1.0, email-validator 2.3.0.
   Full pinned list in `requirements.txt`.
 - Jupyter kernel `medicl` registered → `.venv\Scripts\python.exe`. Use it for the notebooks.
 - Global Python restored to numpy 1.26.4 (shap/numba/llvmlite removed from global) so the

@@ -34,8 +34,14 @@ The three predictions are **never** combined into a single "overall health score
 | 8 | FastAPI backend (`/predict/*`, `/models`, `/analytics/*`, `/scenario/*`) | ✅ done |
 | 9 | Frontend: guided form, review step, worked examples | ✅ done |
 | 10 | Upload a report → extract → review → analyse → explain → PDF report | ✅ done |
+| 11 | Accounts, mandatory authentication, saved analysis history | ✅ done |
 | — | Paste report text; image/OCR extraction | ⏳ planned |
 | — | CNN/Grad-CAM imaging module | deferred |
+
+**Authentication is mandatory.** Every disease assessment, upload, prediction, explanation,
+report and history entry requires an account; there is no anonymous prediction path. Being
+signed in is not the same as being recorded — health values reach the database only through
+an explicit save, and `/predict/*` never writes at all. See [docs/AUTH.md](docs/AUTH.md).
 
 **All three models are trained and served.** Every performance number in this repo is
 produced by an actual run and is reproducible with `RANDOM_STATE = 42`. No metric anywhere
@@ -53,7 +59,9 @@ dataset.
 ```
 config.py            global seed, paths, disease registry, risk bands, disclaimer
 docs/API.md          how to run and read the API (Phase 8)
-docs/FRONTEND.md     the web app: upload flow, screens, defects found (Phases 9-10)
+docs/FRONTEND.md     the web app: screens, upload flow, defects found (Phases 9-11)
+docs/AUTH.md         accounts, sessions, saved analyses, what is stored (Phase 11)
+migrations/          Alembic revisions for the accounts + history schema
 ml/
   data/              ucimlrepo acquisition + caching, disease loaders, validation, TARGET.md generator
   eda/               profiling + plotting utilities, EDA runner
@@ -76,6 +84,7 @@ models/<disease>/    pipeline.joblib (serving) + base_pipeline.joblib (SHAP) + m
 notebooks/           thin notebooks over the ml package (training notebooks never retrain)
 scripts/             train_<disease>.py entrypoints, notebook builder, serving-asset export
 backend/             FastAPI service: schemas (generated), services, routes
+                     + settings/db/tables/security (accounts and sessions, Phase 11)
 frontend/            React + Vite web app (form generated from the model's own schema)
 tests/               structure, leakage, and shipped-artifact tests
 ```
@@ -93,7 +102,15 @@ python -m venv .venv
 # macOS / Linux:         source .venv/bin/activate
 python -m pip install -r requirements.txt
 python -m ipykernel install --user --name medicl --display-name "Python (medicl)"
+
+# Accounts schema. Required before the API will let anyone sign in.
+python -m alembic upgrade head
 ```
+
+`data/app.db` is git-ignored: it holds password hashes and any health values entered while
+testing. Copy `.env.example` to `.env` to change anything — every value has a development
+default, and there is deliberately no signing key to generate. See
+[docs/AUTH.md](docs/AUTH.md).
 
 Select the **Python (medicl)** kernel when running the notebooks. All `python -m ...`
 commands below assume the venv interpreter (`.venv/Scripts/python` on Windows).
