@@ -204,7 +204,7 @@ def build_report(disease: str, case: dict, out_path: Path) -> Path:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     c = canvas.Canvas(str(out_path), pagesize=A4)
     c.setTitle(f"{DOCUMENT_TITLES.get(disease, disease.title())} — synthetic demonstration")
-    c.setAuthor("Multi-Disease AI (research/education demonstration)")
+    c.setAuthor("HealthLens (research/education demonstration)")
     c.setSubject(SYNTHETIC_BANNER)
 
     p = Page(c)
@@ -214,7 +214,7 @@ def build_report(disease: str, case: dict, out_path: Path) -> Path:
     p.y -= 2 * mm
     p.rule()
     p.kv_line(f"Specimen ID: {case['id'].upper()}", f"Report date: {date.today().isoformat()}")
-    p.kv_line("Referring unit: Demonstration", "Laboratory: Multi-Disease AI demo set")
+    p.kv_line("Referring unit: Demonstration", "Laboratory: HealthLens demo set")
     p.rule()
 
     for g in groups:
@@ -230,7 +230,7 @@ def build_report(disease: str, case: dict, out_path: Path) -> Path:
     p.y -= 3 * mm
     p.rule()
     p.paragraph(
-        f"{SYNTHETIC_BANNER}. Produced by the Multi-Disease AI demonstration platform for "
+        f"{SYNTHETIC_BANNER}. Produced by the HealthLens demonstration platform for "
         "research and educational purposes only. This document does not describe a real "
         "person, is not a clinical record, and must not be used for any medical purpose.",
         size=7,

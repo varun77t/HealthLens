@@ -1,4 +1,4 @@
-"""FastAPI application for the Multi-Disease AI platform.
+"""FastAPI application behind HealthLens (project: Multi-Disease AI).
 
 Three independent disease modules served behind one API. There is no combined endpoint and
 no aggregate health score: the models were trained on unrelated cohorts with unrelated
@@ -126,7 +126,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Multi-Disease AI — Explainable Risk Prediction",
+    title="HealthLens — Explainable Risk Prediction",
     description=DESCRIPTION,
     version="0.11.0",
     lifespan=lifespan,
@@ -166,7 +166,7 @@ for _router in (models.router, predict.router, analytics.router, scenario.router
 @app.get("/", tags=["health"], summary="Service description and disclaimer")
 def root():
     return {
-        "service": "Multi-Disease AI — Explainable Risk Prediction",
+        "service": "HealthLens — Explainable Risk Prediction",
         "version": app.version,
         "modules": list(getattr(app.state, "registry", None).diseases)
         if getattr(app.state, "registry", None)

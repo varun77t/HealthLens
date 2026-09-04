@@ -61,7 +61,7 @@ def get_mailer() -> Mailer:
 
 def reset_email(reset_url: str, ttl_minutes: int) -> tuple[str, str]:
     """``(subject, body)`` for a password-reset message."""
-    subject = "Reset your Multi-Disease AI password"
+    subject = "Reset your HealthLens password"
     body = (
         "Someone asked to reset the password for this address.\n\n"
         f"{reset_url}\n\n"

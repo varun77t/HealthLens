@@ -39,10 +39,10 @@ function Frame({ header, children }: { header: ReactNode; children: ReactNode })
 function Wordmark({ to, tagline = false }: { to: string; tagline?: boolean }) {
   return (
     <Link to={to} className="group flex items-baseline gap-2.5">
-      <span className="text-base font-semibold tracking-tight text-ink">Multi-Disease AI</span>
+      <span className="text-base font-semibold tracking-tight text-ink">HealthLens</span>
       {tagline && (
         <span className="hidden text-xs text-faint sm:inline">
-          Explainable health risk analysis
+          A closer look at your results
         </span>
       )}
     </Link>

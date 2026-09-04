@@ -56,7 +56,7 @@ def build_result_report(
     c = canvas.Canvas(str(out_path), pagesize=A4)
     c.setTitle(f"{prediction['module']} — analysis")
     c.setSubject(RESEARCH_BANNER)
-    c.setAuthor("Multi-Disease AI (research/education platform)")
+    c.setAuthor("HealthLens (research/education platform)")
 
     p = Page(c)
     p.title(prediction["module"])
