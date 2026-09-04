@@ -54,13 +54,13 @@ export default function Dashboard() {
 
   return (
     <div>
+      {/* No lead paragraph. That the three modules are separate models that are never
+          combined is a property of the architecture, not news to someone choosing which
+          one to run — and it is still stated in the disclosure below and in full on each
+          module's own page. */}
       <div className="mb-12 max-w-prose">
         <p className="eyebrow mb-2">Welcome back{user ? `, ${user.greeting_name}` : ""}</p>
         <h1 className="text-3xl font-semibold">What would you like to check?</h1>
-        <p className="mt-3 text-lg text-body">
-          Each assessment is a separate model with its own dataset and its own limits. They
-          are never combined, and there is no overall score.
-        </p>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
