@@ -46,9 +46,11 @@
   .btn-quiet {
     @apply btn px-3 py-1.5 text-muted hover:text-accent;
   }
+  /* Underlined always, not just on hover: with a black accent, colour no longer marks a
+     link, and "bold dark text" is not an affordance. */
   .btn-link {
     @apply inline-flex items-center gap-1.5 text-sm font-medium text-accent
-           underline-offset-4 hover:underline;
+           underline decoration-line underline-offset-4 hover:decoration-accent;
   }
   .input {
     @apply w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-base

@@ -4,27 +4,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        // One restrained accent. Everything else is neutral, so the only strong colour on
-        // a screen is the thing you are meant to press.
+        // Ink on paper. The accent carries no hue at all, so the only thing competing for
+        // attention on a screen is contrast — which the thing you are meant to press has
+        // more of than anything else.
+        //
+        // Every neutral is warm (a touch of yellow-red), so they sit on the beige ground
+        // instead of looking like a cool-grey UI pasted onto it.
         accent: {
-          DEFAULT: "#12716b",
-          hover: "#0e5c57",
-          soft: "#eef5f4",
-          line: "#cfe3e1",
+          DEFAULT: "#1a1815",
+          hover: "#000000",
+          soft: "#efeade",
+          line: "#d5cdbc",
         },
-        ink: "#0f1e26",
-        body: "#3c4a52",
-        muted: "#6b7b84",
-        faint: "#9aa8af",
-        line: "#e7ecee",
-        hairline: "#f1f5f6",
-        surface: "#ffffff",
-        canvas: "#f7f9fa",
+        ink: "#171512",
+        body: "#4a443c",
+        muted: "#79726a",
+        faint: "#a49c90",
+        line: "#e2dbcd",
+        hairline: "#efe9dd",
+        surface: "#fdfbf6",
+        canvas: "#f4f0e7",
         // Result states are deliberately NOT red/green. A model flag is not a diagnosis,
-        // and a pass/fail palette would assert far more than the number supports.
-        attention: { DEFAULT: "#8f5a12", soft: "#fdf6ea", line: "#f0dfc2" },
-        steady: { DEFAULT: "#3f6b5c", soft: "#f0f5f2", line: "#d7e5dd" },
-        caution: { DEFAULT: "#8a4038", soft: "#fdf1ef", line: "#f2d9d5" },
+        // and a pass/fail palette would assert far more than the number supports. Their
+        // soft tints are warmed to match the beige ground.
+        attention: { DEFAULT: "#8a5712", soft: "#f7eeda", line: "#e6d4af" },
+        steady: { DEFAULT: "#3f6b5c", soft: "#e9efe8", line: "#d0dfd3" },
+        caution: { DEFAULT: "#8a4038", soft: "#f8e7e2", line: "#ecd1c9" },
       },
       fontFamily: {
         sans: [
@@ -47,8 +52,8 @@ export default {
       },
       borderRadius: { xl: "0.875rem", "2xl": "1.25rem" },
       boxShadow: {
-        card: "0 1px 2px rgba(15,30,38,0.04), 0 8px 24px -12px rgba(15,30,38,0.08)",
-        lift: "0 2px 4px rgba(15,30,38,0.05), 0 18px 40px -18px rgba(15,30,38,0.14)",
+        card: "0 1px 2px rgba(48,38,22,0.05), 0 8px 24px -12px rgba(48,38,22,0.10)",
+        lift: "0 2px 4px rgba(48,38,22,0.06), 0 18px 40px -18px rgba(48,38,22,0.16)",
       },
       maxWidth: { prose: "62ch" },
     },
