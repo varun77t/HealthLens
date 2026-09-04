@@ -41,6 +41,16 @@ fastapi==0.115.0
 uvicorn==0.30.6
 pydantic==2.9.1
 
+# --- accounts & persistence (Phase 11) ---
+# Authentication is mandatory, so these are not optional extras: the API refuses every
+# request without a session. argon2-cffi provides argon2id for password hashing; the
+# session tokens themselves need no library (secrets + hashlib from the standard library).
+sqlalchemy==2.0.44
+alembic==1.17.1
+argon2-cffi==25.1.0
+# Pydantic's EmailStr needs this; without it every auth schema raises at import.
+email-validator==2.3.0
+
 # --- notebooks & tests ---
 jupyter==1.1.1
 jupyterlab==4.6.3

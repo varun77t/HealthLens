@@ -6,9 +6,17 @@ data/processed/
 models/*/*.joblib
 models/*/*.pkl
 
+# Application database — holds password hashes and any health values saved while
+# testing. Recreate with `alembic upgrade head`; never commit it.
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
 # Secrets
 .env
 .env.*
+!.env.example
 *.key
 
 # Python

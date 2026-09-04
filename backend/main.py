@@ -11,6 +11,11 @@ Design constraints, in order of importance:
   ``shap_values``, and nothing else.
 * **No number without provenance.** Analytics endpoints read the artifacts written by the
   training runs; the API never recomputes or estimates a metric.
+* **No health information without an account.** Every route except ``/health``, ``/``
+  and ``/auth/*`` requires a session cookie. There is no anonymous prediction path.
+* **Authentication does not imply storage.** Signing in unlocks the assessment flow; it
+  does not cause anything to be written. Health values reach the database only through an
+  explicit save, and ``/predict/*`` never writes at all.
 * **The caveats travel with the prediction.** The disclaimer, the model's
   external-validation status, what was imputed, what was extrapolated and (where Phase 7
   measured it reliably) the subgroup error profile are all part of the response body, not
@@ -22,14 +27,17 @@ Run locally::
 """
 from __future__ import annotations
 
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import inspect
 
-from backend.routes import analytics, documents, health, models, predict, scenario
+from backend.db import engine, session_factory
+from backend.routes import analytics, auth, documents, health, models, predict, scenario
+from backend.services import auth_service
 from backend.services.registry import load_registry
+from backend.settings import settings, validate
 from config import DISCLAIMER
 
 DESCRIPTION = f"""
@@ -45,6 +53,12 @@ evaluation and explainability layer:
 | `diabetes` | CDC BRFSS Diabetes Health Indicators (n=253,680) | prediabetes **or** diabetes reported |
 
 They are never combined. There is no overall health score.
+
+### Authentication
+
+Every endpoint below except `/health`, `/` and `/auth/*` requires a session. Sign in through
+`POST /auth/login`; the session is an opaque token in an httpOnly cookie, sent automatically
+by the browser. There is no bearer token and no anonymous access to any module.
 
 ### Reading a prediction
 
@@ -71,7 +85,26 @@ healthcare as well as disease.
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load every model artifact once, before the first request."""
+    """Validate configuration, check the schema, then load every model artifact once."""
+    problems = validate(settings)
+    if problems:
+        listed = "".join(f"\n  - {p}" for p in problems)
+        if settings.is_production:
+            raise RuntimeError(f"Refusing to start with this configuration:{listed}")
+        print(f"[startup] configuration warnings:{listed}")
+
+    # A missing schema otherwise surfaces as an opaque OperationalError on the first signup.
+    if not inspect(engine()).has_table("users"):
+        print(
+            "[startup] WARNING: the accounts schema is missing. "
+            "Run `alembic upgrade head` — sign-in will fail until you do."
+        )
+    else:
+        with session_factory()() as db:
+            swept = auth_service.sweep_expired(db)
+        if any(swept.values()):
+            print(f"[startup] swept expired rows: {swept}")
+
     app.state.registry = load_registry()
     status = app.state.registry.status()
     for disease, s in status.items():
@@ -92,22 +125,30 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Multi-Disease AI — Explainable Risk Prediction",
     description=DESCRIPTION,
-    version="0.8.0",
+    version="0.11.0",
     lifespan=lifespan,
+    # The interactive docs are a development convenience. They are the one thing here that
+    # invites a stranger to start poking at the auth routes, so production turns them off.
+    docs_url="/docs" if settings.docs_enabled else None,
+    redoc_url="/redoc" if settings.docs_enabled else None,
+    openapi_url="/openapi.json" if settings.docs_enabled else None,
 )
 
-# Local development only. `ALLOWED_ORIGINS` (comma-separated) must be set to the real
-# frontend origin before this is exposed anywhere; a wildcard is not a deployment setting.
-_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
+# Credentials are now required, so the origin list must be exact: browsers reject a
+# wildcard origin on a credentialed request, and `validate()` refuses to start production
+# with one. In development the Vite proxy makes `/api` same-origin, so this path is not
+# exercised at all — which is why it is worth getting right rather than discovering it at
+# deployment.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in _origins.split(",") if o.strip()],
-    allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type"],
 )
 
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(models.router)
 app.include_router(predict.router)
 app.include_router(analytics.router)
