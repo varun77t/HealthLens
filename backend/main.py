@@ -29,12 +29,13 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect
 
 from backend.db import engine, session_factory
 from backend.routes import analytics, auth, documents, health, models, predict, scenario
+from backend.routes.deps import require_user
 from backend.services import auth_service
 from backend.services.registry import load_registry
 from backend.settings import settings, validate
@@ -147,13 +148,17 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
+# Authentication is enforced here, once, rather than on individual endpoints. Attaching
+# `require_user` to whole routers means a route added to any of them later is protected by
+# default instead of by being remembered — and `tests/test_access_control.py` sweeps every
+# registered route to prove it, so a new router added to the wrong tuple fails the suite
+# rather than shipping open.
 app.include_router(health.router)
 app.include_router(auth.router)
-app.include_router(models.router)
-app.include_router(predict.router)
-app.include_router(analytics.router)
-app.include_router(scenario.router)
-app.include_router(documents.router)
+
+for _router in (models.router, predict.router, analytics.router, scenario.router,
+                documents.router):
+    app.include_router(_router, dependencies=[Depends(require_user)])
 
 
 @app.get("/", tags=["health"], summary="Service description and disclaimer")

@@ -11,7 +11,6 @@ from __future__ import annotations
 import json
 
 import pytest
-from fastapi.testclient import TestClient
 
 from backend.main import app
 from backend.schemas.features import serving_spec
@@ -19,12 +18,6 @@ from config import MODELS_DIR, REPORTS_DIR
 from ml.serving.field_groups import FIELD_GROUPS, FIELD_LABELS, GROUPS, options_for
 
 DISEASES = ("heart", "kidney", "diabetes")
-
-
-@pytest.fixture(scope="module")
-def client():
-    with TestClient(app) as c:
-        yield c
 
 
 # --- presentation metadata covers the model exactly --------------------------------------

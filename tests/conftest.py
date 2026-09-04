@@ -62,8 +62,8 @@ def unique_email(prefix: str = "user") -> str:
 
 
 @pytest.fixture(scope="module")
-def client():
-    """Unauthenticated client. The registry loads once per module (~7 s with explainers)."""
+def anon_client():
+    """A client with no session. Anonymous is now the special case, hence the explicit name."""
     with TestClient(app) as c:
         yield c
 
@@ -80,11 +80,12 @@ def register(c: TestClient, *, email: str | None = None, password: str = PASSWOR
 
 
 @pytest.fixture(scope="module")
-def auth_client():
-    """A client that is signed in for the whole module.
+def client():
+    """The default client: signed in, registry loaded (~7 s per module with explainers).
 
-    Most of the suite is testing model behaviour, not authentication, and every one of
-    those routes now requires a session. This fixture is what they use.
+    Every route that touches a model now requires a session, so a signed-in client is what
+    "the client" means in this suite. Tests that specifically exercise the absence of a
+    session ask for ``anon_client`` instead.
     """
     with TestClient(app) as c:
         register(c)
