@@ -43,7 +43,7 @@ export default function SignIn() {
   return (
     <AuthShell
       title="Welcome back"
-      lead="Sign in to run an assessment."
+      lead="Sign in to pick up where you left off."
       footer={
         <>
           <p>

@@ -28,13 +28,20 @@ function Frame({ header, children }: { header: ReactNode; children: ReactNode })
   );
 }
 
-function Wordmark({ to }: { to: string }) {
+/**
+ * `tagline` is off on the public screens. "Explainable health risk analysis" describes the
+ * project to someone who already knows what it is; on a landing page it is the first thing
+ * a first-time visitor reads, and it reads like documentation.
+ */
+function Wordmark({ to, tagline = false }: { to: string; tagline?: boolean }) {
   return (
     <Link to={to} className="group flex items-baseline gap-2.5">
       <span className="text-base font-semibold tracking-tight text-ink">Multi-Disease AI</span>
-      <span className="hidden text-xs text-faint sm:inline">
-        Explainable health risk analysis
-      </span>
+      {tagline && (
+        <span className="hidden text-xs text-faint sm:inline">
+          Explainable health risk analysis
+        </span>
+      )}
     </Link>
   );
 }
@@ -48,7 +55,7 @@ export function Layout({ children }: { children: ReactNode }) {
     <Frame
       header={
         <>
-          <Wordmark to={routes.home} />
+          <Wordmark to={routes.home} tagline />
           <nav className="ml-auto flex items-center gap-1 text-sm">
             <NavLink
               to={routes.home}

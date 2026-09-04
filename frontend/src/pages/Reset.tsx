@@ -35,7 +35,7 @@ export default function Reset() {
     return (
       <AuthShell
         title="Password updated"
-        lead="Every browser signed in to this account has been signed out. Sign in with your new password."
+        lead="Sign in with your new password."
       >
         <button className="btn-primary w-full" onClick={() => nav(routes.SIGN_IN)}>
           Go to sign in
@@ -67,10 +67,7 @@ export default function Reset() {
           hint={`At least ${MIN_PASSWORD} characters.`}
         />
         {error && <Note tone="caution">{error}</Note>}
-        <Note>
-          Setting a new password signs out every browser currently signed in to this
-          account, including any you did not recognise.
-        </Note>
+        <p className="text-sm text-muted">You'll be signed out on any other device.</p>
         <button className="btn-primary w-full" type="submit" disabled={busy || tooShort}>
           {busy ? "Saving…" : "Set new password"}
         </button>

@@ -30,7 +30,7 @@ export default function Forgot() {
         title="Check your email"
         // Deliberately not "we sent you an email": the server answers identically whether or
         // not an account exists, and this screen must not contradict that by confirming one.
-        lead="If an account exists for that address, a reset link is on its way. It works once and expires in 30 minutes."
+        lead="If that address has an account, a link is on its way. It works once, and only for the next 30 minutes."
         footer={
           <p>
             <Link to={routes.SIGN_IN} className="btn-link">
@@ -39,10 +39,9 @@ export default function Forgot() {
           </p>
         }
       >
-        <Note>
-          Running this locally with no mail server configured? The link is printed to the
-          terminal running <code className="text-2xs">uvicorn</code>.
-        </Note>
+        <p className="text-sm text-muted">
+          Nothing has changed yet. Your current password keeps working until you use the link.
+        </p>
       </AuthShell>
     );
   }

@@ -5,69 +5,80 @@ import * as routes from "../lib/routes";
 /**
  * The first screen anyone sees.
  *
- * It says what the tool is, what it is not, and offers exactly one thing to do. There is
- * no module list here and no demonstration: an account is required before any health
- * information is submitted, so showing the assessments before sign-in would advertise a
- * door that is locked.
+ * Written for someone who has never used the thing and does not care how it works. No
+ * jargon: not "model", not "dataset", not "estimate", not "assessment". The research layer
+ * has not been deleted — it is where it was always meant to be, behind the sign-in, on each
+ * module's own page.
+ *
+ * The one thing that stays on the surface is that this cannot diagnose anything, because
+ * that is the sentence a first-time visitor most needs and least expects.
  */
+
+const STEPS = [
+  {
+    step: "1",
+    title: "Add your details",
+    body: "Upload a health report, or answer a few short questions.",
+  },
+  {
+    step: "2",
+    title: "Check it looks right",
+    body: "You see everything first. Nothing runs until you say so.",
+  },
+  {
+    step: "3",
+    title: "See what stands out",
+    body: "A clear result, and the things that mattered most.",
+  },
+];
+
 export default function Landing() {
   return (
     <PublicLayout>
-      <section className="pb-4 pt-6">
-        <p className="eyebrow mb-3">Research &amp; education platform</p>
-        <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight">
-          Understand what a model sees in your health data — and why.
+      <section className="pt-6">
+        <h1 className="max-w-2xl text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
+          Your health results,
+          <br />
+          explained simply.
         </h1>
-        <p className="mt-5 max-w-prose text-lg text-body">
-          Three independent risk models — heart, kidney and diabetes indicators — each with
-          its own dataset, its own limitations, and a plain-language account of which of
-          your values moved its estimate.
+
+        <p className="mt-6 max-w-md text-lg text-body">
+          Upload a health report or fill in a short form, and see what stands out — in
+          everyday language.
         </p>
 
-        <div className="mt-9 flex flex-wrap items-center gap-3">
-          <Link to={routes.SIGN_IN} className="btn-primary">
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Link to={routes.SIGN_IN} className="btn-primary px-7 py-3 text-base">
             Sign in
           </Link>
-          <Link to={routes.SIGN_UP} className="btn-secondary">
+          <Link to={routes.SIGN_UP} className="btn-secondary px-7 py-3 text-base">
             Create an account
           </Link>
         </div>
-        <p className="mt-4 text-sm text-muted">
-          An account is required. Nothing is analysed before you have signed in and reviewed
-          the information yourself.
-        </p>
+
+        <div className="mt-10 flex flex-wrap items-center gap-2">
+          {["❤️ Heart", "🫘 Kidney", "🩸 Diabetes"].map((label) => (
+            <span key={label} className="pill border border-line bg-surface text-muted">
+              {label}
+            </span>
+          ))}
+        </div>
       </section>
 
-      <section className="mt-16 grid gap-5 sm:grid-cols-3">
-        {[
-          {
-            title: "Upload a report",
-            body: "Values are read from your document by pattern matching against the model's own field list. Nothing is inferred or filled in.",
-          },
-          {
-            title: "Check it yourself",
-            body: "Every value is shown with where it was read from, and you correct anything wrong. Nothing runs until you say so.",
-          },
-          {
-            title: "See the reasoning",
-            body: "Each estimate comes with the factors that pushed it up or down, what the model did not know, and where it is unreliable.",
-          },
-        ].map((card) => (
-          <div key={card.title} className="surface p-6">
-            <h2 className="text-sm font-semibold text-ink">{card.title}</h2>
-            <p className="mt-2 text-sm text-body">{card.body}</p>
+      <section className="mt-20 grid gap-5 sm:grid-cols-3">
+        {STEPS.map((s) => (
+          <div key={s.step} className="surface p-6">
+            <span className="eyebrow">Step {s.step}</span>
+            <h2 className="mt-2 text-base font-semibold text-ink">{s.title}</h2>
+            <p className="mt-1.5 text-sm text-body">{s.body}</p>
           </div>
         ))}
       </section>
 
-      <section className="mt-16 max-w-prose">
-        <h2 className="text-sm font-semibold text-ink">What this is not</h2>
-        <p className="mt-2 text-sm text-body">
-          Not a diagnostic system, not a screening tool, and not a forecast of future
-          disease. The models are trained on historical public research datasets, none of
-          them has been validated on an external cohort, and an estimate here says only what
-          one model would conclude about data resembling the cohort it learned from.
-          Decisions about your health belong with a clinician.
+      <section className="mt-20 max-w-prose border-t border-line pt-8">
+        <p className="text-sm text-muted">
+          This is a learning tool, not a doctor. It cannot diagnose anything, and it is not
+          medical advice. Always talk to a health professional about your health.
         </p>
       </section>
     </PublicLayout>

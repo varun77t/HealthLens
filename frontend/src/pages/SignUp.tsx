@@ -39,7 +39,7 @@ export default function SignUp() {
   return (
     <AuthShell
       title="Create an account"
-      lead="An account is required before any health information is submitted."
+      lead="It takes a moment, and keeps your results to yourself."
       footer={
         <p>
           Already have one?{" "}
@@ -65,7 +65,7 @@ export default function SignUp() {
           onChange={setDisplayName}
           autoComplete="name"
           placeholder="Optional"
-          hint="Only used to greet you, so the interface need not show your email address."
+          hint="So we know what to call you."
         />
         <TextField
           label="Password"
@@ -84,15 +84,9 @@ export default function SignUp() {
         )}
         {error && <Note tone="caution">{error}</Note>}
 
-        <Note>
-          <p className="font-medium text-ink">What creating an account does and does not do</p>
-          <p className="mt-1">
-            Signing in unlocks the assessments. It does not start a record: an assessment is
-            not stored unless you explicitly save it, and an uploaded document is never
-            stored at all. You can delete your account, and everything saved to it, at any
-            time.
-          </p>
-        </Note>
+        <p className="text-sm text-muted">
+          Nothing is saved unless you ask for it, and you can delete your account any time.
+        </p>
 
         <button className="btn-primary w-full" type="submit" disabled={busy || tooShort}>
           {busy ? "Creating your account…" : "Create account"}

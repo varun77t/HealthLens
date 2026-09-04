@@ -148,6 +148,22 @@ analysis did and did not know, the report download, and three disclosures: **How
 estimated?** (model, threshold, band boundaries, raw SHAP values, methodology note),
 **Caveats that apply to this result**, and **Known limitations of this model**.
 
+### The public screens
+
+Written for someone who has never seen the project and does not care how it works. No
+"model", no "dataset", no "assessment", no build details — the landing page is a headline,
+one sentence, two buttons and three steps. The research layer was not deleted; it is behind
+the sign-in, on each module's own page, which is where someone who wants it will look.
+
+The one thing kept on the surface is that this cannot diagnose anything, in those words. It
+is the sentence a first-time visitor most needs and least expects, and it does not survive
+being phrased carefully.
+
+Two things came off these screens outright: the wordmark tagline ("Explainable health risk
+analysis" describes the project to someone who already knows what it is) and a note on the
+password-reset screen telling the reader to check the terminal running `uvicorn` — a build
+detail on a page a stranger reads.
+
 ### Saving and history
 
 Saving is opt-in, at the end, and says what it keeps before it is pressed — the values, the
