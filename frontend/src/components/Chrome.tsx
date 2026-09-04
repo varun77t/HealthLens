@@ -17,12 +17,14 @@ function Frame({ header, children }: { header: ReactNode; children: ReactNode })
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-line/70 bg-canvas/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-6 px-6">{header}</div>
+        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
+          {header}
+        </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-12 sm:px-6">{children}</main>
 
-      <footer className="mx-auto w-full max-w-5xl px-6 pb-10">
+      <footer className="mx-auto w-full max-w-5xl px-5 pb-10 sm:px-6">
         <p className="border-t border-line pt-5 text-xs text-faint">{DISCLAIMER_LINE}</p>
       </footer>
     </div>
@@ -97,7 +99,9 @@ export function Layout({ children }: { children: ReactNode }) {
               to={routes.home}
               end
               className={({ isActive }) =>
-                `rounded-md px-3 py-1.5 ${isActive ? "text-ink" : "text-muted hover:text-ink"}`
+                `hidden rounded-md px-3 py-1.5 sm:block ${
+                  isActive ? "text-ink" : "text-muted hover:text-ink"
+                }`
               }
             >
               Assessments
@@ -108,7 +112,9 @@ export function Layout({ children }: { children: ReactNode }) {
                 <NavLink
                   to={routes.history}
                   className={({ isActive }) =>
-                    `rounded-md px-3 py-1.5 ${isActive ? "text-ink" : "text-muted hover:text-ink"}`
+                    `rounded-md px-2 py-1.5 sm:px-3 ${
+                      isActive ? "text-ink" : "text-muted hover:text-ink"
+                    }`
                   }
                 >
                   History
@@ -116,7 +122,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <NavLink
                   to={routes.account}
                   className={({ isActive }) =>
-                    `max-w-[10rem] truncate rounded-md px-3 py-1.5 ${
+                    `max-w-[5rem] truncate rounded-md px-2 py-1.5 sm:max-w-[10rem] sm:px-3 ${
                       isActive ? "text-ink" : "text-muted hover:text-ink"
                     }`
                   }
@@ -125,7 +131,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   {user.greeting_name}
                 </NavLink>
                 <button
-                  className="btn-quiet px-3 py-1.5 text-sm"
+                  className="btn-quiet px-2 py-1.5 text-sm sm:px-3"
                   onClick={async () => {
                     await signOut();
                     nav("/", { replace: true });
@@ -144,22 +150,20 @@ export function Layout({ children }: { children: ReactNode }) {
   );
 }
 
-/** The frame for the landing page: no account controls beyond the way in. */
+/**
+ * The frame for the landing page.
+ *
+ * No account controls in the header: the page's own two buttons are a few centimetres
+ * below it, and the same pair twice on one short screen reads as an interface that has
+ * lost track of what it already offered.
+ */
 export function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <Frame
       header={
         <>
           <Wordmark to="/" />
-          <div className="ml-auto flex items-center gap-2 text-sm">
-            <ThemeToggle />
-            <Link to={routes.SIGN_IN} className="btn-quiet px-3 py-1.5 text-sm">
-              Sign in
-            </Link>
-            <Link to={routes.SIGN_UP} className="btn-primary px-4 py-1.5 text-sm">
-              Create account
-            </Link>
-          </div>
+          <ThemeToggle className="ml-auto" />
         </>
       }
     >
