@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { PublicLayout } from "../components/Chrome";
+import DnaHelix from "../components/DnaHelix";
 import * as routes from "../lib/routes";
 
 /**
@@ -20,26 +21,30 @@ import * as routes from "../lib/routes";
 export default function Landing() {
   return (
     <PublicLayout>
-      <section className="py-10 sm:py-20">
-        <h1 className="max-w-2xl text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
-          Your health results,
-          <br />
-          explained simply.
-        </h1>
+      <section className="grid gap-2 py-10 sm:py-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-8 lg:py-6">
+        <div>
+          <h1 className="max-w-2xl text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
+            Your health results,
+            <br />
+            explained simply.
+          </h1>
 
-        <p className="mt-6 max-w-md text-lg text-body">
-          Upload a health report or fill in a short form, and see what stands out — in
-          everyday language.
-        </p>
+          <p className="mt-6 max-w-md text-lg text-body">
+            Upload a health report or fill in a short form, and see what stands out — in
+            everyday language.
+          </p>
 
-        <div className="mt-9 flex flex-wrap items-center gap-3">
-          <Link to={routes.SIGN_IN} className="btn-primary px-7 py-3 text-base">
-            Sign in
-          </Link>
-          <Link to={routes.SIGN_UP} className="btn-secondary px-7 py-3 text-base">
-            Create an account
-          </Link>
+          <div className="mt-9 flex flex-wrap items-center gap-3">
+            <Link to={routes.SIGN_IN} className="btn-primary px-7 py-3 text-base">
+              Sign in
+            </Link>
+            <Link to={routes.SIGN_UP} className="btn-secondary px-7 py-3 text-base">
+              Create an account
+            </Link>
+          </div>
         </div>
+
+        <DnaHelix className="-mx-2 h-[21rem] sm:h-[26rem] lg:-mr-4 lg:ml-0 lg:h-[36rem]" />
       </section>
 
       <section className="max-w-prose border-t border-line pt-8">

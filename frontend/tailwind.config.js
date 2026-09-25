@@ -36,6 +36,10 @@ export default {
         line: rgb("line"),
         hairline: rgb("hairline"),
         surface: rgb("surface"),
+        // The quieter raised ground. Separate from `surface` because `.surface`
+        // inverts its whole subtree, and inputs and secondary buttons must not
+        // invert with it — see the note on `--field` in index.css.
+        field: rgb("field"),
         canvas: rgb("canvas"),
         // Result states are deliberately NOT red/green. A model flag is not a diagnosis,
         // and a pass/fail palette would assert far more than the number supports.

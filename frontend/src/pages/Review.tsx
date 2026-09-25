@@ -231,7 +231,7 @@ function ValueRow({
             <summary className="cursor-pointer list-none text-xs text-faint hover:text-muted">
               Source
             </summary>
-            <div className="absolute right-0 z-10 mt-2 w-72 rounded-lg border border-line bg-surface p-3 text-xs shadow-lift">
+            <div className="absolute right-0 z-10 mt-2 w-72 rounded-lg border border-line bg-field p-3 text-xs shadow-lift">
               <p className="text-muted">Extracted from page {extracted.page}</p>
               <p className="mt-1.5 break-words font-mono text-2xs text-body">
                 “{extracted.raw_text}”

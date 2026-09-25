@@ -67,7 +67,7 @@ export function UploadDropzone({
           ${
             over
               ? "border-accent bg-accent-soft"
-              : "border-line bg-surface hover:border-accent-line hover:bg-accent-soft/40"
+              : "border-line bg-field hover:border-accent-line hover:bg-accent-soft/40"
           }
           ${interactive ? "cursor-pointer" : "cursor-default opacity-70"}`}
       >

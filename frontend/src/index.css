@@ -3,15 +3,24 @@
 @tailwind utilities;
 
 /**
- * The palette, twice.
+ * The palette, twice over — two themes, and within each theme two grounds.
  *
- * Channels only (`26 24 21`, not `#1a1815`) so Tailwind's `/opacity` modifiers keep
+ * Two colours define everything: black, and the off-white #e9dfc7 (`233 223 199`). A theme
+ * is a choice of which one is the page; a card is then the other one. So in light, black
+ * cards sit on #e9dfc7 paper; in dark, #e9dfc7 cards sit on black. Both directions are the
+ * same idea, which is why the `--on-*` set of one theme is the page set of the other.
+ *
+ * Channels only (`233 223 199`, not `#e9dfc7`) so Tailwind's `/opacity` modifiers keep
  * working — see the note in tailwind.config.js.
  *
- * Dark is not the light theme with the lightness flipped. It is the same idea read the
- * other way round: in light, near-black ink sits on beige paper; in dark, that beige
- * becomes the ink and sits on warm near-black. Every neutral keeps its warmth in both, so
- * the dark theme reads as dimmed paper rather than a cold grey app.
+ * `--on-*` is the card ground: what every token becomes INSIDE a `.surface`. Components
+ * never reference it. `.surface` assigns `--ink: var(--on-ink)` and so on for its whole
+ * subtree, so a heading, a link, a button or an input inside a card re-resolves against
+ * the card rather than the page — and not one component had to learn it was inverted.
+ *
+ * `--surface` is the card. `--field` is the quieter raised ground for the things that must
+ * NOT invert with it — inputs, secondary buttons, code chips — because a secondary button
+ * that took the card's own colour would stop being visible as a button at all.
  *
  * `[data-theme]` wins over the media query, so an explicit choice beats the system
  * setting in both directions — a person who prefers light on a dark-set machine gets
@@ -19,101 +28,179 @@
  */
 @layer base {
   :root {
-    --accent: 26 24 21;
-    --accent-hover: 0 0 0;
-    --accent-fg: 253 251 246;
-    --accent-soft: 239 234 222;
-    --accent-line: 213 205 188;
+    /* -- the page: black ink on #e9dfc7 paper -- */
+    --canvas: 233 223 199;
+    --surface: 0 0 0;
+    --field: 242 236 222;
 
-    --ink: 23 21 18;
-    --body: 74 68 60;
-    --muted: 121 114 106;
-    --faint: 164 156 144;
-    --line: 226 219 205;
-    --hairline: 239 233 221;
-    --surface: 253 251 246;
-    --canvas: 244 240 231;
+    --accent: 0 0 0;
+    --accent-hover: 43 40 34;
+    --accent-fg: 233 223 199;
+    --accent-soft: 224 212 184;
+    --accent-line: 199 184 150;
 
-    --attention: 138 87 18;
-    --attention-soft: 247 238 218;
-    --attention-line: 230 212 175;
-    --steady: 63 107 92;
-    --steady-soft: 233 239 232;
-    --steady-line: 208 223 211;
-    --caution: 138 64 56;
-    --caution-soft: 248 231 226;
-    --caution-line: 236 209 201;
+    --ink: 0 0 0;
+    --body: 56 51 43;
+    --muted: 104 96 82;
+    --faint: 122 113 95;
+    --line: 208 196 169;
+    --hairline: 221 210 186;
 
-    --shadow-card: 0 1px 2px rgba(48, 38, 22, 0.05), 0 8px 24px -12px rgba(48, 38, 22, 0.1);
-    --shadow-lift: 0 2px 4px rgba(48, 38, 22, 0.06), 0 18px 40px -18px rgba(48, 38, 22, 0.16);
+    /* Result states are deliberately not red/green, and their tints are pitched against
+       beige rather than white — on paper this pale, a near-white tint is invisible. */
+    --attention: 133 84 16;
+    --attention-soft: 240 224 186;
+    --attention-line: 219 197 152;
+    --steady: 58 101 86;
+    --steady-soft: 213 227 214;
+    --steady-line: 187 207 190;
+    --caution: 133 60 52;
+    --caution-soft: 241 214 205;
+    --caution-line: 226 194 184;
+
+    /* -- inside a card: #e9dfc7 ink on black -- */
+    --on-field: 30 28 24;
+    --on-accent: 233 223 199;
+    --on-accent-hover: 246 240 224;
+    --on-accent-fg: 0 0 0;
+    --on-accent-soft: 38 35 30;
+    --on-accent-line: 88 81 69;
+    --on-ink: 233 223 199;
+    --on-body: 193 184 165;
+    --on-muted: 143 136 121;
+    --on-faint: 105 99 88;
+    --on-line: 58 54 47;
+    --on-hairline: 42 39 34;
+    --on-attention: 226 186 120;
+    --on-attention-soft: 43 34 20;
+    --on-attention-line: 72 59 34;
+    --on-steady: 145 188 170;
+    --on-steady-soft: 23 33 28;
+    --on-steady-line: 47 68 58;
+    --on-caution: 226 164 152;
+    --on-caution-soft: 41 26 22;
+    --on-caution-line: 72 45 39;
+
+    --shadow-card: 0 1px 2px rgba(58, 44, 20, 0.1), 0 10px 26px -14px rgba(58, 44, 20, 0.35);
+    --shadow-lift: 0 3px 6px rgba(58, 44, 20, 0.14), 0 22px 46px -20px rgba(58, 44, 20, 0.5);
 
     color-scheme: light;
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --accent: 242 237 225;
-      --accent-hover: 255 255 255;
-      --accent-fg: 23 21 15;
-      --accent-soft: 42 38 32;
-      --accent-line: 82 75 65;
+      /* -- the page: #e9dfc7 ink on black -- */
+      --canvas: 0 0 0;
+      --surface: 233 223 199;
+      --field: 23 22 19;
 
-      --ink: 245 241 232;
-      --body: 208 200 188;
-      --muted: 154 146 135;
-      --faint: 112 105 96;
-      --line: 54 49 42;
-      --hairline: 40 36 31;
-      --surface: 32 29 25;
-      --canvas: 22 20 17;
+      --accent: 233 223 199;
+      --accent-hover: 246 240 224;
+      --accent-fg: 0 0 0;
+      --accent-soft: 33 31 27;
+      --accent-line: 84 78 66;
 
-      --attention: 224 184 119;
-      --attention-soft: 46 37 23;
-      --attention-line: 74 61 35;
-      --steady: 143 186 168;
-      --steady-soft: 26 36 31;
-      --steady-line: 49 70 60;
-      --caution: 224 162 151;
-      --caution-soft: 44 28 24;
-      --caution-line: 74 47 40;
+      --ink: 233 223 199;
+      --body: 193 184 165;
+      --muted: 143 136 121;
+      --faint: 105 99 88;
+      --line: 51 48 42;
+      --hairline: 35 33 29;
 
-      /* On a dark ground a drop shadow does nothing; separation comes from `surface`
-         being lighter than `canvas`. A faint ring keeps the card edge crisp. */
-      --shadow-card: 0 0 0 1px rgba(255, 250, 240, 0.02);
-      --shadow-lift: 0 0 0 1px rgba(255, 250, 240, 0.05), 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+      --attention: 226 186 120;
+      --attention-soft: 43 34 20;
+      --attention-line: 72 59 34;
+      --steady: 145 188 170;
+      --steady-soft: 23 33 28;
+      --steady-line: 47 68 58;
+      --caution: 226 164 152;
+      --caution-soft: 41 26 22;
+      --caution-line: 72 45 39;
+
+      /* -- inside a card: black ink on #e9dfc7 -- */
+      --on-field: 242 236 222;
+      --on-accent: 0 0 0;
+      --on-accent-hover: 43 40 34;
+      --on-accent-fg: 233 223 199;
+      --on-accent-soft: 224 212 184;
+      --on-accent-line: 199 184 150;
+      --on-ink: 0 0 0;
+      --on-body: 56 51 43;
+      --on-muted: 104 96 82;
+      --on-faint: 122 113 95;
+      --on-line: 208 196 169;
+      --on-hairline: 221 210 186;
+      --on-attention: 133 84 16;
+      --on-attention-soft: 240 224 186;
+      --on-attention-line: 219 197 152;
+      --on-steady: 58 101 86;
+      --on-steady-soft: 213 227 214;
+      --on-steady-line: 187 207 190;
+      --on-caution: 133 60 52;
+      --on-caution-soft: 241 214 205;
+      --on-caution-line: 226 194 184;
+
+      /* A drop shadow does nothing on black, and a pale card needs no help separating from
+         it, so this is only a hairline to keep the corner crisp. */
+      --shadow-card: 0 0 0 1px rgba(233, 223, 199, 0.06);
+      --shadow-lift: 0 0 0 1px rgba(233, 223, 199, 0.14), 0 22px 46px -20px rgba(0, 0, 0, 0.9);
 
       color-scheme: dark;
     }
   }
 
   :root[data-theme="dark"] {
-    --accent: 242 237 225;
-    --accent-hover: 255 255 255;
-    --accent-fg: 23 21 15;
-    --accent-soft: 42 38 32;
-    --accent-line: 82 75 65;
+    --canvas: 0 0 0;
+    --surface: 233 223 199;
+    --field: 23 22 19;
 
-    --ink: 245 241 232;
-    --body: 208 200 188;
-    --muted: 154 146 135;
-    --faint: 112 105 96;
-    --line: 54 49 42;
-    --hairline: 40 36 31;
-    --surface: 32 29 25;
-    --canvas: 22 20 17;
+    --accent: 233 223 199;
+    --accent-hover: 246 240 224;
+    --accent-fg: 0 0 0;
+    --accent-soft: 33 31 27;
+    --accent-line: 84 78 66;
 
-    --attention: 224 184 119;
-    --attention-soft: 46 37 23;
-    --attention-line: 74 61 35;
-    --steady: 143 186 168;
-    --steady-soft: 26 36 31;
-    --steady-line: 49 70 60;
-    --caution: 224 162 151;
-    --caution-soft: 44 28 24;
-    --caution-line: 74 47 40;
+    --ink: 233 223 199;
+    --body: 193 184 165;
+    --muted: 143 136 121;
+    --faint: 105 99 88;
+    --line: 51 48 42;
+    --hairline: 35 33 29;
 
-    --shadow-card: 0 0 0 1px rgba(255, 250, 240, 0.02);
-    --shadow-lift: 0 0 0 1px rgba(255, 250, 240, 0.05), 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+    --attention: 226 186 120;
+    --attention-soft: 43 34 20;
+    --attention-line: 72 59 34;
+    --steady: 145 188 170;
+    --steady-soft: 23 33 28;
+    --steady-line: 47 68 58;
+    --caution: 226 164 152;
+    --caution-soft: 41 26 22;
+    --caution-line: 72 45 39;
+
+    --on-field: 242 236 222;
+    --on-accent: 0 0 0;
+    --on-accent-hover: 43 40 34;
+    --on-accent-fg: 233 223 199;
+    --on-accent-soft: 224 212 184;
+    --on-accent-line: 199 184 150;
+    --on-ink: 0 0 0;
+    --on-body: 56 51 43;
+    --on-muted: 104 96 82;
+    --on-faint: 122 113 95;
+    --on-line: 208 196 169;
+    --on-hairline: 221 210 186;
+    --on-attention: 133 84 16;
+    --on-attention-soft: 240 224 186;
+    --on-attention-line: 219 197 152;
+    --on-steady: 58 101 86;
+    --on-steady-soft: 213 227 214;
+    --on-steady-line: 187 207 190;
+    --on-caution: 133 60 52;
+    --on-caution-soft: 241 214 205;
+    --on-caution-line: 226 194 184;
+
+    --shadow-card: 0 0 0 1px rgba(233, 223, 199, 0.06);
+    --shadow-lift: 0 0 0 1px rgba(233, 223, 199, 0.14), 0 22px 46px -20px rgba(0, 0, 0, 0.9);
 
     color-scheme: dark;
   }
@@ -128,6 +215,8 @@
   }
   h1, h2, h3 {
     @apply text-ink;
+    /* Geist for headings only; body text stays on the system stack. */
+    font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
     letter-spacing: -0.014em;
   }
   /* Numbers only line up in tables and metrics with tabular figures. */
@@ -143,20 +232,61 @@
 }
 
 @layer components {
+  /**
+   * A card, and the ground flip that comes with it.
+   *
+   * The border is the card's own colour rather than `--line`: against a ground this far
+   * from the page, the card edge is already the strongest line on screen and a second one
+   * only muddies it. `background`, `border` and `box-shadow` resolve against the PAGE
+   * tokens, because they are drawn in page space; every assignment after them is for the
+   * subtree.
+   *
+   * `color` has to be restated. `body { color: rgb(var(--body)) }` resolves once, on the
+   * body element, and descendants inherit the computed colour rather than the variable —
+   * so unclassed text inside a card would otherwise keep the page's ink and vanish.
+   */
   .surface {
-    @apply rounded-xl border border-line bg-surface shadow-card;
+    @apply rounded-xl;
+    background-color: rgb(var(--surface));
+    border: 1px solid rgb(var(--surface));
+    box-shadow: var(--shadow-card);
+    color: rgb(var(--body));
+
+    --field: var(--on-field);
+    --accent: var(--on-accent);
+    --accent-hover: var(--on-accent-hover);
+    --accent-fg: var(--on-accent-fg);
+    --accent-soft: var(--on-accent-soft);
+    --accent-line: var(--on-accent-line);
+    --ink: var(--on-ink);
+    --body: var(--on-body);
+    --muted: var(--on-muted);
+    --faint: var(--on-faint);
+    --line: var(--on-line);
+    --hairline: var(--on-hairline);
+    --attention: var(--on-attention);
+    --attention-soft: var(--on-attention-soft);
+    --attention-line: var(--on-attention-line);
+    --steady: var(--on-steady);
+    --steady-soft: var(--on-steady-soft);
+    --steady-line: var(--on-steady-line);
+    --caution: var(--on-caution);
+    --caution-soft: var(--on-caution-soft);
+    --caution-line: var(--on-caution-line);
   }
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium
            transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-45;
   }
-  /* `text-accent-fg`, not `text-white`: in dark mode the accent is nearly white itself. */
+  /* `text-accent-fg`, not `text-white`: the accent is the off-white itself half the time. */
   .btn-primary {
     @apply btn bg-accent px-5 py-2.5 text-accent-fg shadow-sm hover:bg-accent-hover
            active:translate-y-px;
   }
+  /* `bg-field`, not `bg-surface`: on a card `--surface` is the card itself, and a
+     secondary button the colour of its own background is not a button. */
   .btn-secondary {
-    @apply btn border border-line bg-surface px-5 py-2.5 text-ink hover:border-accent-line
+    @apply btn border border-line bg-field px-5 py-2.5 text-ink hover:border-accent-line
            hover:bg-accent-soft;
   }
   .btn-quiet {
@@ -169,7 +299,7 @@
            underline decoration-line underline-offset-4 hover:decoration-accent;
   }
   .input {
-    @apply w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-base
+    @apply w-full rounded-lg border border-line bg-field px-3.5 py-2.5 text-base
            text-ink transition-colors placeholder:text-faint
            hover:border-accent-line focus:border-accent;
   }

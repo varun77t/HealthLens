@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useAuth } from "../auth";
 import { useTheme } from "../theme";
 import * as routes from "../lib/routes";
@@ -297,7 +297,7 @@ export function ErrorBox({ error, onRetry }: { error: string; onRetry?: () => vo
       <p className="mt-1">{error}</p>
       <p className="mt-2 text-xs text-muted">
         If the service is not running, start it with{" "}
-        <code className="rounded bg-surface px-1.5 py-0.5 text-2xs">
+        <code className="rounded bg-field px-1.5 py-0.5 text-2xs">
           uvicorn backend.main:app --port 8000
         </code>{" "}
         from the project root.
@@ -311,7 +311,19 @@ export function ErrorBox({ error, onRetry }: { error: string; onRetry?: () => vo
   );
 }
 
-/** A labelled text input for the account forms. */
+/**
+ * A labelled text input for the account forms.
+ *
+ * A password field gets a reveal button. The argument for one is not convenience: the
+ * alternative to seeing what you typed is guessing, and a person who cannot check a long
+ * password picks a short one instead. It is `type="button"`, so it never submits the form
+ * it sits in, and it stays inside the label so that clicking it also returns focus to the
+ * field rather than stranding the caret.
+ *
+ * The icon shows the action rather than the current state — an open eye while the password
+ * is hidden — and the accessible name says which in words, because the eye and the crossed
+ * eye are both used for both conventions and neither one is self-evident.
+ */
 export function TextField({
   label,
   type = "text",
@@ -333,19 +345,51 @@ export function TextField({
   required?: boolean;
   autoFocus?: boolean;
 }) {
+  const [revealed, setRevealed] = useState(false);
+  const isPassword = type === "password";
+  const action = revealed ? "Hide password" : "Show password";
+
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-ink">{label}</span>
-      <input
-        className="input w-full"
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        placeholder={placeholder}
-        required={required}
-        autoFocus={autoFocus}
-      />
+      <div className="relative">
+        <input
+          className={`input w-full ${isPassword ? "pr-12" : ""}`}
+          type={isPassword && revealed ? "text" : type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          required={required}
+          autoFocus={autoFocus}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setRevealed((v) => !v)}
+            className="absolute inset-y-0 right-0 flex items-center rounded-r-lg px-3.5
+                       text-muted transition-colors hover:text-ink"
+            aria-label={action}
+            title={action}
+          >
+            {revealed ? (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M9.9 5.7A9.9 9.9 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17.6 17.6 0 0 1-3.4 4.2" />
+                <path d="M6.5 7.7A17.2 17.2 0 0 0 2.5 12S6 18.5 12 18.5c1.6 0 3.1-.5 4.4-1.2" />
+                <path d="M10.1 10.1a2.7 2.7 0 0 0 3.8 3.8" />
+                <path d="M3.5 3.5l17 17" />
+              </svg>
+            ) : (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+                <circle cx="12" cy="12" r="3.1" />
+              </svg>
+            )}
+          </button>
+        )}
+      </div>
       {hint && <span className="mt-1.5 block text-xs text-muted">{hint}</span>}
     </label>
   );

@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "createdAt": "2026-09-25T07:43:16.177Z",
+        "reason": "user confirmed: asked for Geist on headings, then on all page headlines"
+      }
+    ]
+  }
+}

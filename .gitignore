@@ -47,3 +47,9 @@ frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 frontend/*.tsbuildinfo
+
+# Research paper drafts — kept local so the published copy cannot match against a public repo
+docs/paper/
+
+# Local design-tool cache
+frontend/.impeccable/hook.cache.json

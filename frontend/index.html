@@ -8,6 +8,18 @@
       name="description"
       content="Upload a health report or fill in a short form, and see what stands out — in everyday language. A research and education tool, not a medical diagnostic system."
     />
+    <style>
+      /* The ground colour, inline, so it paints with the document rather than with the
+         bundled stylesheet. The attribute below is set before first paint but the palette
+         is not, and the gap between them is a full-page flash of the browser default —
+         which against a pure-black dark theme is the most visible flash there is. Only
+         these two colours are duplicated here; everything else waits for the real CSS. */
+      :root { background: #e9dfc7; }
+      :root[data-theme="dark"] { background: #000; }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) { background: #000; }
+      }
+    </style>
     <script>
       // Applied before first paint. Without it, someone who chose dark gets a full beige
       // flash on every page load while React boots — the choice is only in localStorage,
