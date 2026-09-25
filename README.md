@@ -11,29 +11,31 @@ and see what stands out, in everyday language. The project and its code are name
 
 ## Screenshots
 
+<p align="center">
+  <img src="docs/screenshots/landing-light.png" alt="HealthLens landing page with the rotating DNA helix" width="90%"><br>
+  <sub>Landing page</sub>
+</p>
+
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/landing-light.png" alt="HealthLens landing page in light mode, with the rotating DNA helix"></td>
-    <td width="50%"><img src="docs/screenshots/landing-dark.png" alt="HealthLens landing page in dark mode"></td>
+    <td width="50%"><img src="docs/screenshots/dashboard-dark.png" alt="Choosing an assessment: heart, kidney or diabetes (dark mode)"></td>
+    <td width="50%"><img src="docs/screenshots/upload.png" alt="Uploading a medical report"></td>
   </tr>
   <tr>
-    <td align="center"><sub>Landing page, light</sub></td>
-    <td align="center"><sub>Landing page, dark</sub></td>
+    <td align="center"><sub>1 · Choose an assessment (dark mode)</sub></td>
+    <td align="center"><sub>2 · Upload a report, or enter values by hand</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/sign-in.png" alt="Sign-in screen"></td>
-    <td width="50%"><img src="docs/screenshots/sign-up.png" alt="Create-an-account screen in dark mode"></td>
+    <td width="50%"><img src="docs/screenshots/review.png" alt="Reviewing the values read from the report"></td>
+    <td width="50%"><img src="docs/screenshots/result.png" alt="The result: estimated risk and what influenced it"></td>
   </tr>
   <tr>
-    <td align="center"><sub>Sign in</sub></td>
-    <td align="center"><sub>Create an account</sub></td>
+    <td align="center"><sub>3 · Review what was read from the report</sub></td>
+    <td align="center"><sub>4 · The estimate, and what drove it</sub></td>
   </tr>
 </table>
 
-<p align="center">
-  <img src="docs/screenshots/landing-mobile.png" alt="HealthLens landing page on a phone" width="260"><br>
-  <sub>On a phone</sub>
-</p>
+<sub>Shown with <code>demo_reports/kidney-positive-1.pdf</code>, a synthetic sample report.</sub>
 
 ## Modules
 
