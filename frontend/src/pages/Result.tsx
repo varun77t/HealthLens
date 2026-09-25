@@ -79,9 +79,9 @@ export default function Result() {
   };
 
   const band = p.risk_band.label;
-  const tone = p.flagged
-    ? "border-attention-line bg-attention-soft"
-    : "border-steady-line bg-steady-soft";
+  // The card itself is the inverted `.surface` ground (black on the paper, paper on black),
+  // so the flagged / not-flagged state is carried by the dot beside the eyebrow instead.
+  const tone = p.flagged ? "bg-attention" : "bg-steady";
 
   return (
     <div>
@@ -91,8 +91,11 @@ export default function Result() {
       />
 
       {/* Category first, percentage second. See the note at the top of this file. */}
-      <section className={`rounded-2xl border p-8 ${tone}`}>
-        <p className="eyebrow">Estimated risk</p>
+      <section className="surface rounded-2xl p-8">
+        <p className="eyebrow flex items-center gap-2 text-muted">
+          <span aria-hidden className={`h-2 w-2 rounded-full ${tone}`} />
+          Estimated risk
+        </p>
         <p className="mt-2 text-5xl font-semibold capitalize tracking-tight text-ink">
           {band}
         </p>
