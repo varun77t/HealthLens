@@ -49,6 +49,59 @@ comparison, evaluation and explanations. Their predictions are **never** combine
 | Chronic Kidney Disease Presence | UCI Chronic Kidney Disease, id 336 | `class == 'ckd'` |
 | Diabetes Health-Indicator Risk | UCI CDC Diabetes Health Indicators (BRFSS 2015), id 891 | reported prediabetes or diabetes |
 
+## Architecture
+
+```mermaid
+flowchart TB
+    user(["👤 User in the browser"])
+
+    subgraph FE["💻 Frontend · React + Vite + Tailwind"]
+        direction LR
+        ui1["Sign in"] --> ui2["Choose assessment"] --> ui3["Upload PDF<br/>or enter values"] --> ui4["Review found values"] --> ui5["Result +<br/>explanation"]
+    end
+
+    subgraph BE["🔌 Backend · FastAPI"]
+        direction LR
+        auth["/auth<br/>accounts · sessions<br/>(argon2id, httpOnly cookie)"]
+        extract["/extract<br/>PDF → form fields<br/>(pdfplumber, never guesses)"]
+        predict["/predict · /scenario<br/>probability · risk band<br/>SHAP explanation"]
+        saved["/analyses<br/>saved only on request"]
+        info["/models · /analytics<br/>model cards · metrics"]
+    end
+
+    subgraph REG["🧠 Model registry · loaded once at start-up"]
+        direction LR
+        heart["❤️ Heart<br/>XGBoost + Platt"]
+        kidney["🫘 Kidney<br/>SVM"]
+        diab["🩸 Diabetes<br/>XGBoost + isotonic"]
+    end
+
+    db[("🗄️ SQLite / Postgres<br/>SQLAlchemy · Alembic")]
+    files[("📊 models/ · reports/<br/>pipelines, metadata, metrics")]
+
+    user --> FE
+    FE -- "HTTPS · JSON" --> BE
+    auth --> db
+    saved --> db
+    predict --> REG
+    info --> files
+    REG -. "read from" .-> files
+
+    subgraph OFF["🔧 Offline · ml/ package (never runs in a request)"]
+        direction LR
+        o1["UCI data"] --> o2["Split first"] --> o3["5-fold CV:<br/>5 model families"] --> o4["Tune · calibrate ·<br/>set threshold"] --> o5["Test once ·<br/>SHAP · fairness"]
+    end
+    o5 -- "writes" --> files
+```
+
+Each disease is its own pipeline end to end: its own data, preprocessing, model, threshold
+and model card. The three predictions are never combined.
+
+**How an assessment runs:** the user uploads a report → `/extract` reads what it can and
+leaves the rest blank → the user reviews and fills gaps → `/predict/{disease}` scores it with
+that disease's pipeline, compares it to the model's own threshold and attaches the SHAP
+explanation → the result is shown, and saved only if the user chooses to.
+
 ## Good to know
 
 - **Sign-in is required.** Every assessment, upload and report needs an account. Health
