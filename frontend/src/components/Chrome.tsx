@@ -17,7 +17,7 @@ function Frame({ header, children }: { header: ReactNode; children: ReactNode })
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-line/70 bg-canvas/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
+        <div className="nav-type mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
           {header}
         </div>
       </header>
@@ -41,7 +41,7 @@ function Wordmark({ to, tagline = false }: { to: string; tagline?: boolean }) {
     <Link to={to} className="group flex items-baseline gap-2.5">
       <span className="text-base font-semibold tracking-tight text-ink">HealthLens</span>
       {tagline && (
-        <span className="hidden text-xs text-faint sm:inline">
+        <span className="hidden font-sans text-xs font-normal tracking-normal text-faint sm:inline">
           A closer look at your results
         </span>
       )}
@@ -192,7 +192,7 @@ export function AuthShell({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-line/70">
-        <div className="mx-auto flex h-16 max-w-5xl items-center px-6">
+        <div className="nav-type mx-auto flex h-16 max-w-5xl items-center px-6">
           <Wordmark to="/" />
           <ThemeToggle className="ml-auto" />
         </div>

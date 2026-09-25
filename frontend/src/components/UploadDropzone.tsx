@@ -62,13 +62,11 @@ export function UploadDropzone({
           setOver(false);
           if (interactive) handle(e.dataTransfer.files?.[0]);
         }}
-        className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed
-          px-6 py-16 text-center transition-all duration-200
-          ${
-            over
-              ? "border-accent bg-accent-soft"
-              : "border-line bg-field hover:border-accent-line hover:bg-accent-soft/40"
-          }
+        // `.surface` inverts the ground against the page in both themes and re-points every
+        // token inside it; `.dropzone` softens that ground to charcoal in light mode.
+        className={`surface dropzone flex flex-col items-center justify-center rounded-2xl
+          border-2 border-dashed px-6 py-16 text-center transition-all duration-200
+          ${over ? "border-accent" : "border-accent-line hover:border-accent"}
           ${interactive ? "cursor-pointer" : "cursor-default opacity-70"}`}
       >
         {busy ? (

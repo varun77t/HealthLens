@@ -81,6 +81,13 @@
     --on-caution-soft: 41 26 22;
     --on-caution-line: 72 45 39;
 
+    /* The upload area: a warm charcoal rather than the cards' full black, which reads too
+       heavy at this size. Cream text on it is 10.2:1; the muted and line tones are lifted
+       to stay legible on it (5.7:1 for muted). */
+    --dz-ground: 50 46 39;
+    --dz-muted: 176 168 150;
+    --dz-line: 130 121 104;
+
     --shadow-card: 0 1px 2px rgba(58, 44, 20, 0.1), 0 10px 26px -14px rgba(58, 44, 20, 0.35);
     --shadow-lift: 0 3px 6px rgba(58, 44, 20, 0.14), 0 22px 46px -20px rgba(58, 44, 20, 0.5);
 
@@ -140,6 +147,10 @@
       --on-caution-soft: 241 214 205;
       --on-caution-line: 226 194 184;
 
+      --dz-ground: 233 223 199;
+      --dz-muted: 104 96 82;
+      --dz-line: 199 184 150;
+
       /* A drop shadow does nothing on black, and a pale card needs no help separating from
          it, so this is only a hairline to keep the corner crisp. */
       --shadow-card: 0 0 0 1px rgba(233, 223, 199, 0.06);
@@ -198,6 +209,10 @@
     --on-caution: 133 60 52;
     --on-caution-soft: 241 214 205;
     --on-caution-line: 226 194 184;
+
+    --dz-ground: 233 223 199;
+    --dz-muted: 104 96 82;
+    --dz-line: 199 184 150;
 
     --shadow-card: 0 0 0 1px rgba(233, 223, 199, 0.06);
     --shadow-lift: 0 0 0 1px rgba(233, 223, 199, 0.14), 0 22px 46px -20px rgba(0, 0, 0, 0.9);
@@ -274,6 +289,13 @@
     --caution-soft: var(--on-caution-soft);
     --caution-line: var(--on-caution-line);
   }
+  /* The upload area: a `.surface` on its own softer ground. Declared after `.surface` so
+     these win on the same element. */
+  .dropzone {
+    background-color: rgb(var(--dz-ground));
+    --muted: var(--dz-muted);
+    --accent-line: var(--dz-line);
+  }
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium
            transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-45;
@@ -291,6 +313,14 @@
   }
   .btn-quiet {
     @apply btn px-3 py-1.5 text-muted hover:text-accent;
+  }
+  /* The header's words set in the headings' face, Geist 600. `.btn` is named too because
+     it sets its own weight, which would otherwise win over the inherited one. */
+  .nav-type,
+  .nav-type .btn {
+    font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
   /* Underlined always, not just on hover: with a hueless accent, colour no longer marks a
      link, and "bold dark text" is not an affordance. */
