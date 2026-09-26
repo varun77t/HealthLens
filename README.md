@@ -35,7 +35,7 @@ and see what stands out, in everyday language. The project and its code are name
   </tr>
 </table>
 
-<sub>Shown with <code>demo_reports/kidney-positive-1.pdf</code>, a synthetic sample report.</sub>
+<sub>Shown with <code>demo_reports/heart-positive-1.pdf</code>, a sample report built from a held-out test record.</sub>
 
 ## Modules
 
